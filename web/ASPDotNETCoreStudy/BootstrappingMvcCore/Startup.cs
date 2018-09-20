@@ -16,6 +16,7 @@ namespace BootstrappingMvcCore
         {
             services.AddMvc(options =>
             {
+                options.Filters.Add(new CultureAttribute());
             });
 
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
