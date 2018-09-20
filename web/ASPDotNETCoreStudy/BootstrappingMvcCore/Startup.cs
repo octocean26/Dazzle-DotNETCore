@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Routing.Constraints;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BootstrappingMvcCore
@@ -17,8 +16,9 @@ namespace BootstrappingMvcCore
         {
             services.AddMvc(options =>
             {
-                
             });
+
+            services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -28,6 +28,74 @@ namespace BootstrappingMvcCore
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            //自定义路由
+            app.UseMvc(routes =>
+            {
+                routes.MapRoute(
+                    name: "route-today",
+                    template: "today/{offset}",
+                    defaults: new { controller = "date", action = "day", offset = 0 });
+
+                routes.MapRoute(
+                    name: "route-yesterday",
+                    template: "yesterday",
+                    defaults: new { controller = "date", action = "day", offset = -1 });
+
+                routes.MapRoute(
+                    name: "route-tomorrow",
+                    template: "tomorrow/{format:regex(A|B|C)}",
+                    defaults: new { controller = "date", action = "day", offset = 1 });
+
+                routes.MapRoute(
+                    name: "route-day",
+                    template: "date/day/{offset}",
+                    defaults: new { controller = "date", action = "day", offset = 0 });
+            });
+
+            //常规路由
+            app.UseMvcWithDefaultRoute();
+
+            //路由约束
+            app.UseMvc(routes =>
+            {
+                routes.MapRoute(
+                    name: "route-today",
+                    template: "today/{offset}",
+                    defaults: new { controller = "date", action = "day", offset = 0 },
+                    constraints: new { offset = new IntRouteConstraint() });
+            });
+
+            //数据令牌
+            app.UseMvc(routes =>
+            {
+                routes.MapRoute(
+                    name: "catch-all",
+                    template: "{*url}",
+                    defaults: new { controller = "home", action = "index" },
+                    constraints: new { },
+                    dataTokens: new { reason = "catch-all" });
+            });
+
+            //app.UseMvc(routes =>
+            //{
+            //    routes.MapRoute(
+            //        name: "default",
+            //        template: "{controller=Home}/{action=Index}/{id?}");
+            //});
+
+
+            //app.UseMvc(routes =>
+            //{
+            //    routes.MapRoute(
+            //        name: "route-today",
+            //        template: "today",
+            //        defaults: new { controller = "date", action = "day", offset = 0 });
+
+            //});
+
+
+
 
             app.Run(async (context) =>
             {
