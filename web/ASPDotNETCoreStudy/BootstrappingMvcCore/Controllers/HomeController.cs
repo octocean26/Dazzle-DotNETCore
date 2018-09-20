@@ -68,6 +68,15 @@ namespace BootstrappingMvcCore
             return Content("SaveEditForm Post");
         }
 
+        
 
+        public IActionResult Js()
+        {
+
+             
+            return new ContentResult() { Content = "alert('nihao');", ContentType = "text/javascript", StatusCode = 200 };
+        }
+
+        
     }
 }
