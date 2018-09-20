@@ -5,7 +5,7 @@ namespace BootstrappingMvcCore.Controllers
     [Route("goto2")]
     public class Tour2Controller : Controller
     {
-        [Route("[controller]/[action]")] //绝对路由
+        [Route("/[controller]/[action]")] //绝对路由
         [ActionName("ny")]
         public IActionResult NewYork() //访问形式：/tour2/ny
         {
