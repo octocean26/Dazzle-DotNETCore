@@ -71,11 +71,11 @@ namespace BootstrappingMvcCore
 
         
 
-        public IActionResult Js()
+        public void Js()
         {
             Response.WriteAsync("<script>alert('nihao');</script>");
              
-            return new ContentResult() { Content = "alert('nihao');", ContentType = "text/javascript", StatusCode = 200 };
+            //return new ContentResult() { Content = "alert('nihao');", ContentType = "text/javascript", StatusCode = 200 };
         }
 
         
