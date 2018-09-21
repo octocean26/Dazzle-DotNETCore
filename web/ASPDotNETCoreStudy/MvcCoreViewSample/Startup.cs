@@ -15,7 +15,22 @@ namespace MvcCoreViewSample
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
+            services.AddMvc()
+                //自定义位置格式
+                .AddRazorOptions(options=> {
+                    //清除当前的视图位置格式列表。 此时列表包含默认的视图位置格式。
+                    options.ViewLocationFormats.Clear();
+
+                    // {0} - Action Name
+                    // {1} - Controller Name
+                    // {2} - Area Name
+                    options.ViewLocationFormats.Add("/Views/{1}/{0}.cshtml");
+                    options.ViewLocationFormats.Add("/Views/Shared/{0}.cshtml");
+                    options.ViewLocationFormats.Add("/Views/Shared/Layouts/{0}.cshtml");
+                    options.ViewLocationFormats.Add("/Views/Shared/PartialViews/{0}.cshtml");
+
+
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
