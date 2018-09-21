@@ -5,6 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Folder Include="Views\Shared\Layouts\" />
+    <Folder Include="Views\Shared\PartialViews\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
 

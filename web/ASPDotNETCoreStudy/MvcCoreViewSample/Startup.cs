@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,7 +13,8 @@ namespace MvcCoreViewSample
         {
             services.AddMvc()
                 //自定义位置格式
-                .AddRazorOptions(options=> {
+                .AddRazorOptions(options =>
+                {
                     //清除当前的视图位置格式列表。 此时列表包含默认的视图位置格式。
                     options.ViewLocationFormats.Clear();
 
@@ -29,7 +26,7 @@ namespace MvcCoreViewSample
                     options.ViewLocationFormats.Add("/Views/Shared/Layouts/{0}.cshtml");
                     options.ViewLocationFormats.Add("/Views/Shared/PartialViews/{0}.cshtml");
 
-
+                    options.ViewLocationExpanders.Add(new MultiTenantViewLocationExpander());
                 });
         }
 
