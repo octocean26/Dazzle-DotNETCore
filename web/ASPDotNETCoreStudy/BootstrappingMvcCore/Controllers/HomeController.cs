@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BootstrappingMvcCore
@@ -72,7 +73,7 @@ namespace BootstrappingMvcCore
 
         public IActionResult Js()
         {
-
+            Response.WriteAsync("<script>alert('nihao');</script>");
              
             return new ContentResult() { Content = "alert('nihao');", ContentType = "text/javascript", StatusCode = 200 };
         }
