@@ -15,7 +15,7 @@ public class Startup
 {
     public void Configure(IApplicationBuilder app)
     {
-       app.Run(async context =>
+       app.Run(async context =>ew;'/'
        {
           var obj = new SomeWork();
           await context.Response.WriteAsync("<h1>" + obj.Now() + "</h1><script>alert('ni');</script>");
@@ -408,6 +408,413 @@ Razor解析器和代码生成器的行为由一些可选指令驱动，您可以
 
 
 ## 将数据传递给视图
+
+将数据传递到Razor视图有三种不同的非排他方式。在ASP.NET Core中，您还可以通过@inject指令进行第四次路径依赖注入。您可以使用两个内置词典中的一个 - ViewData和/或ViewBag - 或者使用强类型视图模型类。从纯粹的功能观点来看，这些方法之间没有差异，甚至从性能的角度来看，差异可以忽略不计。
+
+但是，在设计，可读性以及随后的维护方面存在巨大差异。不同之处在于支持使用强类型视图模型类。
+
+### 内置词典
+
+控制器将数据传递给视图的最简单方法是将任何信息填充到名称/值字典中。这可以通过两种方式中的任何一种来完成。
+
+#### ViewData字典
+
+ViewData是一个经典的名称/值字典。该属性的实际类型是ViewDataDictionary，它不是从任何系统的字典类型派生的，但仍然公开.NET Core框架中定义的公共字典接口。
+
+基本Controller类公开ViewData属性，该属性的内容自动刷新到视图后面的RazorPage <T>类的动态创建实例中。这意味着存储在控制器ViewData中的任何值都可以在视图中使用，而无需您做任何进一步的努力。
+
+```c#
+public IActionResult Index()
+{
+    ViewData["PageTitle"] = "Hello";
+    ViewData["Copyright"] = "(c) Dino Esposito";
+    ViewData["CopyrightYear"] = 2017;
+    return View();
+}
+```
+
+index.cshtml视图不需要声明模型类型，只能读回任何传递的数据。这是墙上的第一个裂缝出现的地方。负责编写视图的开发人员可能不了解通过字典传递的数据。她必须依赖内部文档和实时通信渠道，或者她可以放置断点并在Visual Studio中检查字典（参见图5-4）。在任何情况下，即使同一个人写控制器和视图，它也不会是愉快的体验。
+
+![viewdata](assets/viewdata.jpg)
+
+外，考虑到因为ViewData条目是通过名称标识的（例如，魔术字符串），您的代码经常会出现拼写错误，在这种情况下，即使是预编译的视图也不能保护您免受意外的运行时异常或不可预测的错误内容的影响。使用常量而不是魔术字符串可以缓解这个问题，但代价是强制将这些常量的内部文档和传递给视图的整个数据集合。
+
+ViewData字典是一个字符串/对象字典，这意味着您存储在其中的任何数据都作为通用对象公开。如果您只在相对较小的字典中显示视图中的内容，这可能不是什么大问题。对于大型字典，您可能会遇到装箱/拆箱性能问题。如果需要使用某些ViewData项进行比较或其他类型敏感操作，则必须在获取可用值之前执行类型转换。
+
+使用像ViewData这样的弱类型字典的最令人信服的原因是编程的简单性和即时性。然而，这总是以使代码变得脆弱为代价，并且任何使其不那么脆弱的努力都不可避免地迫使您努力使用强类型类，而没有使用类所带来的固有清晰度。
+
+重要虽然我们不建议在Web应用程序中广泛使用ViewData字典，但我们认识到在某些边缘情况下可以节省生命，例如当您发现更新强类型模型时会出现问题（例如，您不拥有源代码），仍然需要将其他数据传递给视图。如前所述，事实上，字典和视图模型可以一起使用。另一个棘手的场景是，当您将数据从视图传递到子部分视图时，有时可以将字典与强类型视图模型并排使用。当我们讨论部分视图时，我们将在第6章介绍这种情况。
+
+#### ViewBag动态对象
+
+ViewBag是在基本Controller类上定义的另一个属性，其内容自动刷新到视图类中。 ViewBag与ViewData不同，因为它允许对属性进行直接编程访问，从而避免了ViewData支持的字典标准访问。这是一个例子：
+
+```c#
+public IActionResult Index()
+{
+    ViewBag.CurrentTime = DateTime.Now;
+    ViewBag.CurrentTimeForDisplay = DateTime.Now.ToString("HH:mm");
+    return View();
+}
+```
+
+请注意，在ViewBag上使用索引器的任何访问都将失败，这将导致异常。换句话说，以下两个表达式不相同，而且只有前者有效。
+
+```c#
+//正确调用
+ViewBag.CurrentTimeForDisplay = DateTime.Now.ToString("HH:mm");      // works
+//错误使用
+ViewBag["CurrentTimeForDisplay"] = DateTime.Now.ToString("HH:mm");   // throws
+```
+
+这里有趣部分是ViewBag不包含任何像CurrentTime和CurrentTimeForDisplay这样的属性的定义。您可以在ViewBag对象引用旁边键入任何属性名称，C＃编译器永远不会抱怨。原因是ViewBag在Controller基类上定义为DynamicViewData属性，而DynamicViewData是ASP.NET Core类型，定义如下：
+
+```c#
+namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
+{
+  public class DynamicViewData : DynamicObject 
+  {
+  ...
+  }
+}
+```
+
+C＃语言通过动态语言运行时（DLR）支持动态功能，DynamicObject类是其中的一部分。每当遇到对动态类型变量的引用时，C＃编译器就会跳过类型检查并发出可归结为DLR的代码，以便在运行时解析调用。这意味着即使在预编译视图的情况下，也只会在运行时发现错误（如果有）。
+
+ViewBag的另一个有趣的方面是它的内容自动同步到ViewData字典的内容。发生这种情况是因为DynamicViewData类的构造函数接收对ViewData字典的引用，只是从相应的ViewData条目读取和写入任何接收到的值。因此，以下表达式是等效的。
+
+```c#
+var p1 = ViewData["PageTitle"];
+var p2 = ViewBag.PageTitle;
+```
+
+那么使用ViewBag有什么意义呢？总而言之，ViewBag显然很酷。它只是通过摆脱丑陋的基于字典的代码来对你的代码进行一些修改，而这样做是以牺牲任何读写的DLR解释代码为代价的。这样做，它允许您定义可能实际不存在的属性，因此它甚至不会在运行时将您从空引用异常中保存。
+
+注意ViewBag等动态对象在从ASP.NET Core控制器和视图传递数据的上下文中没有多大意义，但在C＃中具有动态功能是非常有益的。例如，LINQ和社交网络API利用了该语言中的这种动态功能。
+
+### 强类型视图模型
+
+一些开发人员似乎讨厌使用视图模型类，因为它只是一堆更多的类来编写，这样做需要一些预见。但是，作为一般规则，强类型视图模型是将数据传递给视图的首选方法，因为它迫使您作为开发人员专注于进出视图的数据流。
+
+与使用字典相比，视图模型类只是布置要传递给视图的数据的不同方式。使用视图模型类，数据不是看起来像稀疏对象值的集合，而是在分层结构中很好地布局，其中每个数据片段保留其自己的实际类型。
+
+#### 视图模型类的准则
+
+视图模型类是一个完全表示呈现到视图中的数据的类。类的结构应尽可能地匹配视图的结构。虽然一些重用总是可行的（并且在某种程度上是可取的），但一般而言，您应该针对每个Razor视图模板设置一个特殊视图模型类。
+
+一个常见的错误是使用实体类作为视图模型类。例如，假设您的数据模型具有Customer类型的实体。您应该如何将数据传递到允许编辑客户记录的Razor视图？您可能想要将视图传递给您要编辑的Customer对象的引用。这可能是也可能不是一个好的解决方案。最后，这一切都取决于视图的实际结构和内容。例如，如果视图允许您更改客户的国家/地区，那么您可能需要将视图传递给可供选择的国家/地区列表。通常，理想的视图模型是类似于以下类的类：
+
+```
+public class CustomerEditViewModel
+{
+   public Customer CurrentCustomer { get; set; }
+   public IList<Country> AvailableCountries { get; set; }
+}
+```
+
+直接传递给视图的实体模型可以接受的唯一情况是你真的有一个CRUD视图。但是，坦率地说，现在纯CRUD视图仅存在于教程和摘要文章中。我建议您始终从通用基类开始创建视图模型类。这是一个简单而有效的起点。
+
+```c#
+public class ViewModelBase
+{
+    public ViewModelBase(string title = "")
+    {
+        Title = title;
+    }
+    public string Title { get; set; }
+}
+```
+
+因为主要期望类对HTML视图进行建模，所以至少需要公开Title属性来设置页面的标题。只要您确定应用程序中所有页面共有的其他属性，就可以添加更多属性。此外，在视图模型基类中使用格式化方法是一个好主意，而不是在Razor视图中放置相同的大量C＃代码。
+
+你应该从上面的ViewModelBase类派生所有的视图模型类吗？理想情况下，您应该为您使用的每个布局类都有一个基本视图模型类。这些视图模型类将使用特定布局的公共属性扩展ViewModelBase。最后，基于特定布局的每个视图将由从布局基础视图模型类派生的类的实例提供。
+
+#### 将数据流集中到视图中
+
+让我们来看看以下基本但仍然相关的Razor代码片段。它只是一个DIV元素，它在内部呈现当前时间，并提供一个链接以导航回到上一页
+
+```c#
+@model IndexViewModel
+@using Microsoft.Extensions.Options;
+@inject IOptions<GlobalConfig> Settings 
+<div>
+   <span>
+      @DateTime.Now.ToString(Settings.Value.DateFormat)
+   </span>
+   <a href="@Model.ReturnUrl">Back</a>
+</div>
+```
+
+视图中没有单一的数据流。数据实际上从三个不同的源流入：视图模型（Model属性），注入的依赖项（Settings属性）以及对系统的DateTime对象的静态引用。虽然完全没有妥协，但是在具有数百个视图且非常复杂的大型应用程序中处理上述方法的视图功能可能存在问题。
+
+在Razor视图中应该避免直接使用静态引用甚至是DI注入的引用（ASP.NET Core的骄傲和喜悦），因为它们会扩大数据流入的带宽。如果您正在寻找有关如何构建的指导可维护的视图，那么你应该只为每个视图提供一种获取数据的方法：视图模型类。因此，如果您的视图需要静态引用或全局引用，只需将这些属性添加到视图模型类。特别是，当前时间可能只是可以添加到超级ViewModelBase类的一个属性。
+
+### 通过DI系统注入数据
+
+在ASP.NET Core中，您还可以向视图中注入DI系统注册的任何类型的实例。您可以通过@inject指令执行此操作。如上所述，@ inject指令增加了一个通道，数据可以通过该通道流入视图，从长远来看，这可能是一个容易维护代码的问题。
+
+但是，对于短期应用程序或仅作为快捷方式注入视图的外部引用是一个完全支持的功能，欢迎您使用。无论不同设计可能带来什么好处，都应该注意ViewData字典和@inject指令一起提供了一种功能强大且极其快速的方法，可以在Razor视图中检索您可能需要的任何数据。这不是我申请或鼓励的做法，但它得到了支持，它绝对有效。
+
+
+
+## Razor页面
+
+在经典的ASP.NET MVC中，无法通过直接URL引用Razor模板。 URL可用于链接静态HTML页面或由控制器操作方法排列的HTML输出。 ASP.NET Core也不例外。但是，从ASP.NET Core 2.0开始，可以使用一个新功能 - Razor页面 - 允许您直接通过URL调用Razor模板，而无需任何控制器中介。
+
+### 发现Razor Pages背后的基本原理
+
+但是，有时您可以使用控制器方法来提供一些相当静态的标记。典型示例是标准网站的“关于我们”或“联系我们”页面。我们来看看下面的代码。
+
+```c#
+public class HomeController
+{
+    public IActionResult About()
+    {
+       return View(); 
+    }
+    public IActionResult ContactUs()
+    {
+       return View(); 
+    }
+}
+```
+
+如您所见，没有数据从控制器传递到视图，并且在实际视图中几乎不需要渲染逻辑。为什么要对这样一个简单的请求使用过滤器和控制器的开销？剃刀页面就是为了这个目的。
+
+使用Razor页面的另一个场景是它们的使用在某种程度上降低了熟练的ASP.NET编程的障碍。我们来看看如何。
+
+### Razor Pages的实现
+
+Razor页面的主要原因是当你需要的只是静态HTML而不是一个完整的Razor视图及其所有基础设施时，可以节省控制器的成本。 Razor页面可以支持相当高级的编程方案，例如访问数据库，发布表单，验证数据等。但是，如果这是您需要的，那么为什么要使用普通页面呢？
+
+#### @page指令
+
+以下代码显示了一个简单但功能强大的Razor页面的源代码。 Razor代码过于简单并非巧合。
+
+```c#
+@page
+@{
+    var title = "Hello, World!";
+}
+<html>
+  <head>
+    <title>@title</title>
+  </head>
+  <body>
+     <!-- Some relatively static markup -->
+  </body>
+</html>
+```
+
+Razor页面就像一个无布局的Razor视图，除了root指令 - @page指令。 Razor页面完全支持Razor语法的所有方面，包括@inject指令和C＃语言。
+
+@page指令对于将Razor视图转换为Razor页面至关重要，因为它是一个经过处理的指令，它指示ASP.NET Core基础结构将请求视为操作，即使它未绑定到任何控制器。注意@page指令必须是页面上的第一个Razor指令是关键，因为它会影响其他受支持指令的行为。
+
+#### 支持的文件夹
+
+Razor页面是位于新Pages文件夹下的常规.cshtml文件。 Pages文件夹通常位于根级别。在Pages文件夹中，您可以拥有任意级别的子目录，每个目录都可以包含Razor页面。换句话说，Razor页面的位置与文件系统目录中的文件位置大致相同。
+
+Razor页面不能位于Pages文件夹之外。
+
+#### 映射到URL
+
+调用Razor页面的URL取决于Pages文件夹中文件的物理位置以及文件名。名为about.cshtml的文件位于Pages文件夹中，可以作为/ about访问。同样，位于Pages / Misc下的名为contact.cshtml的文件可以作为/ misc / contact访问。一般映射规则是您获取Razor页面文件相对于Pages的路径并删除文件扩展名。
+
+如果您的应用程序还有一个带有Contact操作方法的MiscController类，会发生什么？在这种情况下，当调用URL / misc / contact时，它是通过MiscController类还是Razor页面运行的？控制器将获胜。
+
+另请注意，如果Razor页面的名称是index.cshtml，那么也可以在URL中删除名称索引，并且可以通过/ index和via /来访问页面。
+
+### 从Razor页面发布数据
+
+Razor页面的另一个现实场景是所有页面都可以发布表单。此功能非常适用于基本的基于表单的页面，例如contact-us页面。
+
+#### 向Razor页面添加表单
+
+以下代码显示了带有表单的Razor页面，并说明了如何初始化表单并发布其内容。
+
+```asp
+@inject IContactRepository ContactRepo
+@functions {
+    [BindProperty]
+    public ContactInfo Contact { get; set; }
+    public void IActionResult OnGet()
+    {
+        Contact.Name = "";
+        Contact.Email = "";
+        return Page();
+    }
+
+    public void IActionResult OnPost()
+    {
+        if (ModelState.IsValid)
+        {
+            ContactRepo.Add(Contact);
+            return RedirectToPage();
+        }
+        return Page();
+    }
+}
+
+<html>
+<body>
+    <p>Let us call you back!</p> 
+    <div asp-validation-summary="All"></div>
+    <form method="POST">
+      <div>Name: <input asp-for="ContactInfo.Name" /></div>
+      <div>Email: <input asp-for="ContactInfo.Email" /></div>
+      <button type="submit">SEND</button>
+    </form>
+</body>
+</html>
+```
+
+该页面分为两个主要部分：标记区域和代码区域。标记区域是一个常规的Razor视图，具有Razor视图的所有功能，包括标记帮助程序和HTML帮助程序。代码区包含初始化页面和处理其发布数据的所有代码。
+
+#### 初始化表格
+
+@functions指令充当页面周围所有代码的容器。它通常由两种方法组成 - OnGet和OnPost。调用前者来初始化标记的输入元素。调用后者来处理从表单发布的任何内容。
+
+使用模型绑定层执行HTML输入元素和代码元素之间的绑定。使用BindProperty属性修饰，Contact属性在OnGet中初始化，其值以HTML格式呈现。当表单回发时，相同的属性包含（通过模型绑定）发布的值。
+
+#### 处理表格的输入
+
+OnPost方法可以使用ModelState属性来检查错误 - 整个验证基础结构的工作方式与在控制器方案中的工作方式相同 - 如果一切正常，则会面临处理发布数据的问题。如果检测到错误，则会回显调用页面调用Page（）函数，这会导致对同一URL的GET请求。
+
+实际处理表单的输入意味着访问数据库。您可以通过应用程序的DbContext对象或通过某个专用存储库直接访问数据库。在这两种情况下，必须通过页面中的DI注入工具。同样，您可以使用@inject指令在Razor页面的上下文中提供任何必要的信息。
+
+重要如果您查看Razor页面的文档，您会发现一些更多支持的选项和工具可用于更高级的方案。坦率地说，Razor页面的真正力量在于它们允许基本场景的快速覆盖。超出这个水平使得Razor页面的复杂性和控制器的复杂性几乎相同。并且控制器提供了更深层次的代码分层以及更多的关注点分离。除了这里讨论的复杂程度之外，在控制器上使用Razor页面只是个人偏好的问题。
+
+
+
+## 概要
+
+视图是Web应用程序的基础，在ASP.NET Core中，视图是处理模板文件的结果 - 通常是Razor模板文件 - 并将其与调用者提供的一些数据混合 - 通常但不一定是控制器 方法。 在本章中，我们首先讨论了视图引擎架构，然后深入研究了Razor视图的渲染。 接下来，我们继续比较将数据传递给视图的各种方法。 我们在本章结束时看了一下Razor页面，这些页面对于快速安排非常简单和基本的视图很有用; 它们也是从不同角度学习ASP.NET Core中的Web编程的工具。
+
+本章包含许多Razor代码片段。 Razor是一种标记语言，其语法看起来像HTML，但允许多种扩展和特定功能。 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
