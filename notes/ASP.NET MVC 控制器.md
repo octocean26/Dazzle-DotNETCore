@@ -27,7 +27,7 @@ app.UseMvc(routes =>
 
 从URL模板参数中推断出控制器名称，作为URL的第一个段，该段位于服务器名称之后。常规路由通过显式或隐式路由参数设置控制器参数的值。显式路由参数是定义为URL模板一部分的参数，如上所示。隐式路由参数是一个不会出现在URL模板中的参数，它被视为一个常量。
 
-在下面的示例中，URL模板是"today"，并且控制器参数的值是通过路由的defaults属性静态设置的。
+在下面的示例中，URL模板是"`today`"，并且控制器参数的值是通过路由的defaults属性静态设置的。
 
 ```c#
 app.UseMvc(routes =>
@@ -67,30 +67,30 @@ public class DateController : Controller
 
 ### 继承的控制器
 
-控制器类通常是直接或间接从给定基类Microsoft.AspNetCore.Mvc.Controller类继承的类。请注意，在ASP.NET Core之前发布的所有ASP.NET MVC版本中，继承自基类Controller是一项严格的要求。相反，在ASP.NET Core中，您还可以拥有没有继承功能的普通C#类的控制器类（具体见下面的介绍）。
+控制器类通常是直接或间接从给定基类`Microsoft.AspNetCore.Mvc.Controller`类继承的类。请注意，在ASP.NET Core之前发布的所有ASP.NET MVC版本中，继承自基类`Controller`是一项严格的要求。相反，在ASP.NET Core中，您还可以拥有没有继承功能的普通C#类的控制器类（具体见下面的介绍）。
 
-一旦系统成功解析路由后，它就拥有一个控制器名称。该名称是一个普通的字符串，类似于别名（例如，Home或Date），必须与项目中包含或引用的实际类匹配。
+一旦系统成功解析路由后，它就拥有一个控制器名称。该名称是一个普通的字符串，类似于别名（例如，`Home`或`Date`），必须与项目中包含或引用的实际类匹配。
 
-#### 带有后缀Controller的类名
+#### 带有后缀`Controller`的类名
 
-拥有系统可以轻松发现的有效控制器类的最常见方案是为类名提供后缀“Controller”，并从上述中的Controller基类继承它。这意味着控制器名称Home的对应类将是HomeController类。如果存在这样的类，系统就会运行，并且能够成功地处理请求。（这是之前传统的ASP.NET MVC工作方式）
+拥有系统可以轻松发现的有效控制器类的最常见方案是为类名提供后缀“`Controller`”，并从上述中的`Controller`基类继承它。这意味着控制器名称Home的对应类将是`HomeController`类。如果存在这样的类，系统就会运行，并且能够成功地处理请求。（这是之前传统的ASP.NET MVC工作方式）
 
-在ASP.NET Core中，控制器类的命名空间并不重要，尽管社区中的工具和许多例子都倾向于将控制器类放在一个名为Controllers的文件夹下。实际上，您可以将控制器类放在任何文件夹和任何名称空间中。只要该类具有“Controller”后缀并从Controller继承，它就会一直被发现。
+在ASP.NET Core中，控制器类的命名空间并不重要，尽管社区中的工具和许多例子都倾向于将控制器类放在一个名为`Controllers`的文件夹下。实际上，您可以将控制器类放在任何文件夹和任何名称空间中。只要该类具有“`Controller`”后缀并从`Controller`继承，它就会一直被发现。
 
 #### 没有后缀Controller的类名
 
-在ASP.NET Core中，如果控制器类缺少“Controller”后缀，也会成功被发现，但有几点需要注意。
+在ASP.NET Core中，如果控制器类缺少“`Controller`”后缀，也会成功被发现，但有几点需要注意。
 
-- 只有当类继承自基类Controller时，发现过程才有效。
+- 只有当类继承自基类`Controller`时，发现过程才有效。
 - 类的名称必须与路由分析中的控制器名称匹配。
 
-如果从路由中提取的控制器名称是Home，那么可以使用一个名为Home的类继承自基类Controller。任何其他名称都不起作用。换句话说，您不能只使用自定义后缀，名称的根部分必须始终与路由中的名称匹配。
+如果从路由中提取的控制器名称是`Home`，那么可以使用一个名为`Home`的类继承自基类`Controller`。任何其他名称都不起作用。换句话说，您不能只使用自定义后缀，名称的根部分必须始终与路由中的名称匹配。
 
-通常，控制器类直接从类Controller继承，它从Controller类获取环境属性和功能。最值得注意的是，控制器从其基类继承HTTP上下文。您可以拥有从Controller继承的中间自定义类，绑定到URL的实际控制器类从该类继承。
+通常，控制器类直接从类`Controller`继承，它从`Controller`类获取环境属性和功能。最值得注意的是，控制器从其基类继承HTTP上下文。您可以拥有从`Controller`继承的中间自定义类，绑定到URL的实际控制器类从该类继承。
 
 ### POCO控制器（不继承自基类）
 
-动作调用者将HTTP上下文注入控制器的实例中，控制器类中运行的代码可以通过HttpContext属性访问它。从系统提供的基类继承controller类可以免费获得所有必需的管道。但是，在ASP.NET Core中，不再需要从公共基类继承任何控制器。在ASP.NET Core中，控制器类可以是普通的C＃对象（POCO），其定义如下：
+动作调用者将HTTP上下文注入控制器的实例中，控制器类中运行的代码可以通过`HttpContext`属性访问它。从系统提供的基类继承`Controller`类可以免费获得所有必需的管道。但是，在ASP.NET Core中，不再需要从公共基类继承任何控制器。在ASP.NET Core中，控制器类可以是普通的C＃对象（POCO），其定义如下：
 
 ```c#
 public class PocoController
@@ -99,7 +99,7 @@ public class PocoController
 }
 ```
 
-要使系统成功发现POCO控制器，要么类名具有“Controller”后缀，要么使用Controller属性修饰类。
+要使系统成功发现POCO控制器，要么类名具有“`Controller`”后缀，要么使用`Controller`属性修饰类。
 
 ```c#
 [Controller]
@@ -129,7 +129,7 @@ public class PocoController
 
 #### 返回HTML内容
 
-您可以通过ContentResult的服务将纯HTML内容发送回浏览器。与上面的示例不同的是，将ContentType属性设置为适当的MIME类型，并根据自己的喜好构建HTML字符串。
+您可以通过`ContentResult`的服务将纯HTML内容发送回浏览器。与上面的示例不同的是，将`ContentType`属性设置为适当的MIME类型，并根据自己的喜好构建HTML字符串。
 
 ```c#
 [Controller]
@@ -151,7 +151,7 @@ public class Poco2
 
 #### 返回HTML视图
 
-访问处理HTML视图的ASP.NET基础架构不是即时的。在控制器方法中，您必须返回一个适当的IActionResult对象，但是所有用于快速有效地执行该操作的可用助手方法都属于基类，在POCO控制器中不可用。下面是一个基于视图返回HTML的变通方法。
+访问处理HTML视图的ASP.NET基础架构不是即时的。在控制器方法中，您必须返回一个适当的`IActionResult`对象，但是所有用于快速有效地执行该操作的可用助手方法都属于基类，在POCO控制器中不可用。下面是一个基于视图返回HTML的变通方法。
 
 下面代码片段的主要目的是显示POCO控制器占用的内存更少，但是缺少一些内置的功能。
 
@@ -183,7 +183,7 @@ public class Poco2
 
 当直接使用/poco2/index进行访问时，将会显示正确的结果出来。
 
-上述中，方法签名中的附加参数需要更多的说明。它是在ASP.NET Core 中广泛使用并推荐的一种依赖注入形式。要创建HTML视图，至少需要从外部引用IModelMetadataProvider。坦率地说，如果没有外部注入的依赖项，您将无法做很多事情。下面的代码片段，它试图简化上面的代码：
+上述中，方法签名中的附加参数需要更多的说明。它是在ASP.NET Core 中广泛使用并推荐的一种依赖注入形式。要创建HTML视图，至少需要从外部引用`IModelMetadataProvider`。坦率地说，如果没有外部注入的依赖项，您将无法做很多事情。下面的代码片段，它试图简化上面的代码：
 
 ```c#
 //注：该模式在poco中，并不能将数据传入到视图中去
@@ -193,13 +193,13 @@ public IActionResult Simple()
 }
 ```
 
-您可以使用名为“simple”的Razor模板，并且返回的HTML都来自模板。但是，**您无法将自己的数据传递给视图以使渲染逻辑足够智能**。此外，无论是通过表单还是查询字符串提交的任何数据，你都无法访问。
+您可以使用名为“`simple`”的Razor模板，并且返回的HTML都来自模板。但是，**您无法将自己的数据传递给视图以使渲染逻辑足够智能**。此外，无论是通过表单还是查询字符串提交的任何数据，你都无法访问。
 
 #### 访问HTTP上下文
 
 POCO控制器最棘手的方面是缺少HTTP上下文。特别是，这意味着您不能检查提交的原始数据，包括查询字符串和路由参数。但是，这个上下文信息是可用的，只能在需要时附加到控制器。有两种方法可以做到这一点。
 
-第一种方法包括为操作注入当前上下文。上下文是ActionContext类的一个实例，它包装了HTTP上下文和路由信息，这就是你需要的。代码如下：
+第一种方法包括为操作注入当前上下文。上下文是`ActionContext`类的一个实例，它包装了HTTP上下文和路由信息，这就是你需要的。代码如下：
 
 ```c#
 public class PocoController
@@ -209,7 +209,7 @@ public class PocoController
 }
 ```
 
-有了上述代码，您现在可以像访问常规的非POCO控制器一样访问Request对象或RouteData对象。以下代码允许您从RouteData集合中读取控制器名称：
+有了上述代码，您现在可以像访问常规的非POCO控制器一样访问`Request`对象或`RouteData`对象。以下代码允许您从`RouteData`集合中读取控制器名称：
 
 ```c#
 public class PocoController
@@ -236,9 +236,9 @@ public IActionResult Http([FromQuery] int p1 = 0)
 }
 ```
 
-当你使用/poco/http?p1=100进行访问时，将会得到正确的显示结果。
+当你使用`/poco/http?p1=100`进行访问时，将会得到正确的显示结果。
 
-上述代码中，通过使用FromQuery属性修饰方法参数，可以指示系统尝试查找参数名称（例如，p1）与URL查询字符串中的一个参数相匹配的项。如果找到匹配且类型可转换，那么方法参数将自动接收传递的值。类似地，通过使用FromRoute或FromForm属性，您可以访问RouteData集合中的数据或通过HTML表单提交的数据。
+上述代码中，通过使用`FromQuery`属性修饰方法参数，可以指示系统尝试查找参数名称（例如，`p1`）与URL查询字符串中的一个参数相匹配的项。如果找到匹配且类型可转换，那么方法参数将自动接收传递的值。类似地，通过使用`FromRoute`或`FromForm`属性，您可以访问`RouteData`集合中的数据或通过HTML表单提交的数据。
 
 注意：在ASP.NET Core中，全局数据的概念非常模糊。在应用程序的任何地方都可以进行全局访问的意义上，没有什么是真正的全局访问。任何想要全局访问的数据都必须显式地传递。更确切地说，它必须在任何可能使用它的上下文中导入。为了实现这一点，ASP.NET Core提供了一个内置的依赖注入（DI）框架，开发人员可以通过这个框架注册抽象类型(比如接口)和它们的具体类型，当需要引用抽象类型时，框架就需要返回具体类型的实例。
 
@@ -250,11 +250,11 @@ public IActionResult Http([FromQuery] int p1 = 0)
 
 ### 将操作映射到方法
 
-一般规则是，控制器类上的任何公共方法都是具有相同名称的公共操作。例如，考虑像/ home / index这样的URL的情况。根据前面讨论过的路由事实，控制器名称是“home”，它需要在项目中提供一个名为HomeController的实际类。从URL中提取的操作名称是“index”。随后，HomeController类将公开一个名为Index的公共方法。
+一般规则是，控制器类上的任何公共方法都是具有相同名称的公共操作。例如，考虑像`/home/index`这样的URL的情况。根据前面讨论过的路由事实，控制器名称是“`home`”，它需要在项目中提供一个名为`HomeController`的实际类。从URL中提取的操作名称是“`index`”。随后，`HomeController`类将公开一个名为`Index`的公共方法。
 
 #### 按名称映射
 
-对之前的HomeController进行扩展，添加About()， 注意该方法使用了特性NonAction进行了标注：
+对之前的`HomeController`进行扩展，添加`About()`方法， 注意该方法使用了特性`NonAction`进行了标注：
 
 ```c#
 public class HomeController : Controller
@@ -280,9 +280,9 @@ public class HomeController : Controller
 }
 ```
 
-上述代码中，因为Index()方法是公共的并且没有任何属性修饰，所以它隐式绑定到具有相同名称的操作。这是最常见的场景：只需添加一个公共方法，它的名称就会变成控制器上的一个操作，您可以使用任何HTTP谓词从外部调用该控制器。
+上述代码中，因为`Index()`方法是公共的并且没有任何属性修饰，所以它隐式绑定到具有相同名称的操作。这是最常见的场景：只需添加一个公共方法，它的名称就会变成控制器上的一个操作，您可以使用任何HTTP谓词从外部调用该控制器。
 
-About()方法使用了NonAction特性进行修饰，该属性在编译时不会改变方法的可见性，但会使该方法在运行时对ASP.NET Core的路由系统不可见。您可以在应用程序的服务器端代码中调用它，但它不绑定到任何可以从浏览器和JavaScript代码中调用的操作。假如此时，你直接使用/home/about进行访问，将会提示无法匹配路由地址的错误。
+`About()`方法使用了`NonAction`特性进行修饰，该属性在编译时不会改变方法的可见性，但会使该方法在运行时对ASP.NET Core的路由系统不可见。您可以在应用程序的服务器端代码中调用它，但它不绑定到任何可以从浏览器和JavaScript代码中调用的操作。假如此时，你直接使用`/home/about`进行访问，将会提示无法匹配路由地址的错误。
 
 此时，如果在上述控制器中添加如下方法：
 
@@ -294,11 +294,11 @@ public ActionResult LoveGermanShepherds()
 }
 ```
 
-使用/home/LoveGermanShepherds进行访问，同样会提示路由不匹配错误。因为它使用了ActionName进行了修饰，该属性将方法明确绑定到操作About。因此，只能使用/home/about进行访问， 每次用户请求操作About时，LoveGermanShepherds方法都会运行。注意：虽然LoveGermanShepherds()会被调用，但是，此处返回的视图并不是LoveGermanShepherds，而是About视图。这是因为已经存在了About视图，如果不存在，将会返回LoveGermanShepherds视图。因此，为了避免错误，建议为ActionName指定名称时，不要和已存在的视图名相同（可以添加断点追踪运行进行测试）。名称LoveGermanShepherds只能用于控制器类领域内的调用。
+使用`/home/LoveGermanShepherds`进行访问，同样会提示路由不匹配错误。因为它使用了`ActionName`进行了修饰，该属性将方法明确绑定到操作`About`。因此，只能使用`/home/about`进行访问， 每次用户请求操作`About`时，`LoveGermanShepherds`方法都会运行。注意：虽然`LoveGermanShepherds()`会被调用，但是，此处返回的视图并不是`LoveGermanShepherds`，而是`About`视图。这是因为已经存在了`About`视图，如果不存在，将会返回`LoveGermanShepherds`视图。因此，为了避免错误，建议为`ActionName`指定名称时，不要和已存在的视图名相同（可以添加断点追踪运行进行测试）。名称`LoveGermanShepherds`只能用于控制器类领域内的调用。
 
 #### 通过HTTP动词映射
 
-MVC应用程序模型足够灵活，允许您将方法绑定到仅针对特定HTTP谓词的操作。要将控制器方法与HTTP谓词相关联，可以使用参数AcceptVerbs属性或直接属性，如HttpGet，HttpPost和HttpPut。 AcceptVerbs属性允许指定执行给定方法所需的HTTP谓词。
+MVC应用程序模型足够灵活，允许您将方法绑定到仅针对特定HTTP谓词的操作。要将控制器方法与HTTP谓词相关联，可以使用参数`AcceptVerbs`属性或直接属性，如`HttpGet`，`HttpPost`和`HttpPut`。 `AcceptVerbs`属性允许指定执行给定方法所需的HTTP谓词。
 
 ```c#
 [AcceptVerbs("post")]
@@ -308,7 +308,7 @@ public IActionResult CallMe()
 }
 ```
 
-上述代码，限定了只能Post请求，CallMe方法不能使用GET请求调用。 AcceptVerbs属性使用字符串引用HTTP谓词。 有效值是与已知HTTP谓词对应的字符串，例如get，post，put，options，patch，delete和head。 您可以将多个字符串传递给AcceptVerbs属性，也可以在同一方法上多次重复该属性。
+上述代码，限定了只能Post请求，`CallMe()`方法不能使用GET请求调用。 `AcceptVerbs`属性使用字符串引用HTTP谓词。 有效值是与已知HTTP谓词对应的字符串，例如`get`，`post`，`put`，`options`，`patch`，`delete`和`head`。 您可以将多个字符串传递给`AcceptVerbs`属性，也可以在同一方法上多次重复该属性。
 
 ```c#
 [AcceptVerbs("post","get")]
@@ -318,7 +318,7 @@ public IActionResult CallMe()
 }
 ```
 
-使用AcceptVerbs或多个单独的属性，例如HttpGet，HttpPost，HttpPut完全取决于个人喜好。上述代码等同于：
+使用`AcceptVerbs`或多个单独的属性，例如`HttpGet`，`HttpPost`，`HttpPut`完全取决于个人喜好。上述代码等同于：
 
 ```c#
 [HttpPost]
@@ -348,7 +348,7 @@ public ActionResult Edit()
 }
 ```
 
-上述中的代码由于C#不能定义相同名称和签名的方法，所以并不能通过编译，可以使用ActionName特性，进行动作别名指定，将代码分解为不同的方法：
+上述中的代码由于C#不能定义相同名称和签名的方法，所以并不能通过编译，可以使用`ActionName`特性，进行动作别名指定，将代码分解为不同的方法：
 
 ```c#
 [HttpGet]
@@ -366,9 +366,9 @@ public ActionResult SaveEditForm()
 }
 ```
 
-方法现在具有不同的名称，但两者都绑定到相同的动作，尽管对于不同的动词。此时，分别使用/Home/edit进行GET和POST请求，可以处理不同动词对应的方法。
+方法现在具有不同的名称，但两者都绑定到相同的动作，尽管对于不同的动词。此时，分别使用`/Home/edit`进行GET和POST请求，可以处理不同动词对应的方法。
 
-上述代码尤其适用于同一个URL以不同动词形式进行请求时，需要进行的不同处理的情况。使用ActionName可以大大减少不必要的以动作名作为URL一部分的情况，这在一定程度上可以简化URL。
+上述代码尤其适用于同一个URL以不同动词形式进行请求时，需要进行的不同处理的情况。使用`ActionName`可以大大减少不必要的以动作名作为URL一部分的情况，这在一定程度上可以简化URL。
 
 ### 基于属性的路由
 
@@ -376,7 +376,7 @@ public ActionResult SaveEditForm()
 
 #### 路由属性
 
-Route属性定义了用于调用给定方法有效的URL模板。该属性既可以放在控制器类级别上，也可以放在方法级别上。如果同时放置在两个位置，那么url将被连接。
+`Route`属性定义了用于调用给定方法有效的URL模板。该属性既可以放在控制器类级别上，也可以放在方法级别上。如果同时放置在两个位置，那么url将被连接。
 
 ```c#
 [Route("goto")]
@@ -409,15 +409,15 @@ public class TourController : Controller
 }
 ```
 
-类级别的Route属性非常具有侵入性。使用该属性，你就不能以包含tour的控制器名称的形式调用名为TourController的类中的任何方法。在控制器类上调用方法的唯一方式是通过Route属性指定的模板。
+类级别的`Route`属性非常具有侵入性。使用该属性，你就不能以包含`tour`的控制器名称的形式调用名为`TourController`的类中的任何方法。在控制器类上调用方法的唯一方式是通过`Route`属性指定的模板。
 
-上述代码中，NewYork()方法没有自己的Route属性并继承父模板。因此，要调用该方法，要使用的URL是/ goto。请注意/ goto / newyork将返回404错误（URL未找到）。
+上述代码中，`NewYork()`方法没有自己的`Route`属性并继承父模板。因此，要调用该方法，要使用的URL是`/ goto`。请注意`/goto/newyork`将返回404错误（URL未找到）。
 
-在上述代码的最后存在一个Index()方法，现在控制器类包含两个没有自己的Route属性的方法。随后，调用/ goto会导致歧义，因此代码中将Index()方法进行了注释。
+在上述代码的最后存在一个`Index()`方法，现在控制器类包含两个没有自己的`Route`属性的方法。随后，调用`/goto`会导致歧义，因此代码中将`Index()`方法进行了注释。
 
-当控制器方法有自己的Route属性时，事情就会变得更清楚。指定的URL模板是调用该方法的唯一方式，如果在类级别也指定了相同的Route属性，则将连接这两个模板。例如，要调用NewYorkCity方法，必须调用/ goto/nyc。
+当控制器方法有自己的`Route`属性时，事情就会变得更清楚。指定的URL模板是调用该方法的唯一方式，如果在类级别也指定了相同的`Route`属性，则将连接这两个模板。例如，要调用`NewYorkCity()`方法，必须调用`/ goto/nyc`。
 
-在上面的示例中，BigApple方法处理了另一个场景。如您所见，在本例中，Route属性的值以反斜杠开头。在这种情况下，URL应该是绝对路径，并且不会与父模板连接。因此，要调用BigApple方法，必须使用URL / ny。注意，绝对路径是由URL模板以/或~/开头标识的。
+在上面的示例中，`BigApple()`方法处理了另一个场景。如您所见，在本例中，`Route`属性的值以反斜杠开头。在这种情况下，URL应该是绝对路径，并且不会与父模板连接。因此，要调用`BigApple`方法，必须使用URL `/ny`。注意，绝对路径是由URL模板以`/`或`~/`开头标识的。
 
 #### 使用路由参数
 
@@ -437,7 +437,7 @@ public class Tour2Controller : Controller
 }
 ```
 
-上述示例中，虽然类具有根路由属性goto2，但由于参数路由和ActionName属性的共同作用，因此可以使用/tour2/ny进行访问，这是因为，由于传统路由，控制器和操作参数在RouteData集合中定义，并且可以映射到参数。 ActionName属性只是将NewYork重命名为ny，因此可以访问。
+上述示例中，虽然类具有根路由属性`goto2`，但由于参数路由和`ActionName`属性的共同作用，因此可以使用`/tour2/ny`进行访问，这是因为，由于传统路由，控制器和操作参数在`RouteData`集合中定义，并且可以映射到参数。 `ActionName`属性只是将`NewYork`重命名为`ny`，因此可以访问。
 
 另一个示例：
 
@@ -464,7 +464,7 @@ public class VipTourController : Controller
 }
 ```
 
-控制器中的所有方法现在都可以作为/go/to/XXX形式的URL使用，其中XXX只是操作方法的名称。
+控制器中的所有方法现在都可以作为`/go/to/XXX`形式的URL使用，其中`XXX`只是操作方法的名称。
 
 #### 在路由中使用自定义参数
 
@@ -483,13 +483,13 @@ public class VipTourController : Controller
 }
 ```
 
-上述代码中，SanFrancisco()方法接收一个名为days的参数，类型为integer。Route属性定义参数days的位置（注意自定义参数使用{}符号）并为其添加类型约束。因此，使用/go/to/sanfrancisco/2/days进行访问，可以得到显示的结果。
+上述代码中，`SanFrancisco()`方法接收一个名为`days`的参数，类型为`integer`。`Route`属性定义参数`days`的位置（注意自定义参数使用`{}`符号）并为其添加类型约束。因此，使用`/go/to/sanfrancisco/2/days`进行访问，可以得到显示的结果。
 
-注意，如果您尝试一个URL，其中的days参数不能转换为整数，则会获得404状态代码，因为可能找不到该URL。但是，如果省略类型约束，只设置自定义参数{days}，则将识别URL，方法有机会处理它，并且在内部，days参数会获得该类型的默认值。如果是整数，则为0。
+注意，如果您尝试一个URL，其中的`days`参数不能转换为整数，则会获得404状态代码，因为可能找不到该URL。但是，如果省略类型约束，只设置自定义参数`{days}`，则将识别URL，方法有机会处理它，并且在内部，`days`参数会获得该类型的默认值。如果是整数，则为`0`。
 
-在ASP.NET Core中，您还可以在特定于动词的属性（如HttpGet和HttpPost）中指定路由信息。因此，您可以将路由URL模板传递给谓词属性，而不是指定路由，然后指定谓词属性。
+在ASP.NET Core中，您还可以在特定于动词的属性（如`HttpGet`和`HttpPost`）中指定路由信息。因此，您可以将路由URL模板传递给谓词属性，而不是指定路由，然后指定谓词属性。
 
-注意：属性路由中的中括号（[]）和花括号（{}）的不同，中括号匹配的值来自于路由参数，该参数在routes.MapRoute()中进行指定，默认值如controller、action等，而花括号匹配的是用户关联的url自定义参数的值。
+注意：属性路由中的中括号（`[]`）和花括号（`{}`）的不同，中括号匹配的值来自于路由参数，该参数在`routes.MapRoute()`中进行指定，默认值如`controller`、`action`等，而花括号匹配的是用户关联的url自定义参数的值。
 
 
 
@@ -513,13 +513,13 @@ public ActionResult Echo()
 }
 ```
 
-Request.Query字典包含从URL的查询字符串中提取的参数列表和各自的值。注意，搜索匹配条目不区分大小写。
+`Request.Query`字典包含从URL的查询字符串中提取的参数列表和各自的值。注意，搜索匹配条目不区分大小写。
 
 虽然这种方法功能齐全，但存在两个主要问题。首先，您必须知道从哪里获取值，是否是查询字符串，提交的值列表，URL等。对于任何不同的源，都必须使用不同的API。其次，您获得的任何值都被编码为字符串，任何类型转换都需要您自己手动完成。
 
 #### 从路由中获取输入数据
 
-在使用常规路由时，可以在URL模板中插入参数。这些值由路由模块捕获并提供给应用程序。但是，路由值不会通过从Controller继承的Request属性公开给应用程序。您必须使用一种稍微不同的方法以编程方式检索它们。假设在应用程序启动时注册了以下路由：
+在使用常规路由时，可以在URL模板中插入参数。这些值由路由模块捕获并提供给应用程序。但是，路由值不会通过从`Controller`继承的`Request`属性公开给应用程序。您必须使用一种稍微不同的方法以编程方式检索它们。假设在应用程序启动时注册了以下路由：
 
 ```c#
 routes.MapRoute(
@@ -529,9 +529,9 @@ routes.MapRoute(
 );
 ```
 
-该路由有两个自定义参数 ： city和days。控制器和方法的名称通过defaults属性静态设置。
+该路由有两个自定义参数 ： `city`和`days`。控制器和方法的名称通过`defaults`属性静态设置。
 
-在代码中检索city和days的值：
+在代码中检索`city`和`days`的值：
 
 ```c#
 public ActionResult Go()
@@ -542,25 +542,23 @@ public ActionResult Go()
 }
 ```
 
-路由数据通过Controller类的RouteData属性公开。同样，在本例中，搜索匹配条目的方式是不区分大小写的。 RouteData.Values字典是一个字符串/对象字典。任何必要的类型转换都取决于你自己。
+路由数据通过`Controller`类的`RouteData`属性公开。同样，在本例中，搜索匹配条目的方式是不区分大小写的。 `RouteData.Values`字典是一个字符串/对象字典。任何必要的类型转换都取决于你自己。
 
 ### 模型绑定
 
 使用输入数据的本机请求集合可以工作，但从可读性和维护的角度来看，最好使用特定的模型向控制器公开数据。这个模型有时被称为输入模型。
 
-ASP.NET MVC提供了一个自动绑定层，它使用一组内置的规则将来自各种值提供者的原始请求数据映射到输入模型类的属性。相对Request.Query而言，使用模型绑定更具有可读性和维护性。
+ASP.NET MVC提供了一个自动绑定层，它使用一组内置的规则将来自各种值提供者的原始请求数据映射到输入模型类的属性。相对`Request.Query`而言，使用模型绑定更具有可读性和维护性。
 
 大多数情况下，模型绑定层的内置映射规则足以让控制器接收干净且可用的数据。但是，绑定层的逻辑可以在很大程度上定制，从而在处理输入数据方面增加了前所未有的灵活性。
 
 #### 默认模型绑定器
 
-任何传入的请求都要通过与DefaultModelBinder类实例相对应的内置绑定器对象的编排。模型绑定由Action调用者编排，包括调查所选控制器方法的签名，查看形式参数名称和类型，试图找到与请求一起上传的任何数据的名称匹配，无论是通过查询字符串，表单，路由或cookie。模型绑定器使用基于约定的逻辑将提交值的名称与控制器方法中的参数名称进行匹配。 DefaultModelBinder类知道如何处理原始类型和复杂类型，以及集合和字典。因此，默认绑定器在大多数情况下工作正常。
+任何传入的请求都要通过与`DefaultModelBinder`类实例相对应的内置绑定器对象的编排。模型绑定由Action调用者编排，包括调查所选控制器方法的签名，查看形式参数名称和类型，试图找到与请求一起上传的任何数据的名称匹配，无论是通过查询字符串，表单，路由或cookie。模型绑定器使用基于约定的逻辑将提交值的名称与控制器方法中的参数名称进行匹配。 `DefaultModelBinder`类知道如何处理原始类型和复杂类型，以及集合和字典。因此，默认绑定器在大多数情况下工作正常。
 
-#### 绑定原始类型
+#### 绑定基本类型
 
-不可否认，模型绑定起初可能听起来有点神奇，但它背后并没有真正的魔法。关键的事实是，它允许您只关注希望controller方法接收的数据。您完全忽略了如何检索数据的细节，无论是来自查询字符串，Body还是路由。
-
-模型绑定器以精确的顺序将参数与传入数据匹配。首先，它检查是否可以在路由参数上找到匹配，然后检查表单提交的数据，最后检查查询字符串数据。
+控制器方法接收的数据，无论是来自查询字符串，表单还是路由。模型绑定器以精确的顺序将参数与传入数据匹配。首先，它检查是否可以在路由参数上找到匹配，然后检查表单提交的数据，最后检查查询字符串数据。
 
 假设您需要一个控制器方法来重复给定字符串给定次数。您需要的输入数据是字符串和数字。你可以这样做：
 
@@ -573,7 +571,7 @@ public class BindingController : Controller
 }
 ```
 
-以这种方式设计，就不需要访问HTTP上下文来获取数据。默认模型绑定器从请求上下文中可用的全部值集合中读取文本和数字的实际值。绑定器寻找一个可行值，尝试将形式参数名称（示例中的文本和数字）与请求上下文中找到的命名值进行匹配。换句话说，如果请求带有表单字段、查询字符串字段，或名为text的路由参数，则携带的值会自动绑定到text参数。如果参数类型和实际值兼容，则映射成功。如果无法执行转换，则抛出参数异常。例如，下面这个个URL可以正常工作：
+以这种方式设计，就不需要访问HTTP上下文来获取数据。默认模型绑定器从请求上下文中可用的全部值集合中读取文本和数字的实际值。绑定器寻找一个可行值，尝试将形式参数名称（示例中的文本和数字）与请求上下文中找到的命名值进行匹配。换句话说，如果请求带有表单字段、查询字符串字段，或名为`text`的路由参数，则携带的值会自动绑定到`text`参数。如果参数类型和实际值兼容，则映射成功。如果无法执行转换，则抛出参数异常。例如，下面这个个URL可以正常工作：
 
 ```
 /binding/repeat?text=Dino&number=2
@@ -583,13 +581,13 @@ public class BindingController : Controller
 
 /binding/repeat?text=Dino&number=true
 
-查询字符串字段文本包含Dino，对方法Repeat的字符串参数文本的映射将成功进行。另一方面，查询字符串字段number包含true，无法成功映射到int参数。模型绑定器返回一个参数字典，其中number的条目包含该类型的默认值，因此为0。发生什么完全取决于用于处理输入的代码。它可以返回一些空内容，甚至抛出异常。
+查询字符串字段文本包含`Dino`，对方法`Repeat`的字符串参数文本的映射将成功进行。另一方面，查询字符串字段`number`包含`true`，无法成功映射到`int`参数。模型绑定器返回一个参数字典，其中`number`的条目包含该类型的默认值，因此为`0`。发生什么完全取决于用于处理输入的代码。它可以返回一些空内容，甚至抛出异常。
 
-默认绑定器可以映射所有基本类型，例如string，int，double，decimal，bool，DateTime和相关集合。要在URL中表示布尔类型，请使用true和false字符串。这些字符串使用.NET Framework原生布尔解析函数进行解析，这些函数以不区分大小写的方式识别true和false字符串。如果使用诸如yes / no之类的字符串来表示布尔值，则默认绑定器将无法理解您的意图，并将在参数字典中放置一个false值，这可能会影响实际输出。
+默认绑定器可以映射所有基本类型，例如`string`，`int`，`double`，`decimal`，`bool`，`DateTime`和相关集合。要在URL中表示布尔类型，请使用`true`和`false`字符串。这些字符串使用.NET Framework原生布尔解析函数进行解析，这些函数以不区分大小写的方式识别`true`和`false`字符串。如果使用诸如`yes` / `no`之类的字符串来表示布尔值，则默认绑定器将无法理解您的意图，并将在参数字典中放置一个`false`值，这可能会影响实际输出。
 
 #### 强制从给定源绑定
 
-在ASP.NET Core中，您可以通过强制指定一个特定参数的源来改变模型绑定数据源的固定顺序。您可以通过以下任何一个新属性执行此操作：FromQuery，FromRoute和FromForm。顾名思义，这些属性强制模型绑定层分别映射来自查询字符串，路由数据和Post数据的值。
+在ASP.NET Core中，您可以通过强制指定一个特定参数的源来改变模型绑定数据源的固定顺序。您可以通过以下任何一个新属性执行此操作：`FromQuery`，`FromRoute`和`FromForm`。顾名思义，这些属性强制模型绑定层分别映射来自查询字符串，路由数据和Post数据的值。
 
 ```c#
 [Route("goto/{city}")]
@@ -598,13 +596,13 @@ public IActionResult Visit([FromQuery] string city)
 }
 ```
 
-FromQuery属性强制将参数代码绑定到具有匹配名称的查询字符串。假设请求URL / goto / rome？city = london。值Rome通过优先级较高的字典传递，但实际的方法参数绑定到查询字符串上的任何值。因此， city参数的值是london。有趣的是，如果强制源不包含匹配值，那么参数将采用声明类型的默认值，而不是任何其他可用的匹配值。换句话说，任何FromQuery，FromRoute和FromForm属性的最终效果都是将模型绑定严格限制到指定的数据源。
+`FromQuery`属性强制将参数代码绑定到具有匹配名称的查询字符串。假设请求URL `/goto/rome?city=london`。值`Rome`通过优先级较高的字典传递，但实际的方法参数绑定到查询字符串上的任何值。因此， `city`参数的值是`london`。有趣的是，如果强制源不包含匹配值，那么参数将采用声明类型的默认值，而不是任何其他可用的匹配值。换句话说，任何`FromQuery`，`FromRoute`和`FromForm`属性的最终效果都是将模型绑定严格限制到指定的数据源。
 
 #### 从Header绑定
 
-在ASP.NET Core中，一个新属性首次亮相，以简化在控制器方法的上下文中获取存储在HTTP头中的信息。新属性是FromHeader。您可能想知道为什么HTTP标头不会自动受到模型绑定的影响。有两个方面需要考虑。在我看来，第一个方面更具哲学性而非技术性。 HTTP标头可能不被视为普通用户输入，而模型绑定只是设计用于将用户输入映射到控制器方法。 HTTP标头包含的信息在某些情况下可能有助于检查控制器内部。最著名的例子是身份验证令牌，但同样，身份验证令牌并不完全是“用户输入”。第二个方面是没有HTTP头由模型绑定器自动解析，这纯粹是技术问题，与HTTP头的命名约定有关。
+在ASP.NET Core中，一个新属性首次亮相，以简化在控制器方法的上下文中获取存储在HTTP头中的信息。新属性是`FromHeader`。您可能想知道为什么HTTP标头不会自动受到模型绑定的影响。有两个方面需要考虑。在我看来，第一个方面更具哲学性而非技术性。 HTTP标头可能不被视为普通用户输入，而模型绑定只是设计用于将用户输入映射到控制器方法。 HTTP标头包含的信息在某些情况下可能有助于检查控制器内部。最著名的例子是身份验证令牌，但同样，身份验证令牌并不完全是“用户输入”。第二个方面是没有HTTP头由模型绑定器自动解析，这纯粹是技术问题，与HTTP头的命名约定有关。
 
-例如，映射像Accept-Language这样的标头名称需要一个相应命名的参数，但在c#变量名中，破折号是不可接受的。FromHeader属性只是解决了这个问题。
+例如，映射像`Accept-Language`这样的标头名称需要一个相应命名的参数，但在c#变量名中，破折号是不可接受的。`FromHeader`属性只是解决了这个问题。
 
 ```c#
 public IActionResult Culture([FromHeader(Name ="Accept-Language")] string language)
@@ -612,11 +610,11 @@ public IActionResult Culture([FromHeader(Name ="Accept-Language")] string langua
 }
 ```
 
-该属性获取标头名称作为参数，并将关联的值绑定到方法参数。由于前面的代码，该方法的语言参数将接收Accept-Language标头的当前值。
+该属性获取标头名称作为参数，并将关联的值绑定到方法参数。由于前面的代码，该方法的语言参数将接收`Accept-Language`标头的当前值。
 
 #### 从Body绑定
 
-有时，不是通过URL或标头传递请求数据，而是作为请求主体的一部分。要使控制器方法能够接收Body内容，您必须显式地告诉模型绑定层将Body内容解析为特定的参数。这是新FromBody属性的工作。您需要的只是使用属性修饰参数方法，如下所示。
+有时，不是通过URL或标头传递请求数据，而是作为请求主体的一部分。要使控制器方法能够接收Body内容，您必须显式地告诉模型绑定层将Body内容解析为特定的参数。这是新`FromBody`属性的工作。您需要的只是使用属性修饰参数方法，如下所示。
 
 ```c#
 public IActionResult Print([FromBody] string content)
@@ -639,7 +637,7 @@ public class ComplexController : Controller
 }
 ```
 
-控制器方法接收一个RepeatText类型的对象。该类是一个普通的数据传输对象，定义如下：
+控制器方法接收一个`RepeatText`类型的对象。该类是一个普通的数据传输对象，定义如下：
 
 ```c#
 public class RepeatText
@@ -649,13 +647,11 @@ public class RepeatText
 }
 ```
 
-如您所见，该类只包含您在上一个示例中作为单个参数传递的相同值的成员。模型绑定器处理这种复杂类型和处理单个值一样有效。
-
-在本例中，对于声明的RepeatText类型中的每个公共属性，模型绑定器会查找那些键名与属性名匹配的已发布值。匹配不区分大小写。
+如您所见，该类只包含您在上一个示例中作为单个参数传递的相同值的成员。模型绑定器处理这种复杂类型和处理单个值一样有效。在本例中，对于声明的`RepeatText`类型中的每个公共属性，模型绑定器会查找那些键名与属性名匹配的已发布值。匹配不区分大小写。
 
 #### 绑定基本类型的数组
 
-如果控制器方法的参数是一个数组或集合，使用默认模型绑定即可实现，唯一要求的是，页面中的多个元素的name属性值要保持一致，例如，页面中有三个文本框，每个文本框的id肯定不一样，你可以给文本框的name指定相同的名称emails，那么就可以利用绑定器构造数组的能力，将三个文本框的值组合成一个可枚举的集合，传给后台方法中的变量`IList<sring> emails`	。实际上，所有的模型绑定，都是基于表单元素的name属性进行的，如果都多个相同的name，将会构造一个集合传递给后台方法对应的变量，该变量名称应该与name属性值保持一致，这样才能更好的进行默认模型绑定。
+如果控制器方法的参数是一个数组或集合，使用默认模型绑定即可实现，唯一要求的是，页面中的多个元素的`name`属性值要保持一致，例如，页面中有三个文本框，每个文本框的`id`肯定不一样，你可以给文本框的`name`指定相同的名称`emails`，那么就可以利用绑定器构造数组的能力，将三个文本框的值组合成一个可枚举的集合，传给后台方法中的变量`IList<sring> emails`	。实际上，所有的模型绑定，都是基于表单元素的`name`属性进行的，如果都多个相同的`name`，将会构造一个集合传递给后台方法对应的变量，该变量名称应该与`name`属性值保持一致，这样才能更好的进行默认模型绑定。
 
 页面HTML片段：
 
@@ -676,7 +672,7 @@ public IActionResult Email(IList<string> emails)
 
 ##### 控制绑定名称
 
-上述的HTML片段中，统一使用了复数形式的名称emails，但是，实际使用中，更多的是使用单数形式的名称，例如：
+上述的HTML片段中，统一使用了复数形式的名称`emails`，但是，实际使用中，更多的是使用单数形式的名称，例如：
 
 ```html
 <input name="email" id="email1" type="text">
@@ -684,13 +680,13 @@ public IActionResult Email(IList<string> emails)
 <input name="email" id="email3" type="text">
 ```
 
-为此，ASP.NET Core提供了Bind属性来修复问题。在控制器代码中强制绑定器将传入名称映射到指定参数。
+为此，ASP.NET Core提供了`Bind`属性来修复问题。在控制器代码中强制绑定器将传入名称映射到指定参数。
 
 ```c#
 public IActionResult Email([Bind(Prefix="email")] IList<string> emails)
 ```
 
-请注意，HTML严格说明ID名称中允许的字符。例如，分配给ID属性的值不能包含方括号。但是，会为name属性释放这些约束。这个特性对于绑定复杂类型的数组非常有用。
+请注意，HTML严格说明ID名称中允许的字符。例如，分配给ID属性的值不能包含方括号。但是，会为`name`属性释放这些约束。这个特性对于绑定复杂类型的数组非常有用。
 
 #### 绑定复杂类型的数组 
 
@@ -716,7 +712,7 @@ public class Company
 }
 ```
 
-假设输入表单与Company类的结构匹配。提交表单时，服务器会收到一组地址。它如何与模型绑定一起工作？
+假设输入表单与`Company`类的结构匹配。提交表单时，服务器会收到一组地址。它如何与模型绑定一起工作？
 
 同样，这是如何定义HTML标记的问题。如果是复杂类型，则必须在标记中显式创建数组。
 
@@ -733,23 +729,23 @@ public class Company
 public IActionResult Save(Company company)
 ```
 
-绑定对象是Company类的一个实例，其中Addresses集合属性包含两个元素。这种方法非常优雅和实用，但并不完美。
+绑定对象是`Company`类的一个实例，其中`Addresses`集合属性包含两个元素。这种方法非常优雅和实用，但并不完美。
 
-特别是，如果您确切地知道有多少项填充到集合中，它可以很好的工作，如果不是这样，它可能会失败。此外，如果提交值中的索引序列有漏洞，则绑定失败。索引通常从0开始，但无论起始索引如何，绑定的集合都会在第一个缺失的索引处被截断。例如，如果您有Addresses[0]然后是Addresses[2]和Addresses[3]，那么只有第一个Addresses[0]将自动传递给Controller方法。
+特别是，如果您确切地知道有多少项填充到集合中，它可以很好的工作，如果不是这样，它可能会失败。此外，如果提交值中的索引序列有漏洞，则绑定失败。索引通常从`0`开始，但无论起始索引如何，绑定的集合都会在第一个缺失的索引处被截断。例如，如果您有`Addresses[0]`然后是`Addresses[2]`和`Addresses[3]`，那么只有第一个`Addresses[0]`将自动传递给Controller方法。
 
 请注意，此处缺少信息的概念仅指模型绑定器识别和处理的数据。浏览器会正确地将输入到HTML表单中的所有数据发送出去。但是，如果没有模型绑定，您必须自己安排一个相当复杂的解析算法来检索所有已提交的数据，并将这些数据相互关联。
 
 ### Action结果
 
-一种Action方法可以产生各种结果。例如，Action方法可以充当Web服务，并返回纯字符串或JSON字符串以响应请求。同样，Action方法可以确定没有要返回的内容，或者需要重定向到另一个URL。 Action方法通常返回实现IActionResult的类型的实例。
+一种Action方法可以产生各种结果。例如，Action方法可以充当Web服务，并返回纯字符串或JSON字符串以响应请求。同样，Action方法可以确定没有要返回的内容，或者需要重定向到另一个URL。 Action方法通常返回实现`IActionResult`的类型的实例。
 
-IActionResult类型是一个通用的编程接口，用于代表Action方法执行一些进一步的操作。所有这些进一步的操作都涉及到为请求浏览器生成一些响应。
+`IActionResult`类型是一个通用的编程接口，用于代表Action方法执行一些进一步的操作。所有这些进一步的操作都涉及到为请求浏览器生成一些响应。
 
 #### 预定义的Action结果类型
 
-ASP.NET Core提供了各种实现IActionResult接口的具体类型。下表列出了一些类型，这些类型中不包含与安全性和Web API相关的操作结果类型。
+ASP.NET Core提供了各种实现`IActionResult`接口的具体类型。下表列出了一些类型，这些类型中不包含与安全性和Web API相关的操作结果类型。
 
-一些预定义的IActionResult类型：
+一些预定义的`IActionResult`类型：
 
 | 类型                   | 描述                                                         |
 | ---------------------- | ------------------------------------------------------------ |
@@ -772,11 +768,11 @@ ASP.NET Core提供了各种实现IActionResult接口的具体类型。下表列�
 
 如果您想通过下载某些文件内容，甚至某些以字节数组表示的纯二进制内容来响应请求，那么可以使用与文件相关的操作结果类。
 
-注意ASP.NET Core中不再支持以前版本的ASP.NET MVC中提供的JavascriptResult和FilePathResult操作结果类型。 FilePathResult已分为PhysicalFileResult和VirtualFileResult。要返回Javascript，现在使用具有相应MIME类型的ContentResult。此外，HttpStatusCodeResult，HttpNotFoundResult和HttpUnauthorizedResult不再可用，它们已经被重命名为StatusCodeResult，NotFoundResult和UnauthorizedResult。
+注意ASP.NET Core中不再支持以前版本的ASP.NET MVC中提供的`JavascriptResult`和`FilePathResult`操作结果类型。` FilePathResult`已分为`PhysicalFileResult`和`VirtualFileResult`。要返回Javascript，现在使用具有相应MIME类型的`ContentResult`。此外，`HttpStatusCodeResult`，`HttpNotFoundResult`和`HttpUnauthorizedResult`不再可用，它们已经被重命名为`StatusCodeResult`，`NotFoundResult`和`UnauthorizedResult`。
 
 #### Security Action Results
 
-ASP.NET Core提供了提供了更多特定于安全操作的操作结果类型，比如身份验证和授权。与安全相关的IActionResult类型：
+ASP.NET Core提供了提供了更多特定于安全操作的操作结果类型，比如身份验证和授权。与安全相关的`IActionResult`类型：
 
 | 类型               | 描述                                                         |
 | ------------------ | ------------------------------------------------------------ |
@@ -786,13 +782,13 @@ ASP.NET Core提供了提供了更多特定于安全操作的操作结果类型�
 | SignOutResult      | 让用户退出。返回此类型的实例或显式调用框架的注销方法具有相同的效果 |
 | UnauthorizedResult | 只需返回401状态代码（未经授权），无需采取任何进一步操作      |
 
-就登录过程而言，从控制器方法返回SignInResult对象，与在新的身份验证API中显式调用方法以登录用户，具有相同的效果。如果您在控制器方法中调用（例如，登录表单后的post方法），然后通过操作结果创建主体对象从设计角度来看可能更简洁。然而，在我看来，这主要是一个偏好问题。
+就登录过程而言，从控制器方法返回`SignInResult`对象，与在新的身份验证API中显式调用方法以登录用户，具有相同的效果。如果您在控制器方法中调用（例如，登录表单后的post方法），然后通过操作结果创建主体对象从设计角度来看可能更简洁。然而，在我看来，这主要是一个偏好问题。
 
 #### Web API Action Results
 
 在ASP.NET Core的Action结果类型列表中，还包含了一些专门为Web API框架创建的类型，而不是以前版本中的ASP.NET MVC框架的一部分。
 
-下面的表中列出了特定于Web API的操作结果类型。与Web API相关的IActionResult类型：
+下面的表中列出了特定于Web API的操作结果类型。与Web API相关的`IActionResult`类型：
 
 | 类型                       | 说明                                                         |
 | -------------------------- | ------------------------------------------------------------ |
@@ -820,7 +816,7 @@ Action过滤器是围绕Action方法的执行运行的一段代码，可用于�
 
 ### Action过滤器剖析
 
-Action过滤器来自于Microsoft.AspNetCore.Mvc.Filters.IActionFilter接口，它的定义如下：
+Action过滤器来自于`Microsoft.AspNetCore.Mvc.Filters.IActionFilter`接口，它的定义如下：
 
 ```c#
 public interface IActionFilter : IFilterMetadata
@@ -835,7 +831,7 @@ public interface IActionFilter : IFilterMetadata
 
 #### 动作过滤器的本机实现
 
-从Controller类继承的每个用户定义的控制器最终都会获得IActionFilter接口的默认实现。实际上，基类Controller类公开了一对名为OnActionExecuting和OnActionExecuted的可覆盖方法。这意味着每个控制器类都让你有机会决定在调用给定方法之前或之后都要做什么，只需要重写基类的方法即可。注意，这个特性不适用于POCO控制器。
+从`Controller`类继承的每个用户定义的控制器最终都会获得`IActionFilter`接口的默认实现。实际上，基类`Controller`类公开了一对名为`OnActionExecuting`和`OnActionExecuted`的可覆盖方法。这意味着每个控制器类都让你有机会决定在调用给定方法之前或之后都要做什么，只需要重写基类的方法即可。注意，这个特性不适用于POCO控制器。
 
 下述代码，在方法Index()被调用时添加一个特别的响应头：
 
@@ -914,17 +910,17 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-可以按实例或按类型添加过滤器。在后一种情况下，实际实例是通过ASP.NET Core DI框架获得的。全局过滤器是第一个被调用的过滤器。接下来是在控制器级别定义的过滤器，最后是在Action方法上定义的过滤器。注意，如果控制器类重写OnActionExecuting，那么它的代码将在应用任何方法级过滤器之前运行。如果控制器重写了OnActionExecuted，那么该代码在应用任何方法级别的过滤器之后运行。
+可以按实例或按类型添加过滤器。在后一种情况下，实际实例是通过ASP.NET Core DI框架获得的。全局过滤器是第一个被调用的过滤器。接下来是在控制器级别定义的过滤器，最后是在Action方法上定义的过滤器。注意，如果控制器类重写`OnActionExecuting`，那么它的代码将在应用任何方法级过滤器之前运行。如果控制器重写了`OnActionExecuted`，那么该代码在应用任何方法级别的过滤器之后运行。
 
 ### 手工创建自定义动作过滤器
 
-总的来说，动作过滤器构成了ASP.NET Core中嵌入式面向方面的框架。在编写动作过滤器时，通常从ActionFilterAttribute继承并添加自己的行为。
+总的来说，动作过滤器构成了ASP.NET Core中嵌入式面向方面的框架。在编写动作过滤器时，通常从`ActionFilterAttribute`继承并添加自己的行为。
 
 注意：Action过滤器是封装特定行为的自定义组件。只要您想隔离此行为并轻松复制它，就可以编写一个Action过滤器。行为的可重用性是决定是否编写动作过滤器的因素之一，但它不是唯一的因素。动作过滤器还可以保持控制器代码的精简和平均。通常情况下，当控制器的方法代码被分支和条件语句填充时，请停止并考虑是否可以将某些分支（或重复代码）移动到动作过滤器。代码的可读性将大大提高。
 
 #### 添加自定义Header
 
-动作过滤器的一个常见示例是为给定Action方法的每个请求添加自定义标头。在前面，您了解了如何通过重写OnActionExecuted控制器方法来实现此目的。以下代码显示如何将该代码从控制器移动到不同的类。
+动作过滤器的一个常见示例是为给定Action方法的每个请求添加自定义标头。在前面，您了解了如何通过重写`OnActionExecuted`控制器方法来实现此目的。以下代码显示如何将该代码从控制器移动到不同的类。
 
 ```c#
 public class HeaderAttribute:ActionFilterAttribute
@@ -942,7 +938,7 @@ public class HeaderAttribute:ActionFilterAttribute
 }
 ```
 
-您现在拥有一段易于管理的代码。您可以将其附加到任意数量的控制器操作、控制器的所有操作，甚至全局地附加到所有控制器。您需要做的就是添加一个属性，如下所示：
+可以将其附加到任意数量的控制器操作、控制器的所有操作，甚至全局地附加到所有控制器。您需要做的就是添加一个属性，如下所示：
 
 ```c#
 [Header(Name = "Action", Value = "About")]
@@ -956,7 +952,7 @@ public ActionResult About()
 
 ASP.NET Core为支持多语言应用程序提供功能齐全且量身定制的基础架构。尽管存在构建框架的各个工具，但在任何以前版本的ASP.NET中都不存在类似的特定框架。如果您拥有一个旧的ASP.NET MVC代码的大型代码库，很可能你有逻辑来读取用户的首选区域性，并在每次传入请求时恢复它。
 
-在这里，将展示如何使用全局动作过滤器重写相同的逻辑。正如您所看到的，这个想法是相同的，但是通过管道中早期任何Culture交换机触发的ASP.NET Core中间件实现。
+在这里，将展示如何使用全局动作过滤器重写相同的逻辑。 
 
 ```c#
 [AttributeUsage(AttributeTargets.Class| AttributeTargets.Method,AllowMultiple =false)]
@@ -998,7 +994,7 @@ public class CultureAttribute:ActionFilterAttribute
 }
 ```
 
-在执行操作方法之前，代码会检查名为_Culture的自定义cookie，该cookie可能包含用户选择的语言。如果未找到cookie，则过滤器默认为当前区域性并将其分配给当前线程。要确保Culture过滤器对每个控制器方法起作用，需要在全局中注册它：
+在执行操作方法之前，代码会检查名为`_Culture`的自定义cookie，该cookie可能包含用户选择的语言。如果未找到cookie，则过滤器默认为当前区域性并将其分配给当前线程。要确保`Culture`过滤器对每个控制器方法起作用，需要在全局中注册它：
 
 ```c#
 public void ConfigureServices(IServiceCollection services)
@@ -1010,21 +1006,26 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-注意，全局注册的过滤器与显式分配给类或方法级别的过滤器没有区别。编写Action过滤器时，可以使用AttributeUsage属性控制过滤器的范围。
+注意，全局注册的过滤器与显式分配给类或方法级别的过滤器没有区别。编写Action过滤器时，可以使用`AttributeUsage`属性控制过滤器的范围。
 
 ```c#
 [AttributeUsage(AttributeTargets.Class|AttributeTargets.Method, AllowMultiple = false)]
 ```
 
-具体来说，AttributeTargets枚举允许您指定属性的放置位置，AllowMultiple属性允许您确定在同一位置使用它的次数。注意，AttributeUsage属性适用于您创建的任何自定义属性，而不仅仅适用于操作过滤器。
+具体来说，`AttributeTargets`枚举允许您指定属性的放置位置，`AllowMultiple`属性允许您确定在同一位置使用它的次数。注意，`AttributeUsage`属性适用于您创建的任何自定义属性，而不仅仅适用于操作过滤器。
 
 ### 仅限于AJAX调用的方法
 
 到目前为止考虑的动作过滤器是旨在拦截动作方法执行的几个阶段的组件。如果您想要添加一些代码来帮助决定给定的方法是否适合服务于给定的操作，该怎么办？对于这种类型的自定义，还需要另一类过滤器:Action选择器。
 
-Action选择器有两种不同的风格：Action名称选择器和Action方法选择器。名称选择器决定它们修饰的方法是否可用于服务给定的Action名称。方法选择器决定是否可以使用具有匹配名称的方法为给定的操作服务。方法选择器通常根据其他运行时条件给出响应。动作名称选择器的典型示例是我们之前使用的系统的ActionName属性。相反，Action方法选择器的常见示例是NonAction和AcceptVerbs属性。让我们看看如何编写一个自定义方法选择器，该选择器仅在通过JavaScript发出请求时才接受方法调用。
+Action选择器有两种不同的风格：Action名称选择器和Action方法选择器。
 
-您只需要一个继承自ActionMethodSelectorAttribute并重写IsValidForRequest方法的类：
+- 名称选择器决定它们修饰的方法是否可用于服务给定的Action名称。
+- 方法选择器决定是否可以使用具有匹配名称的方法为给定的操作服务。方法选择器通常根据其他运行时条件给出响应。
+
+动作名称选择器的典型示例是我们之前使用的系统的`ActionName`属性。相反，Action方法选择器的常见示例是`NonAction`和`AcceptVerbs`属性。让我们看看如何编写一个自定义方法选择器，该选择器仅在通过JavaScript发出请求时才接受方法调用。
+
+您只需要一个继承自`ActionMethodSelectorAttribute`并重写`IsValidForRequest`方法的类：
 
 ```c#
 public class AjaxOnlyAttribute : ActionMethodSelectorAttribute
@@ -1049,9 +1050,9 @@ public static class HttpRequestExtensions
 }
 ```
 
-上述代码中，方法IsAjaxRequest是HttpRequest类的扩展方法。
+上述代码中，方法`IsAjaxRequest`是`HttpRequest`类的扩展方法。
 
-任何标记为AjaxOnly属性的方法都只能用于服务通过浏览器的XMLHttpRequest对象发出的调用。
+任何标记为`AjaxOnly`属性的方法都只能用于服务通过浏览器的`XMLHttpRequest`对象发出的调用。
 
 ```c#
 [AjaxOnly]
@@ -1069,6 +1070,22 @@ public ActionResult Details(int customerId)
 
 
 
+
+------
+
+
+
+#### 参考资源
+
+- 《Programming ASP.NET Core》
+
+
+
+本文后续会随着知识的积累不断补充和更新，内容如有错误，欢迎指正。
+
+最后一次更新时间：2018-10-19
+
+------
 
 
 
