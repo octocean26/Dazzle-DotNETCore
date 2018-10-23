@@ -10,6 +10,7 @@ namespace MvcCoreViewSample
 {
     public class MultiTenantViewLocationExpander : IViewLocationExpander
     {
+        
         public IEnumerable<string> ExpandViewLocations(ViewLocationExpanderContext context, IEnumerable<string> viewLocations)
         {
             if (!context.Values.ContainsKey("tenant") || 
@@ -27,7 +28,7 @@ namespace MvcCoreViewSample
         public void PopulateValues(ViewLocationExpanderContext context)
         {
             var tenant = context.ActionContext.HttpContext.Request.GetDisplayUrl();
-            context.Values["tenant"] = "contoso";  //tenant;
+            context.Values["tenant"] = "zhangsan";  //tenant;
         }
 
        
