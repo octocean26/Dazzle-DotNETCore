@@ -217,21 +217,19 @@ rememberme=on
 
 TODO：布局和视图模型类：
 
-| View Model                | Layout           | desc                           |
-| ------------------------- | ---------------- | ------------------------------ |
-| HomeLayoutViewModel       | HomeLayout       | 查看HomeLayout模板的模型       |
-| InternalLayoutViewModel   | InternalLayout   | 查看InternalLayout模板的模型   |
-| BackofficeLayoutViewModel | BackofficeLayout | 查看BackofficeLayout模板的模型 |
+| View Model                | Layout           | desc                               |
+| ------------------------- | ---------------- | ---------------------------------- |
+| HomeLayoutViewModel       | HomeLayout       | 基于HomeLayout模板的视图模型       |
+| InternalLayoutViewModel   | InternalLayout   | 基于InternalLayout模板的视图模型   |
+| BackofficeLayoutViewModel | BackofficeLayout | 基于BackofficeLayout模板的视图模型 |
 
-更好的是，所有布局视图模型类都将从单个父类继承 - 例如，我们在第5章中讨论过的ViewModelBase类。
-
-所有这些都说，考虑到布局视图 - 就像任何其他视图一样 - 仍然可以通过依赖注入和字典传递数据。
+所有布局视图模型类都将从单个父类继承，例如ViewModelBase类。布局视图和其他视图一样，仍然可以通过依赖注入和字典传递数据。
 
 #### 定义自定义部分
 
-任何布局都必须至少有一个外部视图内容注入点。该注入点包括对方法RenderBody的调用。该方法在用于呈现布局和视图的基本视图类中定义。但有时，您需要将内容注入多个位置。在这种情况下，您可以在布局模板中定义一个或多个命名部分，并让视图使用标记填充它们。
+对于外部视图内容，任何布局都必须至少有一个注入点。这个注入点包括对方法RenderBody的调用。该方法在用于呈现布局和视图的基视图类中定义。但有时，需要向多个位置注入内容。下述代码中，在布局模板中定义了一个或多个命名部分，并让视图使用标记来填充它们。
 
-```asp
+```HTML
 <body>
    <div class="page">
     @RenderBody()
