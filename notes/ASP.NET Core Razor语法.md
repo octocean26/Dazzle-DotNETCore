@@ -215,7 +215,7 @@ rememberme=on
 
 布局可以定义它希望接收的视图模型的类型，但它真正接收的是视图模型对象 ——如果有传递给实际视图的话。因此，布局视图的视图模型必须是用于视图的视图模型的父类。因此，建议对于每个布局，都定义一个特别的视图模型基类，并从中为实际视图派生特定的视图模型类。
 
-TODO：布局和视图模型类：
+布局和视图模型类：
 
 | View Model                | Layout           | desc                               |
 | ------------------------- | ---------------- | ---------------------------------- |
@@ -378,33 +378,33 @@ Razor视图中的@addTagHelper指令指示解析器链接指定的类，并根�
 </environment>
 ```
 
-TODO：注册为标记帮助程序的程序集告诉Razor解析器，标记表达式中的哪些属性和元素应该在服务器端处理，以生成浏览器的实际标记。在Visual Studio中还会使用特殊颜色强调标识为标记帮助程序的属性和元素。
+注册为Tag助手的程序集告诉Razor解析器，应该在服务器端处理标记表达式中的哪些属性和元素，以便为浏览器生成实际的标记。在Visual Studio中还会使用特殊颜色强调标识为标记帮助程序的属性和元素。
 
-特别是，asp-append-version标记帮助器修改绑定元素，将时间戳添加到引用文件的URL，以便浏览器不会缓存它。这是为上面的IMG元素生成的实际标记
+特别是，asp-append-version标记助手修改了绑定元素，将时间戳添加到引用文件的URL，这样浏览器就不会缓存它。这是为上面的IMG元素生成的实际标记：
 
 ```html
 <img src="/images/app-logo.png?v=yqomE4A3_PDemMMVt-umA" />
 ```
 
-自动附加版本查询字符串参数，该参数计算为文件内容的哈希值。这表示每当文件更改时，将生成新的版本字符串，从而使浏览器的缓存无效。这种简单的解决方法解决了在开发期间每当外部资源（例如图像，样式表或脚本文件）发生更改时清除浏览器缓存的长期问题。
+版本查询字符串参数被自动附加，它被计算为文件内容的散列。这表示每当文件更改时，都会生成一个新的版本字符串，从而使浏览器的缓存失效。这个简单的解决方案修复了一个长期存在的问题:每当外部资源(如图像、样式表或脚本文件)发生更改时，在开发过程中清除浏览器的缓存。
 
-注意如果引用的文件不存在，则不会发出版本字符串。相反，环境标记帮助程序根据当前检测到的ASP.NET Core托管环境有条件地输出标记。每个标记助手都配置为绑定到特定的HTML元素。多个标记助手可以附加到同一HTML元素。
+注意，如果引用的文件不存在，则不会输出版本字符串。相反，环境标记帮助程序根据当前检测到的ASP.NET Core托管环境有条件地输出标记。每个标记助手都配置为绑定到特定的HTML元素。可以将多个标记助手附加到同一个HTML元素。
 
 ### 内置标签助手
 
-ASP.NET Core附带了一个包含预定义标记助手的包。所有都在您可能从_ViewImports.cshtml文件引用的同一个程序集中定义，这可以保证所有Razor视图都可以使用内置帮助程序。
+ASP.NET Core附带了一个包含预定义标记助手的包。所有这些都定义在你可能从_ViewImports.cshtml文件中引用的同一个程序集中，它保证内置的助手可以用于所有的Razor视图。
 
 ```c#
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 ```
 
-内置标签助手涵盖了一系列功能。例如，有一些会影响您在Razor模板中可以使用的相同HTML元素：FORM，INPUT，TEXTAREA，LABEL和SELECT。存在许多其他帮助程序用于验证要向用户显示的消息。所有这些系统的标记助手都共享asp- *名称前缀。完整的参考资料可以在http://docs.microsoft.com/en-us/aspnet/core/api/microsoft.aspnetcore.mvc.taghelpers找到。
+内置标签助手涵盖了一系列功能。例如，有一些元素会影响到Razor模板中相同的HTML元素：FORM，INPUT，TEXTAREA，LABEL和SELECT。还有许多其他的助手用于验证要显示给用户的消息。所有这些系统的标记助手都共享asp- *名称前缀。 
 
 #### 标签助手的一般结构
 
-为了帮助理解包含一些内置标记帮助程序的以下部分，首先查看标记帮助程序的内部组合以及表征它们的核心信息是很有用的。
+标签助手类是由HTML元素或它可以引用的HTML元素来标识。标记助手类主要由实现实际行为时使用的公共属性和私有方法组成。每个公共属性都可能被修饰为与之关联的标记助手属性的名称。
 
-标记帮助程序类由它可以引用的HTML元素或HTML元素标识。标记辅助类主要由公共属性和私有方法组成，这些方法用于实现实际行为。每个公共属性可以选择使用与其关联的标记helper属性的名称进行修饰。举个例子，这里是锚标记助手的C＃类声明。
+示例，这里是锚标记助手的C＃类声明：
 
 ```c#
 [HtmlTargetElement("a", Attributes = "asp-action")]
@@ -422,21 +422,17 @@ public class AnchorTagHelper : TagHelper, ITagHelper
 }
 ```
 
-它看起来像标记助手只能与具有任何列出属性的A元素相关联。换句话说，如果你的Razor只包含一个没有上述asp- *属性的普通<a href="..."> ... </a>元素，那么它将逐字发出而无需进一步处理。图6-1显示Visual Studio可以检测某些注册标记帮助程序实际支持哪些asp- *属性。
 
-![tag](assets/tag.jpg)
-
-正如您在图中看到的，Visual Studio检测到asp-hello不是任何已注册标记帮助程序上A元素的有效属性。
 
 #### 锚标记助手
 
-锚标记助手适用于A元素，并允许您以极大的灵活性指定它指向的URL。实际上，您可以通过将目标URL分解为区域 - 控制器 - 操作组件，路由名称，甚至指定URL的段（例如主机，片段和协议）来指定目标URL。图6-1显示了如何使用锚标记助手。
+锚标记助手适用于A元素，并允许您以极大的灵活性指定它指向的URL。实际上，您可以通过按路由名称将目标URL分解为区域控制器-操作组件来指定目标URL，甚至可以指定URL的片段，例如主机、片段和协议。
 
-注意如果指定了href属性和route属性，则helper类将抛出异常。
+注意，如果同时指定了href属性和route属性，则helper类将抛出异常。
 
 #### Form标签助手
 
-表单标记助手支持通过控制器和操作名称或路由名称设置操作URL的属性。
+表单标签助手支持通过控制器和操作名称或路由名称设置操作URL的属性。
 
 ```html
 <form asp-controller="room" asp-action="book">
@@ -444,7 +440,7 @@ public class AnchorTagHelper : TagHelper, ITagHelper
 </form>
 ```
 
-上面的Razor代码将method属性设置为POST，将action属性设置为由指定控制器和操作的组合产生的URL。此外，表单标记助手做了一个有趣而棘手的事情;它会为一个隐藏字段注入一个定制的请求验证令牌，以防止跨站点请求伪造（XSRF）攻击。
+上面的Razor代码将method属性设置为POST，将action属性设置为由指定控制器和操作的组合产生的URL。此外，表单标记助手做了一个有趣而棘手的事情，它会为一个隐藏字段注入一个定制的请求验证令牌，以防止跨站点请求伪造（XSRF）攻击。
 
 ```html
 <form method="POST" action="/room/book"
@@ -453,7 +449,7 @@ public class AnchorTagHelper : TagHelper, ITagHelper
 </form>
 ```
 
-此外，它还添加了一个cookie，其中包含存储在该字段中的相同值的加密版本。只要您还使用服务器端属性装饰接收控制器，这代表了对XSRF攻击的强大防御，如下所示。
+此外，它还添加了一个cookie，该cookie的加密版本存储在字段中。这代表了对XSRF攻击的强大防御，只要您还使用服务器端属性装饰接收控制器，如下所示。
 
 ```c#
 [AutoValidateForgeryToken]
@@ -463,13 +459,13 @@ public class RoomController : Controller
 }
 ```
 
-AutoValidateForgeryToken属性将读取请求验证cookie，对其进行解密，并将其值与请求验证隐藏字段的value属性的内容进行比较。如果未找到匹配项，则抛出异常。如果没有AutoValidateForgeryToken属性，则不执行双重检查。通常，您可能希望在控制器级别使用该属性，或者更好的是，将其用作全局过滤器。在这种情况下，如果要仅为某些方法禁用它，可以使用IgnoreValidateForgeryToken属性。
+AutoValidateForgeryToken属性将读取请求验证cookie，对其进行解密，并将其值与请求验证隐藏字段的value属性的内容进行比较。如果未找到匹配项，则抛出异常。如果没有AutoValidateForgeryToken属性，则不执行双重检查。通常，您可能希望在控制器级别使用该属性，或者更好的是，将其用作全局过滤器。在这种情况下，如果只对某些方法禁用它，可以使用IgnoreValidateForgeryToken属性。
 
-注意在ASP.NET Core中，您还有一个名为ValidateForgeryToken的类似属性。与AutoValidateForgeryToken的区别在于后者仅检查POST请求。
+注意在ASP.NET Core中，还有一个类似的属性，名为ValidateForgeryToken。与AutoValidateForgeryToken的区别在于后者仅检查POST请求。
 
-#### 输入标记助手
+#### 输入标签助手
 
-输入标记helper将INPUT元素绑定到模型表达式。绑定通过asp-for属性进行。请注意，asp-for属性也适用于LABEL元素。
+输入标签助手将input元素绑定到模型表达式。绑定通过asp-for属性进行。注意，asp-for属性也适用于label元素。
 
 ```html
 <div class="form-group">
@@ -480,7 +476,7 @@ AutoValidateForgeryToken属性将读取请求验证cookie，对其进行解密�
 </div>
 ```
 
-INPUT元素的asp-for属性根据表达式生成name，id，type和value属性。在示例中，值Title引用绑定视图模型上的匹配属性。对于LABEL元素，asp-for属性设置for属性和可选的标签内容。结果如下。
+input元素的asp-for属性根据表达式生成name，id，type和value属性。在示例中，值Title引用绑定视图模型上的匹配属性。对于label元素，asp-for属性设置for属性和可选的标签内容。结果如下。
 
 ```html
 <div class="form-group">
@@ -492,31 +488,29 @@ INPUT元素的asp-for属性根据表达式生成name，id，type和value属性�
 </div>
 ```
 
-INPUT字段的value属性获取表达式生成的值。请注意，您还可以使用Customer.Name等复杂表达式。
+要确定最合适的字段类型，asp-for属性还会查看可能在视图模型类中定义的数据注解。如果已在标记中指定，则不会覆盖受影响的属性。此外，基于数据注解，asp-for属性可以生成从错误消息和验证规则读取的HTML5验证属性。这些data- * validation属性由验证标记助手使用，如果配置为jQuery验证，则由客户端验证使用。
 
-要确定最合适的字段类型，asp-for属性还会查看可能在视图模型类上定义的数据注释。如果已在标记中指定，则不会覆盖受影响的属性。此外，基于数据注释，asp-for属性可以生成HTML5验证属性，从错误消息和验证规则中读取。这些data- * validation属性由验证标记助手使用，如果配置，则由jQuery验证客户端验证使用。
-
-最后，值得注意的是，如果视图模型结构发生更改且标记帮助程序表达式未更新，则会产生编译时错误。
+最后，值得注意的是，如果视图模型结构发生了变化， 并且标记助手表达式没有更新，那么编译时就会产生错误。
 
 #### 验证标记助手
 
-验证标记帮助程序有两种类型 - 单个属性和摘要的验证。特别是，验证消息helper使用SPAN元素上的asp-validation-for属性的值。
+验证标记助手有两种类型，验证单个属性和summary。特别是，验证消息助手会使用span元素上的asp-validation-for属性的值。
 
 ```html
 <span asp-validation-for="Email"></span>
 ```
 
-SPAN元素使用Email INPUT字段可能输出的相应HTML5验证消息进行设置。如果应呈现任何错误消息，它们将呈现为SPAN元素的主体。
+SPAN元素设置为相应的HTML5验证消息，电子邮件输入字段可能有输出。如果应该呈现任何错误消息，它们将作为SPAN元素的主体呈现。 
 
 ```html
 <div asp-validation-summary="All"></span>
 ```
 
-相反，验证摘要帮助程序使用DIV元素的asp-validation-summary属性。它的输出是一个UL元素，列出了表单中的所有验证错误。属性的值确定列出的错误。可行值为All，表示列出所有错误和ModelOnly，表示仅列出模型错误。
+相反，验证summary助手使用DIV元素的asp-validation-summary属性。它的输出是一个ul元素，列出了表单中的所有验证错误。属性的值确定列出哪些错误。可行值为All，表示列出所有错误；ModelOnly表示仅列出模型错误。
 
-#### 选择列表标记助手
+#### select列表标记助手
 
-特别有趣的是SELECT元素的标记帮助器，因为它现在解决了Web开发人员长期存在的问题：找到将枚举类型绑定到下拉列表的最简洁有效的方法。
+特别有趣的是select元素的标记助手，因为它现在解决了Web开发人员长期存在的一个问题：找到将枚举类型绑定到下拉列表的最简洁有效的方法。
 
 ```html
 <select id="room" name="room" class="form-control"
@@ -525,7 +519,7 @@ SPAN元素使用Email INPUT字段可能输出的相应HTML5验证消息进行设
 </select>
 ```
 
-在SELECT元素中，asp-for指向要评估的表达式，以便在列表中查找所选项。相反，asp-items标签提供了项目列表。新的Html.GetEnumSelectList扩展方法采用枚举类型并将其序列化为SelectListItem对象列表。
+在select元素中，asp-for指向一个要计算的表达式，以便在列表中找到选中的项。相反，asp-items属性提供了项的列表。新的Html.GetEnumSelectList扩展方法接收枚举类型，并将其序列化为SelectListItem对象列表。
 
 ```c#
 public enum RoomCategories
@@ -537,15 +531,13 @@ public enum RoomCategories
 }
 ```
 
-好的方法是，如果枚举的任何元素使用Display属性进行修饰，则呈现的名称是指定的文本，而不是文字值。有趣的是，生成的选项的值是数值 - 而不是枚举条目的名称。
+好的方法是，如果枚举的任何元素都用Display属性修饰，则呈现的名称是指定的文本，而不是文字值。需要注意的是，生成的选项的值是枚举条目的数值值(而不是名称)。
 
-### 编写自定义标记助手
+### 编写自定义Tag助手
 
-标记助手有助于保持Razor模板的可读性和简洁性。但是，我只使用标记帮助程序来自动编写长而重复的标记代码块，而不是创建类似于特定于视图的语言。事实上，你做得越多，你就越能摆脱简单的HTML。
+标记助手有助于保持Razor模板的可读性和简洁性。 
 
-#### 电子邮件标签助手的动机
-
-假设您的一些视图将电子邮件地址显示为纯文本。将这些字符串点击并弹出Outlook新电子邮件窗口不是很好吗？在HTML中，这很容易实现。您所要做的就是将文本转换为锚点并使其指向mailto协议字符串。
+本示例以自定义电子邮件标签助手作为说明。假设需要在视图中，将电子邮件地址显示为纯文本，当点击这些字符时，弹出Outlook新电子邮件窗口，在HTML中，可以使用以下代码进行实现，要做的就是将文本转换为锚点并使其指向mailto协议字符串。
 
 ```html
 <a href="mailto:you@yourserver.com">you@yourserver.com</a>
@@ -557,11 +549,7 @@ public enum RoomCategories
 <a href="mailto:@Model.Email">@Model.Email</a>
 ```
 
-它的阅读和维护并不明显，但如果您还想为电子邮件和正文，CC地址等指定默认主题，该怎么办？在这种情况下，您需要编写的代码变得更加复杂。您必须检查主题是否为非null并将其添加到mailto协议字符串;要处理的任何其他属性都需要相同的内容。您最终可能会使用本地StringBuilder变量来累积最终的mailto URL。此代码会污染您的视图而不会增加重要性，因为它只是将数据转换为标记的样板。
-
-#### 规划标记助手
-
-标记帮助程序可以使其易于阅读，并将隐藏视图（以及视图）转换的详细信息。您现在可以拥有以下内容：
+标记助手可以使其易于阅读，并将隐藏视图转换的细节。如果计划将其转换为标记助手进行实现，您现在可以拥有以下内容：
 
 ```html
 <email to="@Model.Email.To" 
@@ -570,70 +558,93 @@ public enum RoomCategories
 </email>
 ```
 
-必须在视图本身或_ViewImports.cshtml文件中的所有视图中向视图注册标记帮助程序类。这就是你需要的。
+标签助手类必须注册在视图中，要么在视图本身中注册，要么在_ViewImports.cshtml中的所有视图中注册。
 
 ```c#
-@addTagHelper *, Your.Assembly
+@addTagHelper *,Your.Assembly
 ```
 
-新的标记帮助程序具有自定义元素，并且可以通过添加诸如CC之类的额外属性来使其更加复杂。
+新的标记助手具有自定义元素，并且可以通过添加诸如CC之类的额外属性来使其更加复杂。
 
-#### 实现Tag Helper
+#### 实现自定义Tag Helper
 
-典型的标记帮助程序类继承自TagHelper并重写方法ProcessAsync。该方法负责为帮助程序控制下的任何标记生成输出。
+典型的标记助手类继承自TagHelper并重写方法ProcessAsync。该方法负责为助手控制的任何标记生成输出。
 
-如上所述，要将Razor元素绑定到帮助程序，请使用HtmlTargetElement属性。该属性包含帮助程序将绑定到的元素的名称。
+如上所述，要将Razor元素绑定到助手，需要使用HtmlTargetElement特性。该属性包含助手将绑定到的元素的名称。
 
 ```c#
 [HtmlTargetElement("email")]
 public class MyEmailTagHelper : TagHelper
 {
-    public override async Task ProcessAsync(
-                TagHelperContext context, TagHelperOutput output)
+    public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
     {
-        var body = (await output.GetChildContentAsync()).GetContent();
-        output.TagName = "a"; 
-        var to = context.AllAttributes["to"].Value.ToString();
-        var subject = context.AllAttributes["subject"].Value.ToString();
-        var mailto = "mailto:" + to;
+        //评估邮件元素主体的Razor内容
+        string body = (await output.GetChildContentAsync()).GetContent();
+
+        //<email>替换为<a>
+        output.TagName = "a";
+        //准备mailto url
+        string to = context.AllAttributes["to"].Value.ToString();
+        string subject = context.AllAttributes["subject"].Value.ToString();
+        string mailto = "mailto:" + to;
         if (!string.IsNullOrWhiteSpace(subject))
-                mailto = string.Format("{0}&subject={1}&body={2}", mailto, subject, body);
+        {
+            mailto = $"{mailto}&subject={subject}&body={body}";
+        }
+
+        //准备输出
         output.Attributes.Clear();
         output.Attributes.SetAttribute("href", mailto);
         output.Content.Clear();
-        output.Content.AppendFormat("Email {0}", to);
+        output.Content.AppendFormat("邮箱：{0}", to);
     }
 }
 ```
 
-![tag_email](assets/tag_email.jpg)
+将上述定义的Tag助手应用到视图中，代码如下：
 
-图6-2显示了使用帮助程序的示例Razor视图。发出的标记如下。
+```c#
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@addTagHelper *, RazorSample
+@{
+    Layout = null;
+    var email = "octoberocean@163.com";
+    var subject = "asp.net ccore";
+}
 
-```html
-<a href="mailto:dino.esposito@jetbrains.com&amp;subject=Talking about ASP.NET Core&amp;body=Hello!">
-    Email dino.esposito@jetbrains.com
-</a>
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Index</title>
+</head>
+<body>
+    <email to="@email" subject="@subject">Hello!</email>
+</body>
+</html>
 ```
 
- 如果目标元素的名称不足以在标记帮助器的作用下限制元素，则可以添加属性。
+运行程序，页面中显示的内容如下图所示，可以通过浏览器的开发者工具查看具体的href值：
+
+![custaghelper](assets/custaghelper.jpg)
+
+如果目标元素的名称不足以在标记帮助器的作用下限制元素，则可以添加属性。
 
 ```c#
 [HtmlTargetElement("email", Attributes="to, subject")]
 ```
 
-如上所述修饰的标记帮助程序仅适用于同时具有指定属性且不为null的EMAIL元素。如果没有标记帮助程序与自定义标记匹配，则标记将按原样发出，并且每个浏览器将以某种方式处理它。
+#### Tag助手与HTML助手的比较
 
-#### 标记助手与HTML助手
-
-在ASP.NET Core中，您有两个类似的工具来提高Razor视图中标记语言的抽象级别：HTML帮助程序（在经典ASP.NET MVC中也支持）和标记帮助程序。这两个工具都做同样的工作，并且都为相对复杂和重复的Razor任务提供了更易于使用的语法。但是，HTML帮助程序是以编程方式调用的扩展方法。
+在ASP.NET Core中，您有两个类似的工具来提高Razor视图中标记语言的抽象级别：HTML助手（在经典ASP.NET MVC中也支持）和Tag助手。这两个工具都做同样的工作，并且都为相对复杂和重复的Razor任务提供了一种更易于使用的语法。然而，HTML助手是通过编程方式调用的扩展方法。
 
 ```c#
 @Html.MyDropDownList(...)
 ```
 
-- HTML帮助程序合并或以编程方式生成其标记。但是，标记是从外部隐藏的。假设您现在需要编辑内部标记的简单属性 - 比如，将CSS类添加到某个元素。只要更改是通用的并且适用于帮助程序的所有实例，这是一项简单的任务。如果您希望能够为每个实例指定不同的CSS属性，则必须将CSS属性公开为帮助程序的输入参数。进行此更改会对内部标记和周围的API产生重大影响。
-- 相反，标记帮助程序只是视图中标记周围的代码。代码只是关于如何操作逐个指定的模板。
+- HTML助手合并或以编程方式生成其标记。然而，标记是从外部隐藏的。假设现在需要编辑内部标记的一个简单属性，比如，向某个元素添加CSS类。只要更改是通用的并且适用于帮助程序的所有实例，这是一项简单的任务，只要更改是通用的，并且适用于helper的所有实例。如果您希望能够为每个实例指定不同的CSS属性，那么必须将CSS属性作为helper的输入参数公开。进行此更改对内部标记和周围的API都有显著影响。
+- Tag助手只是围绕视图中的标记编写代码。代码只是关于如何操作指定的模板。
 
 
 
