@@ -8,7 +8,7 @@ ASP.NET Core自带一个默认视图引擎——Razor视图引擎。 Razor是用
 
 Razor文件是一个文本文件，包含两个主要语法项——HTML表达式和代码表达式。 HTML表达式是逐字生成的，相反，将计算代码表达式，并将其输出与HTML表达式合并。代码表达式是指预定义编程语言的语法。
 
-编程语言是通过Razor文件的扩展来标识的。默认情况下，扩展名为.cshtml，表达式的编程语言为C＃。无论选择哪种编程语言，@字符总是表示Razor代码表达式的开始。
+编程语言是通过Razor文件的扩展来标识的。默认情况下，扩展名为`.cshtml`，表达式的编程语言为C＃。无论选择哪种编程语言，`@`字符总是表示Razor代码表达式的开始。
 
 ### 处理代码表达式
 
@@ -24,7 +24,7 @@ Razor文件是一个文本文件，包含两个主要语法项——HTML表达�
 </div>
 ```
 
-在上述代码中，将计算CultureInfo.CurrentUICulture.DisplayName表达式，并将输出结果发送到输出流。
+在上述代码中，将计算`CultureInfo.CurrentUICulture.DisplayName`表达式，并将输出结果发送到输出流。
 
 示例二：
 
@@ -37,11 +37,11 @@ Razor文件是一个文本文件，包含两个主要语法项——HTML表达�
 </div>
 ```
 
-@message表达式输出message变量的当前值。在该示例中，我们看到另一个语法元素：@ {...}代码块。
+`@message`表达式输出`message`变量的当前值。在该示例中，我们看到另一个语法元素：`@ {...}`代码块。
 
 #### 代码块
 
-代码块允许多行语句，包括声明和计算。除非内容包含在标记标签中，否则@ {...}块的内容被认为是代码。标记标签主要是HTML标签。
+代码块允许多行语句，包括声明和计算。除非内容包含在标记标签中，否则`@ {...}`块的内容被认为是代码。标记标签主要是HTML标签。
 
 示例：
 
@@ -67,7 +67,7 @@ Razor文件是一个文本文件，包含两个主要语法项——HTML表达�
 
 ##### 说明：
 
-任何Razor代码片段都可以与普通标记混合使用，即使代码片段包含控制流语句（如if / else或for / foreach）也是如此。
+任何Razor代码片段都可以与普通标记混合使用，即使代码片段包含控制流语句（如`if` / `else`或`for` / `foreach`）也是如此。
 
 示例：
 
@@ -92,7 +92,7 @@ Razor文件是一个文本文件，包含两个主要语法项——HTML表达�
 </body>
 ```
 
-注意，位于源代码中间的右花括号(可以在@foreach行中看到)被解析器正确地识别和解释。
+注意，位于源代码中间的右花括号(可以在`@foreach`行中看到)被解析器正确地识别和解释。
 
 可以使用圆括号将多个标记（例如，标记和代码）组合在同一表达式中：
 
@@ -106,7 +106,7 @@ Razor文件是一个文本文件，包含两个主要语法项——HTML表达�
 
 Razor中处理的任何内容都是自动编码的，这使得你的HTML输出非常安全，不需要额外的努力就能抵抗XSS脚本注入。记住这一点，并避免显式编码输出，因为它可能会导致双编码文本。
 
-但是，在某些情况下，你的代码只需要发出未编码的HTML标记。在这种情况下，您可以使用Html.Raw辅助方法。如下：
+但是，在某些情况下，你的代码只需要发出未编码的HTML标记。在这种情况下，您可以使用`Html.Raw()`辅助方法。如下：
 
 ```c#
 Compare this @Html.Raw("<b>Bold text</b>")
@@ -115,9 +115,9 @@ to the following: @("<b>Bold text</b>")
 
 #### HTML助手
 
-HTML帮助程序是HtmlHelper类的扩展方法。抽象地说，HTML助手只不过是一个HTML工厂。在视图中调用方法，插入一些HTML是由提供的输入参数（如果有的话）产生的。在内部，HTML助手只是将标记累积到内部缓冲区中，然后输出它。视图对象在属性名Html下合并了HtmlHelper类的一个实例。
+HTML帮助程序是`HtmlHelper`类的扩展方法。抽象地说，HTML助手只不过是一个HTML工厂。在视图中调用方法，插入一些HTML是由提供的输入参数（如果有的话）产生的。在内部，HTML助手只是将标记累积到内部缓冲区中，然后输出它。视图对象在属性名`Html`下合并了`HtmlHelper`类的一个实例。
 
-ASP.NET Core提供了一些现成的HTML帮助程序，包括CheckBox，ActionLink和TextBox。
+ASP.NET Core提供了一些现成的HTML帮助程序，包括`CheckBox`，`ActionLink`和T`extBox`。
 
 HTML帮助程序方法：
 
@@ -146,7 +146,7 @@ HTML帮助程序方法：
 
 每个HTML帮助程序都有一堆重载，可以让您指定属性值和其他相关信息。
 
-例如，以下是使用class属性设置文本框样式的方法：
+例如，以下是使用`class`属性设置文本框样式的方法：
 
 ```c#
 @Html.TextBox("LastName", 
@@ -154,18 +154,18 @@ HTML帮助程序方法：
               new Dictionary<String, Object>{{"class", "myCoolTextBox"}})
 ```
 
-在上表中，有许多用于助手的xxxFor方法。他们与其他助手有什么不同？ xxxFor帮助程序与基本版本不同，因为它只接受lambda表达式，如下所示：
+在上表中，有许多用于助手的`xxxFor`方法。他们与其他助手有什么不同？`xxxFor`帮助程序与基本版本不同，因为它只接受lambda表达式，如下所示：
 
 ```c#
 @Html.TextBoxFor(model => model.LastName, 
                  new Dictionary<String, Object>{{"class", "myCoolTextBox"}})
 ```
 
-对于文本框，lambda表达式指示要在输入字段中显示的文本。当将填充视图的数据分组到模型对象中时，xxxFor变体特别有用。在这种情况下，您的视图结果更易于阅读和强类型。
+对于文本框，lambda表达式指示要在输入字段中显示的文本。当将填充视图的数据分组到模型对象中时，`xxxFor`变体特别有用。在这种情况下，您的视图结果更易于阅读和强类型。
 
 使用HTML助手有很强的优点和缺点。复杂的HTM助手需要你编写的更多C＃代码来传递参数，在某种程度上，HTML助手隐藏了渲染复杂标记的复杂性。但与此同时，仅仅因为标记结构作为开发人员隐藏，您就会丢失它的透视图，并将其作为黑盒使用。即使使用CSS对内部块进行样式化也需要进行设计，因为CSS属性必须在API中公开。
 
-尽管ASP.NET Core中完全支持HTML帮助程序，但它们的使用比几年前更不具吸引力。 ASP.NET Core提供了标记帮助程序（稍后参阅）作为一种额外的工具，以灵活和富有表现力的方式呈现复杂的HTML。就个人而言，我最近没有使用过HTML帮助程序，只有一个例外 - CheckBox助手。
+尽管ASP.NET Core中完全支持HTML帮助程序，但它们的使用比几年前更不具吸引力。 ASP.NET Core提供了标记帮助程序（稍后参阅）作为一种额外的工具，以灵活和富有表现力的方式呈现复杂的HTML。就个人而言，我最近没有使用过HTML帮助程序，只有一个例外 —— CheckBox助手。
 
 #### 布尔值和复选框的奇怪情况
 
@@ -181,11 +181,11 @@ HTML帮助程序方法：
 rememberme=on
 ```
 
-如果未选中该复选框，则忽略输入字段而不发送。此时，模型绑定如何处理已提交的数据？模型绑定层被指示将其理解为true，但是如果不为RememberMe的名字赋值，那么它就不能做太多事情了! CheckBox帮助程序会以相同的remember名称默默地附加一个输入隐藏元素，并将其设置为false。但是，如果选中该复选框，则会为相同的名称提交两个值，但是在本例中，模型绑定层只获取第一个值。
+如果未选中该复选框，则忽略输入字段而不发送。此时，模型绑定如何处理已提交的数据？模型绑定层被指示将其理解为`true`，但是如果不为`RememberMe`的名字赋值，那么它就不能做太多事情了! CheckBox帮助程序会以相同的`remember`名称默默地附加一个输入隐藏元素，并将其设置为`false`。但是，如果选中该复选框，则会为相同的名称提交两个值，但是在本例中，模型绑定层只获取第一个值。
 
 #### 注释
 
-当您使用@ {...}在多行代码片段内工作时，可以使用语言语法来进行注释。如果要对标记块进行注释，请使用@ * ... * @语法。如下所示：
+当您使用`@ {...}`在多行代码片段内工作时，可以使用语言语法来进行注释。如果要对标记块进行注释，请使用`@* ... *@`语法。如下所示：
 
 ```c#
 @*
@@ -197,7 +197,7 @@ rememberme=on
 
 在Razor中，布局模板扮演着母版页的角色。布局模板定义视图引擎将围绕任何映射视图呈现的框架，从而为站点的这些部分提供统一的外观。
 
-每个视图都可以通过设置父视图类的Layout属性来定义自己的布局模板。布局可以设置为硬编码文件，也可以设置为评估运行时条件产生的任何路径。可以使用_ViewStart.cshtml文件为Layout属性指定一个默认属性，从而为所有视图定义一个默认的图形模板。
+每个视图都可以通过设置父视图类的`Layout`属性来定义自己的布局模板。布局可以设置为硬编码文件，也可以设置为评估运行时条件产生的任何路径。可以使用`_ViewStart.cshtml`文件为`Layout`属性指定一个默认属性，从而为所有视图定义一个默认的图形模板。
 
 #### 布局参考
 
@@ -207,11 +207,11 @@ rememberme=on
 
 因为布局文件是一个完整的HTML模板，所以它应该包含一个全面的HEAD块，其中提供了元信息（以及favicons和常用的CSS和JavaScript文件）。您可以将脚本文件放在HEAD部分或视图正文的末尾。模板的主体为所有派生视图定义布局。一个典型的布局模板包含页眉，页脚和侧栏。这些元素中显示的内容由所有视图继承，可以静态设置为纯本地化文本，也可以从传递的数据绑定。 
 
-注意：在任何视图中，建议通过使用波浪号操作符（~）引用网站的根目录来引用图像、脚本和样式表等资源。在ASP.NET Core中，请注意，只有在Razor引擎解析的代码块中才会出现波浪号操作符（~）。它不能在纯HTML文件中工作(带有. HTML扩展名)，也不能在Razor文件的所有<script>元素中使用。要么将路径表示为代码块，要么使用一些JavaScript技巧来修复URL。
+注意：在任何视图中，建议通过使用波浪号操作符（`~`）引用网站的根目录来引用图像、脚本和样式表等资源。在ASP.NET Core中，请注意，只有在Razor引擎解析的代码块中才会出现波浪号操作符（`~`）。它不能在纯HTML文件中工作(带有`.html`扩展名)，也不能在Razor文件的所有`<script>`元素中使用。要么将路径表示为代码块，要么使用一些JavaScript技巧来修复URL。
 
 #### 将数据传递给布局
 
-编程上，开发人员只引用一个视图及其视图模型。在经典ASP.NET中，Controller类的View方法也有一个重载，允许您通过代码设置布局。 ASP.NET Core中没有公开该重载。当视图引擎确定正在渲染的视图具有布局时，首先解析布局的内容，然后将其与视图模板合并。
+编程上，开发人员只引用一个视图及其视图模型。在经典ASP.NET中，`Controller`类的`View()`方法也有一个重载，允许您通过代码设置布局。 ASP.NET Core中没有公开该重载。当视图引擎确定正在渲染的视图具有布局时，首先解析布局的内容，然后将其与视图模板合并。
 
 布局可以定义它希望接收的视图模型的类型，但它真正接收的是视图模型对象 ——如果有传递给实际视图的话。因此，布局视图的视图模型必须是用于视图的视图模型的父类。因此，建议对于每个布局，都定义一个特别的视图模型基类，并从中为实际视图派生特定的视图模型类。
 
@@ -223,11 +223,11 @@ rememberme=on
 | InternalLayoutViewModel   | InternalLayout   | 基于InternalLayout模板的视图模型   |
 | BackofficeLayoutViewModel | BackofficeLayout | 基于BackofficeLayout模板的视图模型 |
 
-所有布局视图模型类都将从单个父类继承，例如ViewModelBase类。布局视图和其他视图一样，仍然可以通过依赖注入和字典传递数据。
+所有布局视图模型类都将从单个父类继承，例如`ViewModelBase`类。布局视图和其他视图一样，仍然可以通过依赖注入和字典传递数据。
 
 #### 定义自定义部分
 
-对于外部视图内容，任何布局都必须至少有一个注入点。这个注入点包括对方法RenderBody的调用。该方法在用于呈现布局和视图的基视图类中定义。但有时，需要向多个位置注入内容。下述代码中，在布局模板中定义了一个或多个命名部分，并让视图使用标记来填充它们。
+对于外部视图内容，任何布局都必须至少有一个注入点。这个注入点包括对方法`RenderBody`的调用。该方法在用于呈现布局和视图的基视图类中定义。但有时，需要向多个位置注入内容。下述代码中，在布局模板中定义了一个或多个命名部分，并让视图使用标记来填充它们。
 
 ```HTML
 <body>
@@ -240,7 +240,7 @@ rememberme=on
 </body>
 ```
 
-每个部分都按名称标识，除非被标记为可选，否则认为是必需的。 RenderSection方法接受一个可选的Boolean参数，该参数表示该部分是否是必需的。要声明一个可选的部分，您可以执行以下操作：
+每个部分都按名称标识，除非被标记为可选，否则认为是必需的。 `RenderSection`方法接受一个可选的`Boolean`参数，该参数表示该部分是否是必需的。要声明一个可选的部分，您可以执行以下操作：
 
 ```html
 <div id="footer">
@@ -256,7 +256,7 @@ rememberme=on
 </div>
 ```
 
-注意，required不是关键字，它是RenderSection方法定义的形式参数的名称。 您可以使用的自定义部分的数量没有限制。如果在视图中填充后，生成的HTML是有效的，则可以在布局中的任何位置使用自定义部分。
+注意，`required`不是关键字，它是`RenderSection`方法定义的形式参数的名称。 您可以使用的自定义部分的数量没有限制。如果在视图中填充后，生成的HTML是有效的，则可以在布局中的任何位置使用自定义部分。
 
 如果视图模板不包含需要标记的部分，则会出现运行异常。以下是如何在视图模板中定义部分内容：
 
@@ -332,11 +332,11 @@ rememberme=on
 }
 ```
 
-现在，客户详细信息的呈现完全被转载到pv_customer视图中，这使得它成为应用程序中呈现客户详细信息的惟一方式。到现在为止还挺好。如果您需要将更多信息传递给它所接收的客户数据对象中不可用的部分视图，该怎么办?你有几个选择。
+现在，客户详细信息的呈现完全被转载到`pv_customer`视图中，这使得它成为应用程序中呈现客户详细信息的惟一方式。到现在为止还挺好。如果您需要将更多信息传递给它所接收的客户数据对象中不可用的部分视图，该怎么办?你有几个选择。
 
 - 首先，您可以重构所涉及的类，以便部分视图接收所需的全部数据。然而，这种方法可能会损害部分视图的整体可重用性。
 - 其次，您可以使用一个匿名类型来连接原始数据对象和其他数据。
-- 最后，您可以通过ViewData传递任何额外的数据。
+- 最后，您可以通过`ViewData`传递任何额外的数据。
 
 
 
@@ -350,13 +350,13 @@ Tag Helpers是服务器端代码，可以绑定到一个或多个标记元素，
 
 #### 注册Tag Helpers
 
-Razor视图中的@addTagHelper指令指示解析器链接指定的类，并根据其内容处理未知标记属性和元素。
+Razor视图中的`@addTagHelper`指令指示解析器链接指定的类，并根据其内容处理未知标记属性和元素。
 
 ```
 @addTagHelper *, YourTagHelperLibrary
 ```
 
-上面的语法链接在当前视图中是YourTagHelperLibrary程序集中所有类的潜在标记助手。如果指定的是类型名称而不是*符号，那么只会从指定的程序集中选取这个类。如果插入一个ViewImports.cshtml文件，@ addTagHelper指令将自动添加到正在处理的任何Razor视图中。
+上面的语法链接在当前视图中是`YourTagHelperLibrary`程序集中所有类的潜在标记助手。如果指定的是类型名称而不是`*`符号，那么只会从指定的程序集中选取这个类。如果插入一个`_ViewImports.cshtml`文件，`@ addTagHelper`指令将自动添加到正在处理的任何Razor视图中。
 
 #### 将Tag助手附加到HTML元素
 
@@ -380,7 +380,7 @@ Razor视图中的@addTagHelper指令指示解析器链接指定的类，并根�
 
 注册为Tag助手的程序集告诉Razor解析器，应该在服务器端处理标记表达式中的哪些属性和元素，以便为浏览器生成实际的标记。在Visual Studio中还会使用特殊颜色强调标识为标记帮助程序的属性和元素。
 
-特别是，asp-append-version标记助手修改了绑定元素，将时间戳添加到引用文件的URL，这样浏览器就不会缓存它。这是为上面的IMG元素生成的实际标记：
+特别是，`asp-append-version`标记助手修改了绑定元素，将时间戳添加到引用文件的URL，这样浏览器就不会缓存它。这是为上面的IMG元素生成的实际标记：
 
 ```html
 <img src="/images/app-logo.png?v=yqomE4A3_PDemMMVt-umA" />
@@ -392,13 +392,13 @@ Razor视图中的@addTagHelper指令指示解析器链接指定的类，并根�
 
 ### 内置标签助手
 
-ASP.NET Core附带了一个包含预定义标记助手的包。所有这些都定义在你可能从_ViewImports.cshtml文件中引用的同一个程序集中，它保证内置的助手可以用于所有的Razor视图。
+ASP.NET Core附带了一个包含预定义标记助手的包。所有这些都定义在你可能从`_ViewImports.cshtml`文件中引用的同一个程序集中，它保证内置的助手可以用于所有的Razor视图。
 
 ```c#
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 ```
 
-内置标签助手涵盖了一系列功能。例如，有一些元素会影响到Razor模板中相同的HTML元素：FORM，INPUT，TEXTAREA，LABEL和SELECT。还有许多其他的助手用于验证要显示给用户的消息。所有这些系统的标记助手都共享asp- *名称前缀。 
+内置标签助手涵盖了一系列功能。例如，有一些元素会影响到Razor模板中相同的HTML元素：FORM，INPUT，TEXTAREA，LABEL和SELECT。还有许多其他的助手用于验证要显示给用户的消息。所有这些系统的标记助手都共享`asp- *`名称前缀。 
 
 #### 标签助手的一般结构
 
@@ -428,7 +428,7 @@ public class AnchorTagHelper : TagHelper, ITagHelper
 
 锚标记助手适用于A元素，并允许您以极大的灵活性指定它指向的URL。实际上，您可以通过按路由名称将目标URL分解为区域控制器-操作组件来指定目标URL，甚至可以指定URL的片段，例如主机、片段和协议。
 
-注意，如果同时指定了href属性和route属性，则helper类将抛出异常。
+注意，如果同时指定了`href`属性和`route`属性，则helper类将抛出异常。
 
 #### Form标签助手
 
@@ -440,7 +440,7 @@ public class AnchorTagHelper : TagHelper, ITagHelper
 </form>
 ```
 
-上面的Razor代码将method属性设置为POST，将action属性设置为由指定控制器和操作的组合产生的URL。此外，表单标记助手做了一个有趣而棘手的事情，它会为一个隐藏字段注入一个定制的请求验证令牌，以防止跨站点请求伪造（XSRF）攻击。
+上面的Razor代码将method属性设置为POST，将`action`属性设置为由指定控制器和操作的组合产生的URL。此外，表单标记助手做了一个有趣而棘手的事情，它会为一个隐藏字段注入一个定制的请求验证令牌，以防止跨站点请求伪造（XSRF）攻击。
 
 ```html
 <form method="POST" action="/room/book"
@@ -459,13 +459,13 @@ public class RoomController : Controller
 }
 ```
 
-AutoValidateForgeryToken属性将读取请求验证cookie，对其进行解密，并将其值与请求验证隐藏字段的value属性的内容进行比较。如果未找到匹配项，则抛出异常。如果没有AutoValidateForgeryToken属性，则不执行双重检查。通常，您可能希望在控制器级别使用该属性，或者更好的是，将其用作全局过滤器。在这种情况下，如果只对某些方法禁用它，可以使用IgnoreValidateForgeryToken属性。
+`AutoValidateForgeryToken`属性将读取请求验证cookie，对其进行解密，并将其值与请求验证隐藏字段的`value`属性的内容进行比较。如果未找到匹配项，则抛出异常。如果没有`AutoValidateForgeryToken`属性，则不执行双重检查。通常，您可能希望在控制器级别使用该属性，或者更好的是，将其用作全局过滤器。在这种情况下，如果只对某些方法禁用它，可以使用`IgnoreValidateForgeryToken`属性。
 
-注意在ASP.NET Core中，还有一个类似的属性，名为ValidateForgeryToken。与AutoValidateForgeryToken的区别在于后者仅检查POST请求。
+注意在ASP.NET Core中，还有一个类似的属性，名为`ValidateForgeryToken`。与`AutoValidateForgeryToken`的区别在于后者仅检查POST请求。
 
 #### 输入标签助手
 
-输入标签助手将input元素绑定到模型表达式。绑定通过asp-for属性进行。注意，asp-for属性也适用于label元素。
+输入标签助手将input元素绑定到模型表达式。绑定通过`asp-for`属性进行。注意，`asp-for`属性也适用于label元素。
 
 ```html
 <div class="form-group">
@@ -476,7 +476,7 @@ AutoValidateForgeryToken属性将读取请求验证cookie，对其进行解密�
 </div>
 ```
 
-input元素的asp-for属性根据表达式生成name，id，type和value属性。在示例中，值Title引用绑定视图模型上的匹配属性。对于label元素，asp-for属性设置for属性和可选的标签内容。结果如下。
+input元素的`asp-for`属性根据表达式生成name，id，type和value属性。在示例中，值Title引用绑定视图模型上的匹配属性。对于label元素，`asp-for`属性设置`for`属性和可选的标签内容。结果如下。
 
 ```html
 <div class="form-group">
@@ -488,13 +488,13 @@ input元素的asp-for属性根据表达式生成name，id，type和value属性�
 </div>
 ```
 
-要确定最合适的字段类型，asp-for属性还会查看可能在视图模型类中定义的数据注解。如果已在标记中指定，则不会覆盖受影响的属性。此外，基于数据注解，asp-for属性可以生成从错误消息和验证规则读取的HTML5验证属性。这些data- * validation属性由验证标记助手使用，如果配置为jQuery验证，则由客户端验证使用。
+要确定最合适的字段类型，`asp-for`属性还会查看可能在视图模型类中定义的数据注解。如果已在标记中指定，则不会覆盖受影响的属性。此外，基于数据注解，`asp-for`属性可以生成从错误消息和验证规则读取的HTML5验证属性。这些`data- *` validation属性由验证标记助手使用，如果配置为jQuery验证，则由客户端验证使用。
 
 最后，值得注意的是，如果视图模型结构发生了变化， 并且标记助手表达式没有更新，那么编译时就会产生错误。
 
 #### 验证标记助手
 
-验证标记助手有两种类型，验证单个属性和summary。特别是，验证消息助手会使用span元素上的asp-validation-for属性的值。
+验证标记助手有两种类型，验证单个属性和summary。特别是，验证消息助手会使用span元素上的`asp-validation-for`属性的值。
 
 ```html
 <span asp-validation-for="Email"></span>
@@ -506,7 +506,7 @@ SPAN元素设置为相应的HTML5验证消息，电子邮件输入字段可能�
 <div asp-validation-summary="All"></span>
 ```
 
-相反，验证summary助手使用DIV元素的asp-validation-summary属性。它的输出是一个ul元素，列出了表单中的所有验证错误。属性的值确定列出哪些错误。可行值为All，表示列出所有错误；ModelOnly表示仅列出模型错误。
+相反，验证summary助手使用DIV元素的`asp-validation-summary`属性。它的输出是一个ul元素，列出了表单中的所有验证错误。属性的值确定列出哪些错误。可行值为`All`，表示列出所有错误；`ModelOnly`表示仅列出模型错误。
 
 #### select列表标记助手
 
@@ -519,7 +519,7 @@ SPAN元素设置为相应的HTML5验证消息，电子邮件输入字段可能�
 </select>
 ```
 
-在select元素中，asp-for指向一个要计算的表达式，以便在列表中找到选中的项。相反，asp-items属性提供了项的列表。新的Html.GetEnumSelectList扩展方法接收枚举类型，并将其序列化为SelectListItem对象列表。
+在select元素中，`asp-for`指向一个要计算的表达式，以便在列表中找到选中的项。相反，`asp-items`属性提供了项的列表。新的`Html.GetEnumSelectList`扩展方法接收枚举类型，并将其序列化为`SelectListItem`对象列表。
 
 ```c#
 public enum RoomCategories
@@ -531,7 +531,7 @@ public enum RoomCategories
 }
 ```
 
-好的方法是，如果枚举的任何元素都用Display属性修饰，则呈现的名称是指定的文本，而不是文字值。需要注意的是，生成的选项的值是枚举条目的数值值(而不是名称)。
+好的方法是，如果枚举的任何元素都用`Display`属性修饰，则呈现的名称是指定的文本，而不是文字值。需要注意的是，生成的选项的值是枚举条目的数值值(而不是名称)。
 
 ### 编写自定义Tag助手
 
@@ -558,7 +558,7 @@ public enum RoomCategories
 </email>
 ```
 
-标签助手类必须注册在视图中，要么在视图本身中注册，要么在_ViewImports.cshtml中的所有视图中注册。
+标签助手类必须注册在视图中，要么在视图本身中注册，要么在`_ViewImports.cshtml`中的所有视图中注册。
 
 ```c#
 @addTagHelper *,Your.Assembly
@@ -568,9 +568,9 @@ public enum RoomCategories
 
 #### 实现自定义Tag Helper
 
-典型的标记助手类继承自TagHelper并重写方法ProcessAsync。该方法负责为助手控制的任何标记生成输出。
+典型的标记助手类继承自TagHelper并重写方法`ProcessAsync`。该方法负责为助手控制的任何标记生成输出。
 
-如上所述，要将Razor元素绑定到助手，需要使用HtmlTargetElement特性。该属性包含助手将绑定到的元素的名称。
+如上所述，要将Razor元素绑定到助手，需要使用`HtmlTargetElement`特性。该属性包含助手将绑定到的元素的名称。
 
 ```c#
 [HtmlTargetElement("email")]
@@ -660,7 +660,7 @@ public class MyEmailTagHelper : TagHelper
 
 #### 视图组件的实现
 
-视图组件是一个继承自ViewComponent的类，并公开一个InvokeAsync方法，该方法的签名与Razor中从视图传递的输入数据相匹配。下面是视图组件核心代码的合理布局。
+视图组件是一个继承自`ViewComponent`的类，并公开一个`InvokeAsync`方法，该方法的签名与Razor中从视图传递的输入数据相匹配。下面是视图组件核心代码的合理布局。
 
 ```c#
 public async Task<IViewComponentResult> InvokeAsync( /* input data */ )
@@ -674,13 +674,13 @@ public async Task<IViewComponentResult> InvokeAsync( /* input data */ )
 
 #### 将组件连接到Razor视图
 
-视图组件类可以放在项目中的任何位置，但视图组件使用的所有视图都被限制在一个特定的位置。特别是，你必须具有一个Components文件夹，其中每个视图组件都有一个子文件夹。通常，将Components文件夹放在Views / Shared文件夹下，以确保组件的完全可重用性。如果将多个视图组件限制在一个控制器中是有意义的，那么在视图中的控制器文件夹下有一个Components文件夹也是可以的。
+视图组件类可以放在项目中的任何位置，但视图组件使用的所有视图都被限制在一个特定的位置。特别是，你必须具有一个Components文件夹，其中每个视图组件都有一个子文件夹。通常，将Components文件夹放在`Views/Shared`文件夹下，以确保组件的完全可重用性。如果将多个视图组件限制在一个控制器中是有意义的，那么在视图中的控制器文件夹下有一个Components文件夹也是可以的。
 
-视图组件文件夹的名称是视图组件类的名称。请注意，如果类名以ViewComponent后缀结尾，则必须删除后缀。此文件夹包含所有正在使用的Razor视图。从InvokeAsync方法返回时，如果未指定视图名称，将默认假定为default.cshtml文件。该视图是一个带有常规指令的常规Razor视图。
+视图组件文件夹的名称是视图组件类的名称。请注意，如果类名以`ViewComponent`后缀结尾，则必须删除后缀。此文件夹包含所有正在使用的Razor视图。从`InvokeAsync`方法返回时，如果未指定视图名称，将默认假定为`default.cshtml`文件。该视图是一个带有常规指令的常规Razor视图。
 
 #### 调用视图组件
 
-要从视图中调用视图组件，可以使用以下代码。请注意组件。下面的InvokeAsync方法可以接受任何参数，然后将这些参数传递给引用组件的内部实现的InvokeAsync方法。 Component.InvokeAsync方法是一个用于生成标记的占位符。
+要从视图中调用视图组件，可以使用以下代码。请注意组件。下面的`InvokeAsync`方法可以接受任何参数，然后将这些参数传递给引用组件的内部实现的`InvokeAsync`方法。`Component.InvokeAsync`方法是一个用于生成标记的占位符。
 
 ```c#
 @await Component.InvokeAsync("LatestBookings", new { maxLength = 4 })
