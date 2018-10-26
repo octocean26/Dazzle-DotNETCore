@@ -6,43 +6,37 @@
 
 ## 收集配置数据
 
-任何现实的网站都是通过基于HTTP的端点连接到外部世界的中央引擎。当ASP.NET MVC用作应用程序模型时，这些端点实现为控制器。如第4章“ASP.NET MVC控制器”所示，控制器处理传入请求并生成传出响应。合理地，包含网站背后逻辑的中央引擎的行为不是完全硬编码的，但可能包含一些参数信息，其值从外部源读取。
-
-在传统的ASP.NET应用程序中，获取配置数据的系统支持仅限于从web.config文件读取和写入的最小API。在启动时，开发人员通常将所有信息收集到可从应用程序中的任何位置调用的全局数据结构中。在ASP.NET Core中，不再有web.config文件，但该框架为处理配置数据提供了更丰富，更复杂的基础架构。
+在传统的ASP.NET应用程序中，获取配置数据的系统支持仅限于从web.config文件读取和写入的最小API。在启动时，开发人员通常将所有信息收集到一个全局数据结构中，该结构可以在应用程序的任何地方调用。在ASP.NET Core中，不再有web.config文件，但框架提供了更丰富和更复杂的基础结构来处理配置数据。
 
 ### 支持的数据提供者
 
-ASP.NET Core应用程序的配置基于运行时从各种数据源收集的名称 - 值对的列表。配置数据的最常见方案是从JSON文件中读取数据。但是，还存在许多其他选择;表7-3列出了最相关的选项。
+ASP.NET Core应用程序的配置，基于在运行时从各种数据源收集的名称-值对的列表。配置数据的最常见方式是从JSON文件中读取数据。除此之外，还有许多其他方式可供选择，如下表所示：
 
-表7-3 ASP.NET Core的最常见配置数据源
-
-| Data Source            | 描述                                               |
-| ---------------------- | -------------------------------------------------- |
-| Text files             | 从ad-hoc文件格式（包括JSON，XML和INI格式）读取数据 |
-| Environment variables  | 从托管服务器上配置的环境变量读取数据               |
-| In-memory dictionaries | 从内存中的.NET字典类中读取数据                     |
+| 数据来源                           | 描述                                               |
+| ---------------------------------- | -------------------------------------------------- |
+| Text files                         | 从特别的文件格式（包括JSON，XML和INI格式）读取数据 |
+| Environment variables（环境变量）  | 从托管服务器上配置的环境变量中读取数据             |
+| In-memory dictionaries（内存字典） | 从内存中的.NET字典类中读取数据                     |
 
 此外，配置API还提供了一个内置的命令行参数数据提供程序，它可以直接从命令行参数生成名称 - 值配置对。但是，此选项在ASP.NET应用程序中并不常见，因为您几乎无法控制启动Web应用程序的控制台应用程序的命令行。命令行提供程序更常用于控制台应用程序开发。
 
 #### JSON数据提供程序
 
-任何JSON文件都可以成为ASP.NET Core应用程序配置的数据源。文件的结构完全取决于您，可以包含任何级别的嵌套。搜索给定的JSON文件从应用程序启动时指定的内容根文件夹开始。
+任何JSON文件都可以成为ASP.NET Core应用程序配置的数据源。文件的结构完全由你决定，可以包含任何层次的嵌套。从应用程序启动时指定的内容根文件夹中，开始搜索给定的JSON文件。
 
-正如我们稍后将详细介绍的那样，整个配置数据集构建为分层文档对象模型（DOM），并且来自可能来自多个数据源的数据联合。这意味着您可以在构建所需配置树时根据需要使用尽可能多的JSON文件，并且每个文件都可以拥有自己的自定义架构。
+#### 环境变量提供程序
 
-#### 环境变量提供者
+服务器实例中定义的任何环境变量都自动适合添加到配置树中。你所要做的就是以编程方式将这些变量附加到树中。环境变量作为单个块添加，如果需要过滤，那么最好选择内存提供程序，并向字典中添加所选的环境变量。
 
-服务器实例中定义的任何环境变量都自动有资格添加到配置树中。您所要做的就是以编程方式将这些变量附加到树中。环境变量作为单个块添加。如果您需要过滤，那么您最好选择内存提供程序并将选定的环境变量添加到字典中。
+#### 内存提供程序
 
-### 内存提供商
-
-内存中提供程序是以编程方式填充并添加到配置树的名称 - 值对的普通字典。作为开发人员，您完全负责检索要存储在字典中的实际值。因此，通过内存提供程序传递的数据可以是常量，也可以从任何持久数据存储中读取。
+内存提供程序是一个简单的名称-值对字典，以编程方式填充并添加到配置树中。作为开发人员，完全负责检索要存储在字典中的实际值。因此，通过内存提供程序传递的数据可以是常量，也可以从任何持久数据存储中读取。
 
 #### 自定义配置提供程序
 
-除了使用预定义的配置数据提供程序之外，您还有权创建自己的提供程序。在此上下文中，提供程序是实现IConfigurationSource接口的类。但是，在实现中，您还需要引用从ConfigurationProvider继承的自定义类。
+除了使用预定义的配置数据提供程序之外，您还可以创建自己的提供程序。在此上下文中，提供程序是实现IConfigurationSource接口的类，然而在实现内部，还需要引用从ConfigurationProvider继承的自定义类。
 
-自定义配置提供程序的一个非常常见的示例是使用ad-hoc数据库表来读取数据的示例。提供程序最终隐藏所涉及的数据库表的架构和布局。要创建数据库驱动的提供程序，首先要创建一个配置源对象，该对象只不过是配置提供程序的包装器。
+自定义配置提供程序的一个非常常见的示例是使用特别的数据库表来读取数据。提供程序最终隐藏所涉及的数据库表的架构和布局。要创建数据库驱动的提供程序，首先要创建一个配置源对象，该对象只不过是配置提供程序的包装器。
 
 ```c#
 public class MyDatabaseConfigSource : IConfigurationSource
@@ -54,7 +48,7 @@ public class MyDatabaseConfigSource : IConfigurationSource
 }
 ```
 
-配置提供程序是执行实际数据检索的位置。配置提供程序包含并隐藏有关要使用的DbContext的详细信息，表和列的名称以及连接字符串。 （代码片段使用了Entity Framework Core的部分内容，我们将在第9章中讨论）
+配置提供程序是执行实际数据检索的地方。配置提供程序包含并隐藏有关要使用的DbContext、表和列的名称以及连接字符串的详细信息。
 
 ```c#
 public class MyDatabaseConfigProvider : ConfigurationProvider
@@ -73,24 +67,22 @@ public class MyDatabaseConfigProvider : ConfigurationProvider
 
     private IDictionary<string, string> GetDefaultValues ()
     {
-        // Pseudo code for determining default values to use
+        // 用于确定要使用的默认值的伪代码
         var values = DetermineDefaultValues();
         return values;
     }
 }
 ```
 
-示例代码缺少DbContext类的实现，您可以在其中处理连接字符串，表和列。一般来说，假设MyDatabaseContext是您需要拥有的另一段代码。使用MyDatabaseContext的代码段引用名为Values的数据库表。
-
-注意如果您找到将DbContextOptions对象作为参数传递给提供程序的方法，您甚至可以设法使用相当通用的基于EF的提供程序。 可以在http://bit.ly/2uQBJmK找到这种技术的一个例子。
+示例代码缺少DbContext类的实现，你可以在其中处理连接字符串，表和列。一般来说，假设MyDatabaseContext是你需要的另一段代码，使用MyDatabaseContext的代码片段引用一个名为Values的数据库表。
 
 ### 构建配置文档对象模型
 
-配置数据提供程序是必需的组件，但不足以在Web应用程序中实际检索和使用参数信息。所选提供者可以提供的所有信息必须聚合在一个可能是分层的DOM中。
+配置数据提供程序是必需的组件，但对于在web应用程序中实际检索和使用参数信息来说还不够。所选提供者可以提供的所有信息必须聚合在一个单独的、可能是分层的DOM中。
 
 #### 创建配置根
 
-配置数据通常构建在启动类的构造函数中，如下所示。请注意，仅当您要在某处使用时，才需要注入IHostingEnvironment接口。通常，只有在设置用于查找JSON文件或其他配置文件的基本路径时，才需要注入IHostingEnvironment。
+配置数据通常构建在Startup类的构造函数中，如下所示。注意，只有当您打算在某个地方使用IHostingEnvironment接口时，才需要注入它。通常，只有在设置定位JSON文件或其他配置文件的基本路径时，才需要注入IHostingEnvironment。
 
 ```c#
 public IConfigurationRoot Configuration { get; }
@@ -103,18 +95,18 @@ public Startup(IHostingEnvironment env)
         .AddEnvironmentVariables()
         .Build();
         
-    // Save the configuration root object to a startup member for further references
+    // 将配置根对象保存到启动成员中以供进一步引用
     Configuration = dom;
 }
 ```
 
-ConfigurationBuilder类负责聚合配置值和构建DOM。聚合数据应保存在启动类中，以便稍后在管道初始化期间使用。下一个要解决的问题是如何读取配置数据;对配置根的引用只是您用来访问实际值的工具。然而，在我们讨论之前，对配置中使用的文本文件有一些评论。
+ConfigurationBuilder类负责聚合配置值和构建DOM。聚合数据应保存在Startup类中，以便稍后在管道初始化期间使用。下一个要解决的问题是如何读取配置数据，对配置根的引用只是你用来访问实际值的工具。
 
 #### 配置文件的高级方面
 
-只要您创建自己的数据提供程序，就可以以任何您希望的格式存储配置，并且仍然可以将存储的数据作为名称 - 值对绑定到标准配置DOM。 ASP.NET Core支持开箱即用的JSON，XML和INI格式。
+只要你创建了自己的数据提供程序，就可以以任何格式存储配置，并且仍然可以将存储的数据作为名称 - 值对绑定到标准配置DOM。 ASP.NET Core支持现成的JSON，XML和INI格式。
 
-要将每个添加到配置构建器，可以使用ad hoc扩展方法，例如AddJsonFile，AddXmlFile或AddIniFile。所有方法共享相同的签名，除文件名外还包括两个额外的布尔参数。
+要将每个都添加到配置构建器中，可以使用一个特别的扩展方法，例如AddJsonFile，AddXmlFile或AddIniFile。所有方法共享相同的签名，除文件名外还包括两个额外的布尔参数。
 
 ```c#
 // Extension method of the IConfigurationBuilder type
@@ -124,7 +116,7 @@ public static IConfigurationBuilder AddJsonFile(this IConfigurationBuilder build
      bool reloadOnChange);
 ```
 
-第一个布尔参数指示文件是否应被视为可选。如果不是，则在找不到文件时抛出异常。第二个参数-reloadOnChange-指示是否应监视文件的更改。如果是这样，则只要文件发生更改，就会自动重建配置树以反映这些更改。
+第一个布尔参数指示文件是否可选。如果不是，则在找不到文件时抛出异常。第二个参数reloadOnChange指示是否应该监视文件的更改。如果是这样，那么只要文件发生更改，就会自动重建配置树以反映这些更改。
 
 ```c#
 var builder = new ConfigurationBuilder()
@@ -133,13 +125,13 @@ var builder = new ConfigurationBuilder()
 Configuration = builder.Build();
 ```
 
-根据这些评论，这是一种从文本文件加载配置数据的更具弹性的方法，无论是JSON，XML还是INI。
+根据这些说明，这是一种更有弹性的方式，可以从文本文件(无论是JSON、XML还是INI)加载配置数据。
 
-图像注释ASP.NET Core还支持用于设置的特定于环境的文件。这意味着，与MyAppSettings.json一起，您还可以拥有MyAppSettings.Development.json，也许还有MyAppSettings.Staging.json。您添加了可能需要的所有JSON文件，系统只选择在给定上下文时看起来合适的文件。运行应用程序的当前环境由ASPNETCORE_ENVIRONMENT环境变量的值确定。在Visual Studio 2017中，您可以直接从项目的属性页面进行设置。在IIS或Azure App Service中，您只需通过相应的门户添加它。
+> 补充说明：ASP.NET Core还支持用于设置特定于环境的文件。这意味着，与MyAppSettings.json一起，您还可以拥有MyAppSettings.Development.json，也许还有MyAppSettings.Staging.json。您添加了可能需要的所有JSON文件，系统只选择在给定上下文时看起来合适的文件。运行应用程序的当前环境由ASPNETCORE_ENVIRONMENT环境变量的值确定。在Visual Studio 2017中，您可以直接从项目的属性页面进行设置。在IIS或Azure App Service中，您只需通过相应的门户添加它。
 
 #### 读取配置数据
 
-要以编程方式读取配置数据，请在配置根对象上使用GetSection方法，并为其传递路径字符串，以准确指示要读取的信息。要分层分层模式中的属性，请使用:(冒号）符号。假设JSON文件如下所示：
+要以编程方式读取配置数据，可以在配置根对象上使用GetSection方法，并为其传递路径字符串，以准确指示要读取的信息。要在层次架构中划分属性，可以使用:(冒号）符号。假设JSON文件如下所示：
 
 ```json
 {
@@ -152,39 +144,39 @@ Configuration = builder.Build();
 }
 ```
 
-要读取设置，只要您知道JSON模式中的路径值，就可以以多种不同的方式继续。例如，paging：pagesize是读取页面大小的路径字符串。您指定的路径字符串适用于当前配置DOM，并且来自所有已定义数据源的聚合。路径字符串始终不区分大小写。读取设置的最简单方法是通过索引器API，如下所示。
+要读取设置，只要知道JSON模式中的值路径，就可以以多种不同的方式进行。例如，paging:pagesize是用来读取页面大小的路径字符串。您指定的路径字符串适用于当前配置DOM，和所有已定义数据源的聚合结果。路径字符串始终不区分大小写。读取设置的最简单方法是通过索引器API（以索引下标的形式），如下所示。
 
 ```c#
-// The returned value is a string
+// 返回一个字符串
 var pageSize = Configuration["paging:pageSize"];
 ```
 
-重要的是要注意，默认情况下，该设置作为普通字符串返回，并且必须在进一步使用之前以编程方式转换为其实际的具体类型。不过，还有一个强类型的API。
+需要注意的是，默认情况下，该设置作为普通字符串返回，并且必须在进一步使用之前以编程方式转换为其实际的具体类型。不过，还有一个强类型的API。
 
 ```c#
-// The returned value is an integer (if conversion is possible)
+// 返回int类型数值
 var pageSize = Configuration.GetValue<int>("paging:pageSize");
 ```
 
-GetSection方法允许您选择整个配置子树，您可以使用索引器和强类型API来执行操作。
+GetSection方法允许你选择一个完整的配置子树，可以使用索引器和强类型API来执行操作。
 
 ```c#
 var pageSize = Configuration.GetSection("Paging").GetValue<int>("PageSize");
 ```
 
-最后，您还可以使用GetValue方法和Value属性。两者都会将设置的值作为字符串返回。请注意，GetSection方法是配置树上的通用查询工具;它不仅仅适用于JSON文件。
+最后，还可以使用GetValue方法和Value属性。两者都会将设置的值作为字符串返回。请注意，GetSection方法是配置树上的通用查询工具，它不仅仅适用于JSON文件。
 
-注意配置API设计为只读。但是，这仅表示您无法使用API写回配置的数据源。如果您有另一种方法来编辑数据源的内容（即，程序覆盖文本文件，数据库更新），则系统允许您重新加载配置树。您需要做的就是调用IConfigurationRoot对象的Reload方法。
+注意：配置API是只读的，表示你无法使用API回写已配置的数据源。如果您有另一种方法来编辑数据源的内容（即，程序覆盖文本文件），你需要做的就是调用IConfigurationRoot对象的Reload方法，系统允许重新加载配置树。
 
 ### 传递配置数据
 
-通过路径字符串准时读取配置数据并不是特别友好，尽管它代表了一个有用的低级工具。 ASP.NET Core提供了一种将配置数据绑定到强类型变量和成员的机制。然而，在我们进一步探讨这一点之前，我们应该研究将配置数据传递给控制器和视图的方法。
+通过路径字符串读取配置数据并不是特别友好，ASP.NET Core提供了一种将配置数据绑定到强类型变量和成员的机制。然而，在进一步探讨这一点之前，应该先探讨将配置数据传递给控制器和视图的方法。
 
 #### 注入配置数据
 
-到目前为止，我们已经在启动类中使用了配置API。在启动类中，您可以配置应用程序的管道，这是读取配置数据的好地方。但是，更常见的是，您需要将配置数据读入控制器方法和视图。要实现这一目标，您需要采用旧方法和新方法。
+到目前为止，我们已经在Startup类中使用了配置API。在Startup类中，可以配置应用程序的管道，这是读取配置数据的好地方。不过更常见的是，您需要将配置数据读入控制器方法和视图。要实现这一点，您可以采用一种旧方法和一种新方法。
 
-旧方法包括将IConfigurationRoot对象转换为可从应用程序中的任何位置看到的全局对象。它有效，但这是一种不推荐的遗留方法。新方法包括使用DI系统使配置根对象可用于控制器和视图。
+旧方法包括将IConfigurationRoot对象转换为可从应用程序中的任何位置都可见的全局对象。它虽然有效，但这是一种不推荐的遗留方法。新方法包括使用DI系统使配置根对象可用于控制器和视图。
 
 ```c#
 public class HomeController : Controller
@@ -198,36 +190,36 @@ public class HomeController : Controller
 }
 ```
 
-每当创建HomeController类的实例时，都会注入配置根。但是，要避免接收空引用，必须首先将DI系统中创建的配置根对象注册为单例。
+每当创建HomeController类的实例时，都会注入配置根。但是，为了避免接收空引用，您必须首先将在startup类中创建的配置根对象注册为单例。
 
 ```c#
 services.AddSingleton<IConfigurationRoot>(Configuration);
 ```
 
-您将此代码放在启动类的ConfigureServices方法中。请注意，Configuration对象只是在启动类的构造函数中创建的配置根对象。
+您可以将这些代码放在startup类的ConfigureServices方法中。注意，配置对象只是在startup类的构造函数中创建的配置根对象。
 
-#### 将配置映射到POCO类
+#### 将配置映射到POCO类（没有派生自Controller类的控制器类）
 
-在经典的ASP.NET MVC中，处理配置数据的最佳实践需要您在启动时将所有数据加载到全局容器对象中。可以从控制器方法访问全局对象，并且可以将其内容作为参数注入到后端类（例如存储库甚至视图）中。在传统的ASP.NET MVC中，将基于字符串的松散数据映射到全局容器的强类型属性的成本完全取决于您。
+在经典的ASP.NET MVC中，处理配置数据的最佳实践是，在启动时将所有数据加载到全局容器对象中。全局对象可以从控制器方法访问，它的内容可以作为参数注入到后端类，比如存储库甚至视图中。
 
-相反，在ASP.NET Core中，您可以使用所谓的Options模式自动将配置根DOM中的名称 - 值对绑定到配置容器模型中。选项模式是以下编码策略的描述性名称。
+相反，在ASP.NET Core中，可以使用所谓的Options模式将配置根DOM中的名称-值对自动绑定到配置容器模型中。Options模式是以下编码策略的描述性名称。
 
 ```c#
 public void ConfigureServices(IServiceCollection services)
 {
-    // Initializes the Options subsystem
+    // 初始化Options子系统
     services.AddOptions();
     
-    // Maps the specified segment of the configuration DOM to the given type.
-    // NOTE: Configuration used below is the configuration root created 
-    //       in the constructor of the startup class
+    // 在startup类的构造函数中
+    // 将配置DOM的指定段映射到给定类型
+    // 注意:下面使用的配置是创建的配置根 
     services.Configure<PagingOptions>(Configuration.GetSection("paging")); 
 }
 ```
 
-初始化Options子系统后，您可以要求子系统将从配置DOM的指定部分读取的所有值绑定到用作Configure <T>方法参数的类的公共成员中。绑定遵循控制器模型绑定使用的相同规则，并且递归地应用于嵌套对象。如果在给定数据结构和绑定对象的情况下不能进行绑定，则绑定会无声地失败。
+初始化Options子系统后，你可以要求子系统将从配置DOM的指定部分读取的所有值绑定到用作Configure <T>方法参数的类的公共成员中。绑定遵循控制器模型绑定所使用的相同规则，并且递归地应用于嵌套对象。如果给定数据和绑定对象的结构，不可能进行绑定，则绑定将静默失败。
 
-PagingOptions是您创建的POCO类，用于存储一些（甚至全部）配置设置。这是一个可能的实现：
+PagingOptions是一个POCO类，用于存储一些（甚至全部）配置设置。这是一个可能的实现：
 
 ```c#
 public class PagingOptions
@@ -237,12 +229,12 @@ public class PagingOptions
 }
 ```
 
-配置API的整体行为类似于模型绑定在控制器级别处理请求期间的工作方式。在控制器和视图中使用配置的强类型对象的缺失链接可以在如何将其注入DI系统中找到。您必须使用IOptions <T>抽象类型。
+配置API的整体行为，类似于模型绑定在控制器级别处理请求期间的工作方式。在控制器和视图中使用配置的强类型对象的缺失链接可以在如何将其注入DI系统中找到。您必须使用IOptions <T>抽象类型。
 
-向DI系统注册IOptions类型正是AddOptions扩展方法的目的。因此，剩下要做的就是在需要的地方注入IOptions <T>。
+向DI系统注册IOptions类型正是AddOptions扩展方法的目的。因此，剩下要做的就是在任何需要的地方注入IOptions <T>。
 
 ```c#
-// PagingOptions is an internal member of the controller class 
+// PagingOptions是控制器类的内部成员 
 protected PagingOptions Configuration { get; set; }
 
 public CustomerController(IOptions<PagingOptions> config)
@@ -251,9 +243,9 @@ public CustomerController(IOptions<PagingOptions> config)
 }
 ```
 
-如果在所有控制器中广泛使用Options模式，那么您可能需要考虑将上面看到的options属性移动到某个基类并从那里继承控制器类。
+如果在所有控制器中广泛使用Options模式，那么您可能需要考虑将上面看到的options属性移动到某个基类，并从基类那里继承控制器类。
 
-最后，在Razor视图中，您所做的只是使用@inject指令引入IOptions <T>类型的实例。
+最后，在Razor视图中，你所做的就是使用@inject指令来引入IOptions类型的实例。
 
 
 
