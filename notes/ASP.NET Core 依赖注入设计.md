@@ -311,3 +311,32 @@ public IActionResult Index(
 ```
 
 上面一行的最终效果是，在Razor视图中提供了一个名为“`Service`”的属性，该属性已被设置为`ICustomerService`类型的DI解析实例。分配的实例的生命周期将取决于DI容器中`ICustomerService`类型的配置。
+
+
+
+
+
+
+
+------
+
+
+
+#### 参考资源
+
+- 《Programming ASP.NET Core》
+
+
+
+本文后续会随着知识的积累不断补充和更新，内容如有错误，欢迎指正。
+
+最后一次更新时间：2018-10-26
+
+
+
+------
+
+
+
+
+
