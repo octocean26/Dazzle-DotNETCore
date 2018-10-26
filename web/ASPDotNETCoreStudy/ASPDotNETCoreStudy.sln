@@ -7,7 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BootstrappingMvcCore", "Boo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DI_Sample", "DI_Sample\DI_Sample.csproj", "{0F9A48D0-2836-4801-B7B5-5BDCF6EE20BB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MvcCoreViewSample", "MvcCoreViewSample\MvcCoreViewSample.csproj", "{943F0371-72BF-414E-8BAE-9E2A80A15DC2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MvcCoreViewSample", "MvcCoreViewSample\MvcCoreViewSample.csproj", "{943F0371-72BF-414E-8BAE-9E2A80A15DC2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RazorSample", "RazorSample\RazorSample.csproj", "{313D164D-A13F-4BC5-B3F9-7E71B056E661}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{943F0371-72BF-414E-8BAE-9E2A80A15DC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{943F0371-72BF-414E-8BAE-9E2A80A15DC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{943F0371-72BF-414E-8BAE-9E2A80A15DC2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{313D164D-A13F-4BC5-B3F9-7E71B056E661}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{313D164D-A13F-4BC5-B3F9-7E71B056E661}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{313D164D-A13F-4BC5-B3F9-7E71B056E661}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{313D164D-A13F-4BC5-B3F9-7E71B056E661}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
