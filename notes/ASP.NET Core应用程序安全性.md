@@ -43,7 +43,7 @@ HTTPS web服务器的配置决定了要使用的安全协议，证书只包含�
 
 #### 启用身份验证中间件
 
-要在全新的ASP.NET Core应用程序中启用cookie身份验证，您需要引用Microsoft.AspNetCore.Authentication.Cookies包。但是，与同一ASP.NET Core框架的早期版本相比，ASP.NET Core 2.0中输入到应用程序的实际代码是不同的。
+要在全新的ASP.NET Core应用程序中启用cookie身份验证，您需要引用Microsoft.AspNetCore.Authentication.Cookies命名空间。但是，与同一ASP.NET Core框架的早期版本相比，ASP.NET Core 2.0中输入到应用程序的实际代码是不同的。
 
 身份验证中间件作为服务公开，它必须在Startup类的ConfigureServices方法中进行配置。
 
@@ -51,21 +51,25 @@ HTTPS web服务器的配置决定了要使用的安全协议，证书只包含�
 public void ConfigureServices(IServiceCollection services)
 {
     services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-        .AddCookie(options =>
-        {
+        .AddCookie(options=> {
             options.LoginPath = new PathString("/Account/Login");
-            options.Cookie.Name = "YourAppCookieName";
-            options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+            options.Cookie.Name = "CookieName_Octocean";
+            options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+            //SlidingExpiration设置为true，以指示处理程序在处理超过到期窗口一半的请求时，重新发出具有新到期时间的新cookie
             options.SlidingExpiration = true;
+            //处理ForbidAsync时，处理程序将处理AccessDeniedPath属性用于重定向目标。
             options.AccessDeniedPath = new PathString("/Account/Denied");
-            ...
+
         });
+
+    services.AddMvc();
+   
 }
 ```
 
-AddAuthentication扩展方法获取一个字符串作为参数，指示要使用的身份验证方案。如果您计划支持单一身份验证方案，您将使用此路由。稍后，我们将看到如何稍微调整此代码以支持多个方案和处理程序。必须使用AddAuthentication返回的对象来调用表示身份验证处理程序的另一个方法。在上面的示例中，AddCookie方法指示框架通过配置的cookie登录和验证用户。每个身份验证处理程序（cookie，bearer等）都有自己的一组配置属性。
+AddAuthentication扩展方法获取一个字符串作为参数，指示要使用的身份验证方案。如果您计划支持单个身份验证方案，那么您将采用这种方法。稍后，我们将看到如何稍微调整此代码以支持多个方案和处理程序。AddAuthentication返回的对象必须用于调用另一个表示身份验证处理程序的方法。在上面的示例中，AddCookie方法指示框架通过配置的cookie登录和验证用户。每个身份验证处理程序（cookie，bearer等）都有自己的一组配置属性。
 
-相反，在Configure方法中，您只需声明您打算使用已配置的身份验证服务，而无需指定任何其他选项。
+相反，在Configure方法中，只需声明将要打算使用已配置的身份验证服务，而无需指定任何其他选项。
 
 ```c#
 public void Configure(IApplicationBuilder app)
@@ -75,41 +79,35 @@ public void Configure(IApplicationBuilder app)
 }
 ```
 
-代码片段中有一些名称和概念值得进一步解释 - 最值得注意的是身份验证方案。
-
 #### Cookie身份验证选项
 
-存储在web.config文件的<authentication>部分中的经典ASP.NET MVC应用程序的大部分信息现在都在代码中配置为中间件选项。上面的代码段列出了您可能想要选择的一些最常见的选项。表8-1提供了有关每个选项的更多详细信息。
+存储在web.config文件的<authentication>部分中的经典ASP.NET MVC应用程序的大部分信息现在都在代码中配置为中间件选项。
 
-8-1 Cookie身份验证选项
+Cookie身份验证选项：
 
 | 选项               | 说明                                                         |
 | ------------------ | ------------------------------------------------------------ |
 | AccessDeniedPath   | 指示如果当前标识没有查看所请求资源的权限，将重定向经过身份验证的用户的路径。该选项设置用户必须重定向到的URL，而不是接收纯HTTP 403状态代码。 |
 | Cookie             | CookieBuilder类型的容器对象，包含正在创建的身份验证cookie的属性。 |
-| ExpireTimeSpan     | 设置身份验证cookie的到期时间。时间必须是绝对的还是相对的，取决于SlidingExpiration属性的值。 |
-| LoginPath          | 指示将匿名用户重定向以使用自己的凭据登录的路径。             |
+| ExpireTimeSpan     | 设置身份验证cookie的到期时间。时间是作为绝对时间还是相对时间取决于SlidingExpiration属性的值。 |
+| LoginPath          | 指示将匿名用户重定向到使用自己的凭据登录的路径。             |
 | ReturnUrlParameter | 指示在匿名用户的情况下，用于传递最初请求的URL的参数的名称，该URL导致重定向到登录页面。 |
-| SlidingExpiration  | 指示ExpireTimeSpan值是作为绝对时间还是相对时间。在后一种情况下，该值被视为间隔，如果超过间隔的一半，中间件将重新发出cookie。 |
+| SlidingExpiration  | 指示ExpireTimeSpan值是作为绝对时间还是相对时间使用。在后一种情况下，该值被视为一个间隔，如果超过一半的间隔已经过去，中间件将重新发出cookie。 |
 
-请注意，LoginPath和AccessDeniedPath等路径属性的值不是字符串。实际上，LoginPath和AccessDeniedPath的类型为PathString。在.NET Core中，PathString类型与普通String类型不同，因为它在构建请求URL时提供了正确的转义。实质上，它是一种更具特定于URL的字符串类型。
-
-ASP.NET Core中用户身份验证工作流程的总体设计确实提供了前所未有的灵活性。它的每个方面都可以随意定制。作为示例，让我们看看如何控制基于每个请求使用的身份验证工作流。
+注意，LoginPath和AccessDeniedPath等路径属性的值不是字符串。实际上，LoginPath和AccessDeniedPath的类型为PathString。在.NET Core中，PathString类型与普通String类型不同，因为它在构建请求URL时提供了正确的转义。实质上，它是一种更具特定于URL的字符串类型。
 
 ### 处理多种身份验证方案
 
-有趣的是，在过去的ASP.NET版本中，身份验证挑战是自动的，您几乎无能为力。自动身份验证质询意味着一旦检测到当前用户缺少正确的身份信息，系统就会自动为配置的登录页面提供服务。在ASP.NET Core 1.x中，默认情况下，身份验证质询是自动的，但它会受到您的更改。在ASP.NET Core 2.0中，关闭自动质询的设置再次被删除。
-
-但是，在ASP.NET Core中，您可以注册多个不同的身份验证处理程序，并通过算法或通过配置确定每个请求必须使用哪个处理程序。
+在ASP.NET Core中，您可以注册多个不同的身份验证处理程序，并通过算法或通过配置确定每个请求必须使用哪个处理程序。
 
 ### 启用多个身份验证处理程序
 
-在ASP.NET Core中，您可以选择多种身份验证处理程序，例如基于cookie的身份验证，承载身份验证，通过社交网络或身份服务器进行身份验证，以及您可以想到和实现的其他任何内容。要注册多个身份验证处理程序，您只需在ASP.NET Core 2.0 Startup类的ConfigureServices方法中逐个列出所有部分。
+在ASP.NET Core中，您可以选择多种身份验证处理程序，例如基于cookie的身份验证、承载身份验证、通过社交网络或身份服务器进行身份验证，以及您可以想到和实现的其他任何方式。要注册多个身份验证处理程序，您只需在ASP.NET Core 2.0 Startup类的ConfigureServices方法中逐个列出所有部分。
 
-每个配置的身份验证处理程序都由名称标识。该名称只是您在应用程序中用于引用处理程序的常规和任意字符串。处理程序的名称称为身份验证方案。可以将身份验证方案指定为魔术字符串，如Cookie或Bearer。但是，对于常见情况，存在一些预定义常量来限制在代码中使用时的拼写错误。如果您使用魔术字符串，请注意字符串被视为区分大小写。
+每个配置的身份验证处理程序都由名称标识。名称只是应用程序中用于引用处理程序的常规和任意字符串。处理程序的名称称为身份验证方案。身份验证方案可以指定为一个魔术字符串，如cookie或载体。但是，对于常见的情况，在代码中使用一些预定义的常量来限制输入错误。如果您使用了魔法字符串，那么请注意字符串是区分大小写的。
 
 ```c#
-// Authentication scheme set to "Cookies"
+// 认证方案设置为“Cookies”
 services.AddAuthentication(options =>
 {
      options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -138,53 +136,50 @@ services.AddAuthentication(options =>
     });
 ```
 
-您只需在调用AddAuthentication之后连接处理程序定义。同时，当注册多个处理程序时，您必须指明默认挑战，身份验证和登录方案。换句话说，当用户被要求在登录时证明她的身份时，您指示在对呈现的令牌进行身份验证时使用哪个处理程序。在每个处理程序中，您可以覆盖登录方案以满足您的目的。
+您只需在对AddAuthentication的单个调用之后连接处理程序定义。与此同时，在注册多个处理程序时，必须指出所选择的默认challenge、身份验证和登录方案。换句话说，当用户被要求在登录时证明其身份时，您将指示在对提交的令牌进行身份验证时使用哪个处理程序。在每个处理程序中，您可以覆盖登录方案以满足您的目的。
 
 #### 应用身份验证中间件
 
-与传统的ASP.NET MVC一样，ASP.NET Core使用Authorize属性来修饰受身份验证的控制器类或操作方法。
+与传统的ASP.NET MVC一样，ASP.NET Core使用Authorize注解属性来修饰那些受身份验证的控制器类或操作方法。
 
 ```c#
 [Authorize]
-public class CustomerController : Controller
+public class HomeController : Controller
 {
-    // All action methods in this controller will 
-    // be subject to authentication except those explicitly 
-    // decorated with the AllowAnonymous attribute.
-    ...
+    public IActionResult Index()
+    {
+        return View();
+    }
 }
 ```
 
-正如代码段中所指出的，您还可以使用AllowAnonymous属性将特定操作方法标记为匿名，因此不受身份验证的限制。
+如果某个操作方法不想受到身份验证的限制，可以为该方法标记AllowAnonymous属性，该操作方法将不受身份验证的限制。
 
-因此，操作方法上存在Authorize属性会限制其仅对经过身份验证的用户使用。但是，如果有多个身份验证中间件可用，应该应用哪个？ ASP.NET Core在Authorize属性上提供了一个新属性，允许您根据请求选择身份验证方案。
+因此，Action方法上存在Authorize属性会限制其仅对经过身份验证的用户使用。但是，如果有多个身份验证中间件可用，Authorize应该应用哪一个呢？ ASP.NET Core在Authorize属性上提供了一个新属性，允许您根据每个请求选择身份验证方案。
 
 ```c#
 [Authorize(ActiveAuthenticationSchemes = "Bearer")]
 public class ApiController : Controller
 {
-    // Your API action methods here 
     ...
 }
 ```
 
-此代码段的净效果是示例ApiController类的所有公共端点都受到承载令牌验证的用户身份的约束。
+这段代码的最终执行效果是，ApiController类的所有公共端点都受到bearer令牌验证的用户身份的约束。
 
-### 建模用户身份
+### User Identity（用户身份）
 
-必须以某种独特的方式描述登录到ASP.NET Core应用程序的任何用户。在Web的早期阶段 - 首次设计ASP.NET框架时 - 唯一的用户名足以唯一地标识已登录的用户。实际上，在旧版本的ASP.NET中，用户名是保存在身份验证cookie中的所有内容，用于模拟用户的身份。
+几乎所有应用程序都有某种用户存储，其中保存了关于用户的所有详细信息。这种存储中的数据项具有主键和许多其他描述性字段。当该用户登录应用程序时，将创建一个身份验证cookie，并复制一些特定于用户的信息。至少，您必须在cookie中保存标识用户的唯一值，因为它出现在应用程序的后端。同时，身份验证cookie还可以包含与安全环境严格相关的其他信息。
 
-有关用户的双重信息值得指出。几乎所有应用程序都有某种用户存储，其中保存了有关用户的所有详细信息。这种商店中的数据项具有主键和许多其他描述性字段。当该用户登录应用程序时，将创建一个身份验证cookie，并复制一些特定于用户的信息。至少，您必须在cookie中保存标识用户的唯一值，因为它出现在应用程序的后端。但是，身份验证cookie还可以包含与安全环境严格相关的其他信息。
+总之，在域和持久化层中通常有一个实体表示用户，以及一组名称/值对，它们提供从身份验证cookie读取的直接用户信息。这些名称/值对位于claims之下。
 
-总之，您通常在域中有一个实体，表示用户的持久层和一组名称/值对，它们提供从身份验证cookie读取的直接用户信息。这些名称/值对以声明的名称命名。
+#### Claims（声明）介绍
 
-#### 索赔介绍
+在ASP.NET Core中，Claim是存储在身份验证cookie中的内容。作为开发人员，您可以在身份验证cookie中存储的所有内容都是Claim，即名称/值对。与过去相比，您可以添加更多信息到cookie并直接从那里读取，而无需从数据库中获取更多数据。
 
-在ASP.NET Core中，声明是存储在身份验证cookie中的内容。作为开发人员，您可以在身份验证cookie中存储的所有内容都是声明，即名称/值对。与过去相比，您可以添加更多信息到cookie并直接从那里读取，而无需从数据库中获取更多数据。
+可以使用Claim来建模用户身份。 ASP.NET Core形式化了一长串预定义的声明，即为存储某些知名信息而预定义的键名。
 
-您使用声明来建模用户身份。 ASP.NET Core正式化了一长串预定义声明，即预定义的键名，旨在存储某些众所周知的信息。欢迎您定义其他声明。在一天结束时，定义索赔取决于您和您的申请。
-
-在ASP.NET Core Framework中，您可以找到围绕以下布局设计的Claim类。
+在ASP.NET Core 中，Claim类如下：
 
 ```c#
 public class Claim
@@ -199,44 +194,43 @@ public class Claim
 }
 ```
 
-声明具有一个属性，用于标识有关用户的声明类型。例如，声明类型是用户在给定应用程序中的角色。声明还具有字符串值。例如，Role声明的值可能是“admin”。声明的描述由原始发行者的名称完成，如果声明通过中间发行人转发，则还包括实际发行人的名称。最后，声明还可以包含附加属性的字典以补充该值。所有属性都是只读的，构造函数是推送值的唯一方法。索赔是一个不可变的实体。
+一个Claim具有一个属性，用于标识有关用户的声明类型。例如，声明类型是给定应用程序中用户的角色。一个声明还有一个字符串值。例如，Role声明的值可能是“admin”。声明还可以包含附加属性的字典以补充该值。所有属性都是只读的，构造函数是推送值的唯一方法。声明是一个不可变的实体。
 
-#### 在代码中使用声明
+#### 在代码中使用Claim
 
-一旦用户提供了有效凭证（或者更一般地，一旦用户已经绑定到已知身份），要解决的问题是持久存储关于所识别身份的关键信息。如前所述，在旧版本的ASP.NET中，这仅限于存储用户名。由于使用声明，它在ASP.NET Core中更具表现力。
+一旦用户提供了有效凭证（或者更一般地，一旦用户已经绑定到已知身份），要解决的问题是持久存储关于所识别身份的关键信息。如前所述，在旧版本的ASP.NET中，这仅限于存储用户名。由于使用Claim，它在ASP.NET Core中更具表现力。
 
-要准备要存储在身份验证cookie中的用户数据，通常按以下步骤操作：
+要准备将用户数据存储在身份验证cookie中，通常需要执行以下操作：
 
 ```c#
-// Prepare the list of claims to bind to the user's identity
-var claims = new Claim[] {
-    new Claim(ClaimTypes.Name, "123456789"),
-    new Claim("display_name", "Sample User"),
-    new Claim(ClaimTypes.Email, "sampleuser@yourapp.com"),
-    new Claim("picture_url", "\images\sampleuser.jpg"),
-    new Claim("age", "24"),
-    new Claim("status", "Gold"),
-    new Claim(ClaimTypes.Role, "Manager"),
-    new Claim(ClaimTypes.Role, "Supervisor")
+// 准备要绑定到用户身份的声明列表
+Claim[] claims = new Claim[] {
+    new Claim(ClaimTypes.Name,"smallz"),
+    new Claim("display_name","wy"),
+    new Claim(ClaimTypes.Email,"wy@163.com"),
+    new Claim("picture_url","/images/my.png"),
+    new Claim("age","24"),
+    new Claim(ClaimTypes.Role,"Manager"),
+    new Claim(ClaimTypes.Role,"admin")
 };
 
-// Create the identity object from claims
+// 从声明中创建认证对象
 var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
-// Create the principal object from identity
+//从identity创建主体对象
 var principal = new ClaimsPrincipal(identity);
 ```
 
-您可以从声明创建标识对象类型ClaimsIdentity，并从标识对象创建主体对象类型ClaimsPrincipal。创建标识时，还要指明选择的身份验证方案（意味着您指定了如何处理声明）。在代码片段中，CookieAuthenticationDefaults.AuthenticationScheme的传递值（Cookie的字符串值）表示声明将存储在身份验证Cookie中。
+可以从声明中创建ClaimsIdentity标识对象类型，并从标识对象创建主体对象类型ClaimsPrincipal。创建标识时，还要指明选择的身份验证方案（意味着你指定了如何处理声明）。在代码片段中，CookieAuthenticationDefaults.AuthenticationScheme的传递值（Cookie的字符串值）表示声明将存储在身份验证Cookie中。
 
 上面的代码片段中有几点需要注意。
 
-- 首先，声明类型是纯字符串值，但是对于常见类型（如角色，名称，电子邮件）存在许多预定义常量。您可以使用自己的字符串或预定义的字符串作为常量从ClaimTypes类中公开。
+- 首先，声明类型（ClaimTypes）是纯字符串值，但是对于常见类型（如角色，名称，电子邮件）存在许多预定义常量。您可以使用自己的字符串或预定义的字符串作为常量从ClaimTypes类中公开。
 - 其次，您可以在同一个声明列表中拥有多个角色。
 
-#### 索赔假设
+#### 声明的假设
 
-所有索赔都是平等的，但有些索赔比其他索赔更平等。名称和角色是两个享有ASP.NET核心基础结构（合理）特殊处理的声明。我们考虑以下代码：
+名称和角色是两个享有ASP.NET Core基础结构（合理）特殊处理的声明。我们考虑以下代码：
 
 ```c#
 var claims = new Claim[]
@@ -247,7 +241,7 @@ var claims = new Claim[]
 };
 ```
 
-声明列表有两个元素 - 一个名为PublicName，另一个名为Role（通过常量ClaimTypes.Roles）。如您所见，没有名为Name的声明存在。当然，这不是错误，因为索赔清单完全取决于您。但是，至少拥有名称和角色是相当普遍的。 ASP.NET Core Framework为ClaimsIdentity类提供了一个超出声明列表的附加构造函数，并且身份验证方案还允许您通过名称指示给定列表中包含身份名称和角色的声明。
+声明列表有两个元素，一个名为PublicName，另一个名为Role（通过常量ClaimTypes.Roles）。如你所见，不存在名为Name的声明。但是，在实际应用中，一般都至少拥有名称和角色。 ASP.NET Core 框架为ClaimsIdentity类提供了一个额外的构造函数，它位于声明列表之外，并且身份验证方案还允许你按名称在给定的列表中，指定带有身份名称和角色的声明。
 
 ```c#
 var identity = new ClaimsIdentity(claims,
@@ -256,42 +250,42 @@ var identity = new ClaimsIdentity(claims,
       ClaimTypes.Role);
 ```
 
-此代码的净效果是，名为Role的声明将是角色声明，正如人们所期望的那样。无论提供的声明列表是否包含名称声明，PublicName都是您应该用作用户名称的声明。
+这段代码的最终效果是，命名为Role的声明将是角色声明，无论提供的声明列表是否包含名称声明，PublicName都是你应该用作用户名称的声明。
 
-名称和角色在声明列表中指出，因为将使用这两条信息 - 主要是为了与旧的ASP.NET代码向后兼容 - 以支持IPrincipal接口的功能，例如IsInRole和Identity.Name。索赔列表中指定的角色将通过ClaimsPrincipal类中的IsInRole实现自动兑现。同样，用户名默认为使用“名称”状态指定的声明的值。
+声明列表中显示了名称和角色，因为这两个信息将被使用，主要是为了与旧的ASP.NET代码向后兼容，以支持IPrincipal接口的功能，例如IsInRole和Identity.Name。声明列表中指定的角色将通过ClaimsPrincipal类中的IsInRole实现自动兑现。同样，用户名默认为使用“Name”状态指定的声明的值。
 
 总之，Name和Role声明具有默认名称，但您可以随意覆盖这些名称。覆盖发生在ClaimsIdentity类的一个重载构造函数中。
 
 ### 登录并注销
 
-拥有主要对象是登录用户的必要条件。标记用户的实际方法创建了身份验证cookie，由身份验证名称下的HTTP上下文对象公开。
+使用主体对象是在用户中进行签名的必要条件。注册用户并在此过程中创建身份验证cookie的实际方法由HTTP上下文对象以身份验证的名义公开。
 
 ```c#
-// Gets the principal object
+// 获取主体对象
 var principal = new ClaimsPrincipal(identity);
 
-// Signs the user in (and creates the authentication cookie)
+// 注册用户(并创建身份验证cookie)
 await HttpContext.SignInAsync(
           CookieAuthenticationDefaults.AuthenticationScheme,
           principal);
 ```
 
-确切地说，只有在身份验证方案设置为cookie时，才会在登录过程中创建cookie。登录过程中发生的确切操作顺序取决于所选身份验证方案的处理程序。
+准确的说，只有在身份验证方案设置为cookie时，才会在登录过程中创建cookie。登录过程中发生的确切操作顺序取决于所选身份验证方案的处理程序。
 
-Authentication对象是AuthenticationManager类的实例。该类有两个更有趣的方法：SignOutAsync和AuthenticateAsync。顾名思义，前一种方法会撤销身份验证cookie并将用户从应用程序中签名。
+Authentication对象是AuthenticationManager类的实例。该类包含两个方法：SignOutAsync和AuthenticateAsync。顾名思义，前一种方法会撤销身份验证cookie并将用户从应用程序中注销 。
 
 ```c#
 await HttpContext.SignOutAsync(
           CookieAuthenticationDefaults.AuthenticationScheme);
 ```
 
-调用方法时，必须指明要从中注销的身份验证方案。相反，AuthenticateAsync方法只验证cookie并检查用户是否经过身份验证。此外，在这种情况下，验证cookie的尝试基于所选的身份验证方案。
+在调用该方法时，必须指明要从中注销的身份验证方案。 AuthenticateAsync方法只验证cookie并检查用户是否经过身份验证。此外，在该代码中，验证cookie的尝试基于所选的身份验证方案。
 
-#### 阅读索赔内容
+#### 读取声明内容
 
-ASP.NET核心身份验证是熟悉的世界和半个未知空间 - 特别是对于那些来自多年经典ASP.NET编程的人来说。在经典ASP.NET中，一旦系统处理了身份验证cookie，就可以轻松访问用户名，这是默认情况下唯一可用的信息。如果有关用户的更多信息必须可用，您可以创建自己的声明并将其内容序列化到cookie中，从而创建自己的主体对象。最近，经典ASP.NET中添加了对声明的支持。使用声明是在ASP.NET Core中工作的唯一方法。当您创建自己的委托人时，您自己负责阅读声明的内容。
+在经典的ASP.NET应用中，一旦系统处理了身份验证cookie，用户名就很容易访问，这是默认情况下唯一可用的信息。如果必须提供关于用户的更多信息，您可以创建自己的声明，并将其内容序列化到cookie中，实际上就是创建自己的主体对象。使用声明是在ASP.NET Core中工作的唯一方法。当你创建自己的主体时，将由自己负责读取声明的内容。
 
-您通过HttpContext.User属性以编程方式访问的ClaimsPrincipal实例具有用于查询特定声明的编程接口。这是一个从Razor视图中获取的示例。
+通过HttpContext.User属性以编程方式访问的ClaimsPrincipal实例具有用于查询特定声明的编程接口。这是一个从Razor视图中获取的示例。
 
 ```c#
 @if(User.Identity.IsAuthenticated)
@@ -305,17 +299,15 @@ ASP.NET核心身份验证是熟悉的世界和半个未知空间 - 特别是对�
 }
 ```
 
-渲染页面时，您可能希望显示已登录用户的头像.假设此信息可用作声明，上面的代码显示了查询声明的LINQ友好代码。 FindFirst方法仅返回可能具有相同名称的多个声明中的第一个。如果你想要全部使用它们，那么你可以使用FindAll方法。要阅读声明的实际值，请展开“值”属性。
+一旦验证了登录页面凭据，您就会遇到问题，无法获得您想要保存在cookie中的所有声明。注意，存储在cookie中的信息越多，可以免费获得的用户信息就越多。有时，可以在cookie中存储用户密钥，一旦登录开始，就可以使用密钥从数据库中检索匹配的记录，这更复杂，但确保了用户信息始终是最新的，并且在创建cookie时允许更新，而无需将用户注销或重新登录。声明的实际内容应该从您确定的位置读取。例如，声明内容可以来自数据库，云或Active Directory。
 
-注意一旦验证了登录页面凭据，您就会遇到想要在cookie中保留所有声明的问题。请注意，您存储在cookie中的信息越多，您几乎可以免费获得的用户信息就越多。有时，您可以在cookie中存储用户密钥，一旦登录开始，您就可以使用密钥从数据库中检索匹配的记录。这样更昂贵但确保用户信息始终是最新的，并且它允许更新，而无需在创建cookie时将用户注销并再次登录。应从您确定的位置读取索赔的实际内容。例如，声明内容可以来自数据库，云或Active Directory。
+### 外部身份认证
 
-### 外部认证
+外部身份验证是指使用外部且配置正确的服务对访问您网站的用户进行身份验证。一般来说，外部身份验证对终端用户很有帮助，因为他们不需要为每个要注册的网站创建一个帐户。另外，外部身份验证对开发人员也有好处，因为开发人员不需要添加关键的样板代码，存储和检查用户设置的每个网站的凭证。不是所有的网站都可以充当外部身份验证服务器。外部身份验证服务器需要特定特性的可用性，但几乎任何当前的社交网络都可以充当外部身份验证服务。
 
-外部身份验证是指使用外部且配置正确的服务对访问您网站的用户进行身份验证。一般而言，外部认证是双赢的。外部身份验证适用于不必为每个要注册的网站创建一个帐户的最终用户。此外，外部身份验证对于不必添加关键样板代码并存储和检查她设置的每个网站的用户凭据的开发人员都有好处。不仅任何网站都可以作为外部认证服务器。外部认证服务器需要特定功能的可用性，但几乎任何当前的社交网络都可以充当外部认证服务。
+#### 添加对外部身份认证服务的支持
 
-#### 添加对外部认证服务的支持
-
-ASP.NET Core从头开始通过身份提供商支持外部身份验证。大多数情况下，您所做的就是为作业安装适当的NuGet包。例如，如果您希望允许您的用户使用他们的Twitter凭据进行身份验证，那么您在项目中执行的第一件事就是引入Microsoft.AspNetCore.Authentication.Twitter包并安装相关的处理程序：
+ASP.NET Core通过身份提供商支持外部身份验证。大多数情况下，只需要安装适当的NuGet包即可。例如，如果希望允许用户使用他们的Twitter凭据进行身份验证，那么在项目中要做的第一件事就是引入Microsoft.AspNetCore.Authentication.Twitter包并安装相关的处理程序：
 
 ```c#
 services.AddAuthentication(TwitterDefaults.AuthenticationScheme)
@@ -327,44 +319,36 @@ services.AddAuthentication(TwitterDefaults.AuthenticationScheme)
   });
 ```
 
-SignInScheme属性是将用于保留生成的标识的身份验证处理程序的标识符。在此示例中，将使用身份验证cookie。要查看上述中间件的效果，请添加控制器方法以触发基于Twitter的身份验证。以下是一个例子。
+SignInScheme属性是身份验证处理程序的标识符，该标识符将用于持久化结果标识。 在本例中，将使用cookie身份验证。添加控制器方法以触发基于Twitter的身份验证，代码如下：
 
 ```c#
 public async Task TwitterAuth()
 {
    var props = new AuthenticationProperties
    {
-      RedirectUri = "/"  // Where to go after authenticating
+      RedirectUri = "/"  // 认证后跳转页面
    };
    await HttpContext.ChallengeAsync(TwitterDefaults.AuthenticationScheme, props);
 }
 ```
 
-Twitter处理程序的内部知道要联系哪个URL以传递应用程序的标识（使用者密钥和密钥）并启用用户的验证。如果一切顺利，将向用户显示熟悉的Twitter身份验证页面。如果用户已在本地设备上通过Twitter进行身份验证，则仅要求她确认可以代表用户授予给定应用程序在Twitter上运行的权限。
+Twitter处理程序的内部成员知道要联系哪个URL以传递应用程序的标识(使用者密钥和机密)并启用用户验证。如果一切顺利，用户将看到熟悉的Twitter身份验证页面。如果用户已经在本地设备上对Twitter进行了身份验证，那么它只需要确认是否可以授予给定的应用程序权限来代表用户在Twitter上进行操作。
 
-图8-1显示了Twitter的确认页面，其中显示了示例应用程序何时尝试对用户进行身份验证。
+接下来，一旦Twitter成功验证了用户身份，SignInScheme属性将指示应用程序接下来要做什么。如果您想从外部提供者返回的声明中获取cookie(在本例中是Twitter)，那么“cookie”的值是可以接受的。如果您想通过中介表单来检查和完成信息，那么您必须通过引入一个临时登录方案来将流程一分为二。
 
-![denglupage](assets/denglupage.jpg)
+RedirectUri选项指示在身份验证成功完成之后要去哪里。在这样一个简单的场景中，您只依赖于身份验证服务提供的声明列表，您无法控制登录到系统的每个用户的数据。各种社交网络默认返回的声明列表并不相同。例如，如果用户通过Facebook连接，您可能会得到用户的电子邮件地址。但是，如果用户通过Twitter或谷歌连接，您可能没有电子邮件地址。如果你只支持一个社交网络，这没什么大不了的，但如果你支持很多社交网络——而且这个数字可能会随着时间的推移而增长——那么你就必须建立一个中间页面来规范信息，并要求用户输入所有你目前缺少的声明。
 
-图8-1作为Twitter用户，您现在正在授权应用程序代表您执行操作
+下图显示了当访问需要登录的受保护资源时，在客户机浏览器、web应用程序和外部身份验证服务之间设置的工作流。
 
-接下来，一旦Twitter成功验证了用户，SignInScheme属性就会指示应用程序执行下一步操作。如果您想要外部提供商（Twitter，在示例中）返回的声明中的cookie，则可以接受“Cookies”值。如果您想通过中间表单查看和完成信息，那么您必须通过引入临时登录方案来打破这一过程。我马上回到这个更复杂的场景。现在，让我们完成一个简单场景中发生的事情。
+![authentication](assets/authentication.jpg)
 
-RedirectUri选项指示验证成功完成后的去向。在这种仅依赖于身份验证服务提供的声明列表的简单方案中，您无法控制您了解登录系统的每个用户的数据。各种社交网络默认返回的声明列表不是同质的。例如，如果用户通过Facebook连接，您可能拥有该用户的电子邮件地址。但是，如果用户通过Twitter或Google连接，您可能没有电子邮件地址。如果你只支持一个社交网络，这不是什么大问题，但是如果你支持其中许多社交网络 - 并且这个数字可能会随着时间的推移而增长 - 那么你必须设置一个中间页面来规范化信息并要求用户输入所有的声明你目前缺乏。
-
-图8-2显示了在访问需要登录的受保护资源时在客户端浏览器，Web应用程序和外部身份验证服务之间设置的工作流。
-
-![8_2](assets/8_2.jpg)
-
-图8-2通过外部服务提供访问受保护资源和身份验证时的完整工作流程
-
-此图显示了代表浏览器，Web应用程序和身份验证服务的三个框。在顶部，一个粗体箭头将“浏览器”框与“Web App”框连接。在底部，另一个箭头将“Web App”框与“浏览器”框连接。其他灰色箭头表示该框的各个步骤。通过外部服务验证用户的过程。
+ 
 
 #### 要求完成信息
 
-要在外部服务对用户进行身份验证后收集其他信息，您需要稍微调整一下服务配置。实质上，您将另一个处理程序添加到列表中，如下所示。
+要在外部服务对用户进行身份验证后收集其他信息，您需要稍微调整一下服务配置。实际上，可以向列表添加另一个处理程序，如下所示。
 
-```
+```c#
 services.AddAuthentication(options =>
 {
     options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -388,7 +372,7 @@ services.AddAuthentication(options =>
     .AddCookie("TEMP");
 ```
 
-当外部Twitter提供程序返回时，使用TEMP方案创建临时cookie。通过在挑战用户的控制器方法中适当地设置重定向路径，您有机会检查Twitter返回的主体并进一步编辑它：
+当外部Twitter提供程序返回时，使用TEMP方案创建一个临时cookie。通过在控制器方法中适当地设置重定向路径，你可以检查Twitter返回的主体，并进一步编辑它：
 
 ```c#
 public async Task TwitterAuthEx()
@@ -401,45 +385,44 @@ public async Task TwitterAuthEx()
 }
 ```
 
-Twitter（或您使用的任何服务）现在将重定向到帐户控制器上的External方法，以完成您自己的工作流程。当回调外部方法时，一切都取决于你。您可能希望显示HTML表单以收集其他信息。在构建此表单时，您可能希望使用给定主体的声明列表。
+Twitter（或使用的任何服务）现在将重定向到帐户控制器上的External方法，当回调External方法时，可以获取给定主体的声明列表，用来构建将要显示的HTML表单，用于收集其他信息。代码如下：
 
 ```c#
 public async Task<IActionResult> External()
 {
     var principal = await HttpContext.AuthenticateAsync("TEMP");
 
-    // Access the claims on the principal and prepare an HTML 
-    // form that prompts only for the missing information
+    // 访问主体的声明并准备一个HTML
+    // 只提示缺少信息的表单
     ...
 
     return View();
 }
 ```
 
-然后向用户呈现表格并填写;您的表单代码验证数据并回发。在控制器方法的主体中，您保存完成表单的内容，您需要在离开之前执行几个关键步骤。您检索如上所示的主体，然后您登录到cookie方案并退出临时TEMP方案。这是代码：
+一旦构建了表单后，用户填写的表单信息将提交回发到控制器中， 在控制器方法的主体中，保存了表单提交的内容，需要在离开之前执行几个关键步骤。检索如上所示的主体，然后登录到cookie方案并退出临时TEMP方案。这是代码：
 
 ```c#
 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 await HttpContext.SignOutAsync("TEMP");
 ```
 
-此时 - 仅在此时 - 创建身份验证cookie。
+此时将创建身份验证cookie。
 
-注释在前面的示例代码中，TEMP以及CookieAuthenticationDefaults。 AuthenticationScheme只是内部标识符;只要它们在整个应用程序中保持一致，它们就可以重命名。
+#### 外部身份认证问题
 
-#### 外部认证问题
-
-外部身份验证（例如通过Facebook或Twitter）有时对用户来说很酷，但并非总是如此。像往常一样，这是一个权衡问题。因此，让我们列出在应用程序中使用它时必须面对的一些挑战。
-
-首先，用户必须登录您选择的社交网络或身份服务器。他们可能会也可能不喜欢使用现有凭据的想法。一般而言，社交认证应始终作为选项提供，除非应用程序本身与社交网络或社交网络紧密集成，以证明依赖于唯一的外部认证。始终考虑用户可能没有您支持的社交网络帐户。
-
-从开发角度来看，外部身份验证意味着在每个应用程序中重复配置身份验证的工作。通常情况下，您必须处理用户注册并填写所有必填字段，这意味着就您的帐户管理而言，需要做很多工作。最后，您必须在本地用户存储中的帐户与外部帐户之间建立链接。
-
-最后，外部身份验证并不是一种节省时间的方法。如果应用程序本身的性质合理，它应该被视为您为应用程序的用户提供的功能。
-
+> 外部身份验证（例如通过Facebook或Twitter）在应用程序中使用时面临的一些问题：
+>
+> 首先，用户必须登录到您选择的社交网络或身份服务器。他们可能喜欢也可能不喜欢使用现有凭证的想法。通常，社会身份验证应该始终作为一种选择提供，除非应用程序本身与社会网络或社会本身紧密集成，以证明依赖于唯一的外部身份验证是合理的。始终要考虑到用户可能没有你支持的社交网络的账户。
+>
+> 从开发的角度来看，外部身份验证意味着配置身份验证的工作在每个应用程序中都是重复的。通常情况下，您必须处理用户注册并填写所有必需的字段，这就意味着您需要做大量的帐户管理工作。最后，必须在本地用户存储中的帐户与外部帐户之间保持链接。
+>
+>
+> 最后，外部身份验证并不是一种节省时间的方法。它应该被看作是您为您的应用程序的用户提供的一个特性，如果应用程序本身的性质是合理的。
 
 
-## 通过ASP.NET IDENTITY认证用户
+
+##  TODO：通过ASP.NET IDENTITY认证用户
 
 到目前为止，您已经了解了ASP.NET Core中用户身份验证的基础知识。然而，整个功能范围在于用户身份验证。它通常以会员制的名义进行。会员制不仅仅是管理用户认证和身份数据的过程;它还涉及用户管理，密码哈希，验证和重置，角色及其管理以及更高级的功能，如双因素身份验证（2FA）。
 
