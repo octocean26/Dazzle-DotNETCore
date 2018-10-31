@@ -38,14 +38,14 @@ HTTPS web服务器的配置决定了要使用的安全协议，证书只包含�
 
 在ASP.NET Core中，与传统的ASP.NET相比，有两个主要变化：
 
-- 首先，不再有web.config文件，这意味着以不同方式指定和检索登录路径、cookie名称和到期的配置。
+- 首先，不再有`web.config`文件，这意味着以不同方式指定和检索登录路径、cookie名称和到期的配置。
 - 其次，IPrincipal对象(用于建模用户身份的对象)是基于声明而不是纯用户名的。
 
 #### 启用身份验证中间件
 
-要在全新的ASP.NET Core应用程序中启用cookie身份验证，您需要引用Microsoft.AspNetCore.Authentication.Cookies命名空间。但是，与同一ASP.NET Core框架的早期版本相比，ASP.NET Core 2.0中输入到应用程序的实际代码是不同的。
+要在全新的ASP.NET Core应用程序中启用cookie身份验证，您需要引用`Microsoft.AspNetCore.Authentication.Cookies`命名空间。但是，与同一ASP.NET Core框架的早期版本相比，ASP.NET Core 2.0中输入到应用程序的实际代码是不同的。
 
-身份验证中间件作为服务公开，它必须在Startup类的ConfigureServices方法中进行配置。
+身份验证中间件作为服务公开，它必须在`Startup`类的`ConfigureServices`方法中进行配置。
 
 ```c#
 public void ConfigureServices(IServiceCollection services)
@@ -67,9 +67,9 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-AddAuthentication扩展方法获取一个字符串作为参数，指示要使用的身份验证方案。如果您计划支持单个身份验证方案，那么您将采用这种方法。稍后，我们将看到如何稍微调整此代码以支持多个方案和处理程序。AddAuthentication返回的对象必须用于调用另一个表示身份验证处理程序的方法。在上面的示例中，AddCookie方法指示框架通过配置的cookie登录和验证用户。每个身份验证处理程序（cookie，bearer等）都有自己的一组配置属性。
+`AddAuthentication`扩展方法获取一个字符串作为参数，指示要使用的身份验证方案。如果您计划支持单个身份验证方案，那么您将采用这种方法。稍后，我们将看到如何稍微调整此代码以支持多个方案和处理程序。`AddAuthentication`返回的对象必须用于调用另一个表示身份验证处理程序的方法。在上面的示例中，`AddCookie`方法指示框架通过配置的cookie登录和验证用户。每个身份验证处理程序（cookie，bearer等）都有自己的一组配置属性。
 
-相反，在Configure方法中，只需声明将要打算使用已配置的身份验证服务，而无需指定任何其他选项。
+相反，在`Configure`方法中，只需声明将要打算使用已配置的身份验证服务，而无需指定任何其他选项。
 
 ```c#
 public void Configure(IApplicationBuilder app)
@@ -81,7 +81,7 @@ public void Configure(IApplicationBuilder app)
 
 #### Cookie身份验证选项
 
-存储在web.config文件的<authentication>部分中的经典ASP.NET MVC应用程序的大部分信息现在都在代码中配置为中间件选项。
+存储在`web.config`文件的`<authentication>`部分中的经典ASP.NET MVC应用程序的大部分信息现在都在代码中配置为中间件选项。
 
 Cookie身份验证选项：
 
@@ -94,7 +94,7 @@ Cookie身份验证选项：
 | ReturnUrlParameter | 指示在匿名用户的情况下，用于传递最初请求的URL的参数的名称，该URL导致重定向到登录页面。 |
 | SlidingExpiration  | 指示ExpireTimeSpan值是作为绝对时间还是相对时间使用。在后一种情况下，该值被视为一个间隔，如果超过一半的间隔已经过去，中间件将重新发出cookie。 |
 
-注意，LoginPath和AccessDeniedPath等路径属性的值不是字符串。实际上，LoginPath和AccessDeniedPath的类型为PathString。在.NET Core中，PathString类型与普通String类型不同，因为它在构建请求URL时提供了正确的转义。实质上，它是一种更具特定于URL的字符串类型。
+注意，`LoginPath`和`AccessDeniedPath`等路径属性的值不是字符串。实际上，`LoginPath`和`AccessDeniedPath`的类型为`PathString`。在.NET Core中，`PathString`类型与普通`String`类型不同，因为它在构建请求URL时提供了正确的转义。实质上，它是一种更具特定于URL的字符串类型。
 
 ### 处理多种身份验证方案
 
@@ -102,7 +102,7 @@ Cookie身份验证选项：
 
 ### 启用多个身份验证处理程序
 
-在ASP.NET Core中，您可以选择多种身份验证处理程序，例如基于cookie的身份验证、承载身份验证、通过社交网络或身份服务器进行身份验证，以及您可以想到和实现的其他任何方式。要注册多个身份验证处理程序，您只需在ASP.NET Core 2.0 Startup类的ConfigureServices方法中逐个列出所有部分。
+在ASP.NET Core中，您可以选择多种身份验证处理程序，例如基于cookie的身份验证、承载身份验证、通过社交网络或身份服务器进行身份验证，以及您可以想到和实现的其他任何方式。要注册多个身份验证处理程序，您只需在ASP.NET Core 2.0 `Startup`类的`ConfigureServices`方法中逐个列出所有部分。
 
 每个配置的身份验证处理程序都由名称标识。名称只是应用程序中用于引用处理程序的常规和任意字符串。处理程序的名称称为身份验证方案。身份验证方案可以指定为一个魔术字符串，如cookie或载体。但是，对于常见的情况，在代码中使用一些预定义的常量来限制输入错误。如果您使用了魔法字符串，那么请注意字符串是区分大小写的。
 
@@ -136,11 +136,11 @@ services.AddAuthentication(options =>
     });
 ```
 
-您只需在对AddAuthentication的单个调用之后连接处理程序定义。与此同时，在注册多个处理程序时，必须指出所选择的默认challenge、身份验证和登录方案。换句话说，当用户被要求在登录时证明其身份时，您将指示在对提交的令牌进行身份验证时使用哪个处理程序。在每个处理程序中，您可以覆盖登录方案以满足您的目的。
+您只需在对`AddAuthentication`的单个调用之后连接处理程序定义。与此同时，在注册多个处理程序时，必须指出所选择的默认challenge、身份验证和登录方案。换句话说，当用户被要求在登录时证明其身份时，您将指示在对提交的令牌进行身份验证时使用哪个处理程序。在每个处理程序中，您可以覆盖登录方案以满足您的目的。
 
 #### 应用身份验证中间件
 
-与传统的ASP.NET MVC一样，ASP.NET Core使用Authorize注解属性来修饰那些受身份验证的控制器类或操作方法。
+与传统的ASP.NET MVC一样，ASP.NET Core使用`Authorize`注解属性来修饰那些受身份验证的控制器类或操作方法。
 
 ```c#
 [Authorize]
@@ -153,9 +153,9 @@ public class HomeController : Controller
 }
 ```
 
-如果某个操作方法不想受到身份验证的限制，可以为该方法标记AllowAnonymous属性，该操作方法将不受身份验证的限制。
+如果某个操作方法不想受到身份验证的限制，可以为该方法标记`AllowAnonymous`属性，该操作方法将不受身份验证的限制。
 
-因此，Action方法上存在Authorize属性会限制其仅对经过身份验证的用户使用。但是，如果有多个身份验证中间件可用，Authorize应该应用哪一个呢？ ASP.NET Core在Authorize属性上提供了一个新属性，允许您根据每个请求选择身份验证方案。
+因此，Action方法上存在`Authorize`属性会限制其仅对经过身份验证的用户使用。但是，如果有多个身份验证中间件可用，`Authorize`应该应用哪一个呢？ ASP.NET Core在`Authorize`属性上提供了一个新属性，允许您根据每个请求选择身份验证方案。
 
 ```c#
 [Authorize(ActiveAuthenticationSchemes = "Bearer")]
@@ -221,7 +221,7 @@ var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.Authentic
 var principal = new ClaimsPrincipal(identity);
 ```
 
-可以从声明中创建ClaimsIdentity标识对象类型，并从标识对象创建主体对象类型ClaimsPrincipal。创建标识时，还要指明选择的身份验证方案（意味着你指定了如何处理声明）。在代码片段中，CookieAuthenticationDefaults.AuthenticationScheme的传递值（Cookie的字符串值）表示声明将存储在身份验证Cookie中。
+可以从声明中创建`ClaimsIdentity`标识对象类型，并从标识对象创建主体对象类型`ClaimsPrincipal`。创建标识时，还要指明选择的身份验证方案（意味着你指定了如何处理声明）。在代码片段中，`CookieAuthenticationDefaults.AuthenticationScheme`的传递值（Cookie的字符串值）表示声明将存储在身份验证Cookie中。
 
 上面的代码片段中有几点需要注意。
 
@@ -241,7 +241,7 @@ var claims = new Claim[]
 };
 ```
 
-声明列表有两个元素，一个名为PublicName，另一个名为Role（通过常量ClaimTypes.Roles）。如你所见，不存在名为Name的声明。但是，在实际应用中，一般都至少拥有名称和角色。 ASP.NET Core 框架为ClaimsIdentity类提供了一个额外的构造函数，它位于声明列表之外，并且身份验证方案还允许你按名称在给定的列表中，指定带有身份名称和角色的声明。
+声明列表有两个元素，一个名为PublicName，另一个名为Role（通过常量`ClaimTypes.Roles`）。如你所见，不存在名为Name的声明。但是，在实际应用中，一般都至少拥有名称和角色。 ASP.NET Core 框架为`ClaimsIdentity`类提供了一个额外的构造函数，它位于声明列表之外，并且身份验证方案还允许你按名称在给定的列表中，指定带有身份名称和角色的声明。
 
 ```c#
 var identity = new ClaimsIdentity(claims,
@@ -252,9 +252,9 @@ var identity = new ClaimsIdentity(claims,
 
 这段代码的最终效果是，命名为Role的声明将是角色声明，无论提供的声明列表是否包含名称声明，PublicName都是你应该用作用户名称的声明。
 
-声明列表中显示了名称和角色，因为这两个信息将被使用，主要是为了与旧的ASP.NET代码向后兼容，以支持IPrincipal接口的功能，例如IsInRole和Identity.Name。声明列表中指定的角色将通过ClaimsPrincipal类中的IsInRole实现自动兑现。同样，用户名默认为使用“Name”状态指定的声明的值。
+声明列表中显示了名称和角色，因为这两个信息将被使用，主要是为了与旧的ASP.NET代码向后兼容，以支持`IPrincipal`接口的功能，例如`IsInRole`和`Identity.Name`。声明列表中指定的角色将通过`ClaimsPrincipal`类中的`IsInRole`实现自动兑现。同样，用户名默认为使用“Name”状态指定的声明的值。
 
-总之，Name和Role声明具有默认名称，但您可以随意覆盖这些名称。覆盖发生在ClaimsIdentity类的一个重载构造函数中。
+总之，Name和Role声明具有默认名称，但您可以随意覆盖这些名称。覆盖发生在`ClaimsIdentity`类的一个重载构造函数中。
 
 ### 登录并注销
 
@@ -272,20 +272,20 @@ await HttpContext.SignInAsync(
 
 准确的说，只有在身份验证方案设置为cookie时，才会在登录过程中创建cookie。登录过程中发生的确切操作顺序取决于所选身份验证方案的处理程序。
 
-Authentication对象是AuthenticationManager类的实例。该类包含两个方法：SignOutAsync和AuthenticateAsync。顾名思义，前一种方法会撤销身份验证cookie并将用户从应用程序中注销 。
+`Authentication`对象是`AuthenticationManager`类的实例。该类包含两个方法：`SignOutAsync`和`AuthenticateAsync`。顾名思义，前一种方法会撤销身份验证cookie并将用户从应用程序中注销 。
 
 ```c#
 await HttpContext.SignOutAsync(
           CookieAuthenticationDefaults.AuthenticationScheme);
 ```
 
-在调用该方法时，必须指明要从中注销的身份验证方案。 AuthenticateAsync方法只验证cookie并检查用户是否经过身份验证。此外，在该代码中，验证cookie的尝试基于所选的身份验证方案。
+在调用该方法时，必须指明要从中注销的身份验证方案。 `AuthenticateAsync`方法只验证cookie并检查用户是否经过身份验证。此外，在该代码中，验证cookie的尝试基于所选的身份验证方案。
 
 #### 读取声明内容
 
 在经典的ASP.NET应用中，一旦系统处理了身份验证cookie，用户名就很容易访问，这是默认情况下唯一可用的信息。如果必须提供关于用户的更多信息，您可以创建自己的声明，并将其内容序列化到cookie中，实际上就是创建自己的主体对象。使用声明是在ASP.NET Core中工作的唯一方法。当你创建自己的主体时，将由自己负责读取声明的内容。
 
-通过HttpContext.User属性以编程方式访问的ClaimsPrincipal实例具有用于查询特定声明的编程接口。这是一个从Razor视图中获取的示例。
+通过`HttpContext.User`属性以编程方式访问的`ClaimsPrincipal`实例具有用于查询特定声明的编程接口。这是一个从Razor视图中获取的示例。
 
 ```c#
 @if(User.Identity.IsAuthenticated)
@@ -307,7 +307,7 @@ await HttpContext.SignOutAsync(
 
 #### 添加对外部身份认证服务的支持
 
-ASP.NET Core通过身份提供商支持外部身份验证。大多数情况下，只需要安装适当的NuGet包即可。例如，如果希望允许用户使用他们的Twitter凭据进行身份验证，那么在项目中要做的第一件事就是引入Microsoft.AspNetCore.Authentication.Twitter包并安装相关的处理程序：
+ASP.NET Core通过身份提供商支持外部身份验证。大多数情况下，只需要安装适当的NuGet包即可。例如，如果希望允许用户使用他们的Twitter凭据进行身份验证，那么在项目中要做的第一件事就是引入`Microsoft.AspNetCore.Authentication.Twitter`包并安装相关的处理程序：
 
 ```c#
 services.AddAuthentication(TwitterDefaults.AuthenticationScheme)
@@ -319,7 +319,7 @@ services.AddAuthentication(TwitterDefaults.AuthenticationScheme)
   });
 ```
 
-SignInScheme属性是身份验证处理程序的标识符，该标识符将用于持久化结果标识。 在本例中，将使用cookie身份验证。添加控制器方法以触发基于Twitter的身份验证，代码如下：
+`SignInScheme`属性是身份验证处理程序的标识符，该标识符将用于持久化结果标识。 在本例中，将使用cookie身份验证。添加控制器方法以触发基于Twitter的身份验证，代码如下：
 
 ```c#
 public async Task TwitterAuth()
@@ -334,9 +334,9 @@ public async Task TwitterAuth()
 
 Twitter处理程序的内部成员知道要联系哪个URL以传递应用程序的标识(使用者密钥和机密)并启用用户验证。如果一切顺利，用户将看到熟悉的Twitter身份验证页面。如果用户已经在本地设备上对Twitter进行了身份验证，那么它只需要确认是否可以授予给定的应用程序权限来代表用户在Twitter上进行操作。
 
-接下来，一旦Twitter成功验证了用户身份，SignInScheme属性将指示应用程序接下来要做什么。如果您想从外部提供者返回的声明中获取cookie(在本例中是Twitter)，那么“cookie”的值是可以接受的。如果您想通过中介表单来检查和完成信息，那么您必须通过引入一个临时登录方案来将流程一分为二。
+接下来，一旦Twitter成功验证了用户身份，`SignInScheme`属性将指示应用程序接下来要做什么。如果您想从外部提供者返回的声明中获取cookie(在本例中是Twitter)，那么“cookie”的值是可以接受的。如果您想通过中介表单来检查和完成信息，那么您必须通过引入一个临时登录方案来将流程一分为二。
 
-RedirectUri选项指示在身份验证成功完成之后要去哪里。在这样一个简单的场景中，您只依赖于身份验证服务提供的声明列表，您无法控制登录到系统的每个用户的数据。各种社交网络默认返回的声明列表并不相同。例如，如果用户通过Facebook连接，您可能会得到用户的电子邮件地址。但是，如果用户通过Twitter或谷歌连接，您可能没有电子邮件地址。如果你只支持一个社交网络，这没什么大不了的，但如果你支持很多社交网络——而且这个数字可能会随着时间的推移而增长——那么你就必须建立一个中间页面来规范信息，并要求用户输入所有你目前缺少的声明。
+`RedirectUri`选项指示在身份验证成功完成之后要去哪里。在这样一个简单的场景中，您只依赖于身份验证服务提供的声明列表，您无法控制登录到系统的每个用户的数据。各种社交网络默认返回的声明列表并不相同。例如，如果用户通过Facebook连接，您可能会得到用户的电子邮件地址。但是，如果用户通过Twitter或谷歌连接，您可能没有电子邮件地址。如果你只支持一个社交网络，这没什么大不了的，但如果你支持很多社交网络——而且这个数字可能会随着时间的推移而增长——那么你就必须建立一个中间页面来规范信息，并要求用户输入所有你目前缺少的声明。
 
 下图显示了当访问需要登录的受保护资源时，在客户机浏览器、web应用程序和外部身份验证服务之间设置的工作流。
 
@@ -385,7 +385,7 @@ public async Task TwitterAuthEx()
 }
 ```
 
-Twitter（或使用的任何服务）现在将重定向到帐户控制器上的External方法，当回调External方法时，可以获取给定主体的声明列表，用来构建将要显示的HTML表单，用于收集其他信息。代码如下：
+Twitter（或使用的任何服务）现在将重定向到帐户控制器上的`External`方法，当回调`External`方法时，可以获取给定主体的声明列表，用来构建将要显示的HTML表单，用于收集其他信息。代码如下：
 
 ```c#
 public async Task<IActionResult> External()
@@ -440,11 +440,11 @@ ASP.NET Identity是一个成熟的，全面的大型框架，它在成员资格�
 
 用户管理器是中央控制台，您可以从中执行ASP.NET Identity支持的所有操作。如前所述，这包括一个用于查询现有用户、创建新用户和更新或删除用户的API。用户管理器还提供了支持密码管理、外部登录、角色管理甚至更高级功能的方法，如用户锁定、2FA、在需要时发送电子邮件以及密码强度验证。
 
-在代码中，您可以通过UserManager <TUser>类的服务调用上述函数。泛型类型指的是提供的用户实体的抽象。换句话说，通过该类，您可以在给定的用户模型上执行所有编码任务。
+在代码中，您可以通过`UserManager <TUser>`类的服务调用上述函数。泛型类型指的是提供的用户实体的抽象。换句话说，通过该类，您可以在给定的用户模型上执行所有编码任务。
 
 #### 用户身份抽象
 
-ASP.NET Identity提供了一个基本用户类，该用户类已包含您希望在用户实体上拥有的许多常用属性，例如主键，用户名，密码哈希，电子邮件地址和电话号码。 ASP.NET Identity还提供更复杂的属性，例如电子邮件确认，锁定状态，访问失败计数以及角色和登录列表。 ASP.NET Identity中的基本用户类是IdentityUser。您可以直接使用它，也可以从中派生自己的类。
+ASP.NET Identity提供了一个基本用户类，该用户类已包含您希望在用户实体上拥有的许多常用属性，例如主键，用户名，密码哈希，电子邮件地址和电话号码。 ASP.NET Identity还提供更复杂的属性，例如电子邮件确认，锁定状态，访问失败计数以及角色和登录列表。 ASP.NET Identity中的基本用户类是`IdentityUser`。您可以直接使用它，也可以从中派生自己的类。
 
 ```c#
 public class YourAppUser : IdentityUser
@@ -455,7 +455,7 @@ public class YourAppUser : IdentityUser
 }
 ```
 
-IdentityUser类有一些方面硬编码到框架中。将类保存到数据库时，Id属性被视为主键。这方面是无法改变的，尽管我几乎想不出做这件事的理由。主键默认情况下是作为字符串呈现的，但甚至主键的类型也在框架的设计中被抽象了，所以在从IdentityUser派生时，您可以根据自己的喜好修改它。
+`IdentityUser`类有一些方面硬编码到框架中。将类保存到数据库时，Id属性被视为主键。这方面是无法改变的，尽管我几乎想不出做这件事的理由。主键默认情况下是作为字符串呈现的，但甚至主键的类型也在框架的设计中被抽象了，所以在从`IdentityUser`派生时，您可以根据自己的喜好修改它。
 
 ```c#
 public class YourAppUser : IdentityUser<int>
@@ -476,7 +476,7 @@ public virtual TKey Id { get; set; }
 
 #### 用户存储抽象
 
-身份用户类通过某些存储API的服务保存到某个持久层。最受欢迎的API基于Entity Framework Core，但是用户存储的抽象实际上允许你使用，任何知道如何存储信息的框架。主存储接口是IUserStore <TUser>：
+身份用户类通过某些存储API的服务保存到某个持久层。最受欢迎的API基于Entity Framework Core，但是用户存储的抽象实际上允许你使用，任何知道如何存储信息的框架。主存储接口是`IUserStore <TUser>`：
 
 ```c#
 public interface IUserStore<TUser, in TKey> : IDisposable where TUser : class, IUser<TKey>
@@ -492,7 +492,7 @@ public interface IUserStore<TUser, in TKey> : IDisposable where TUser : class, I
 
 如你所见，抽象是身份用户类之上的一个普通CRUD API。查询功能非常基本，因为它只允许你按名称或ID检索用户。
 
-然而，一个具体的ASP.NET Identity用户存储比IUserStore接口建议的要多得多。下表列出了用于其他功能的存储接口。
+然而，一个具体的ASP.NET Identity用户存储比`IUserStore`接口建议的要多得多。下表列出了用于其他功能的存储接口。
 
 | 额外接口              | 目的                                                         |
 | --------------------- | ------------------------------------------------------------ |
@@ -505,11 +505,11 @@ public interface IUserStore<TUser, in TKey> : IDisposable where TUser : class, I
 | IUserRoleStore        | 接口组用于存储角色信息。                                     |
 | IUserTwoFactorStore   | 接口组用于存储与2FA相关的用户信息。                          |
 
-所有这些接口都由实际的用户存储实现的。如果创建了一个自定义用户存储（例如，针对自定义SQL Server架构或自定义NoSQL存储的用户存储），将由自己负责实现。 ASP.NET Identity附带了一个基于Entity Framework的用户存储，可通过Microsoft.AspNetCore.Identity.EntityFrameworkCore NuGet包获得。该存储支持上表中列出的接口。
+所有这些接口都由实际的用户存储实现的。如果创建了一个自定义用户存储（例如，针对自定义SQL Server架构或自定义NoSQL存储的用户存储），将由自己负责实现。 ASP.NET Identity附带了一个基于Entity Framework的用户存储，可通过`Microsoft.AspNetCore.Identity.EntityFrameworkCore` NuGet包获得。该存储支持上表中列出的接口。
 
 #### 配置ASP.NET Identity
 
-要开始使用ASP.NET Identity，首先需要选择（或创建）用户存储组件并设置基础数据库。假设您选择Entity Framework用户存储，您必须做的第一件事是在应用程序中创建一个DbContext类。 DbContext类表示通过Entity Framework以编程方式访问数据库的中央控制台。与ASP.NET Identity一起使用的DbContext类继承自系统提供的基类（IdentityDbContext类），并包含用于用户和其他实体（如登录，声明和电子邮件）的DbSet类。
+要开始使用ASP.NET Identity，首先需要选择（或创建）用户存储组件并设置基础数据库。假设您选择Entity Framework用户存储，您必须做的第一件事是在应用程序中创建一个`DbContext`类。 `DbContext`类表示通过Entity Framework以编程方式访问数据库的中央控制台。与ASP.NET Identity一起使用的`DbContext`类继承自系统提供的基类（`IdentityDbContext`类），并包含用于用户和其他实体（如登录，声明和电子邮件）的`DbSet`类。
 
 下面是如何布置一个类：
 
@@ -520,7 +520,7 @@ public class YourAppDatabase : IdentityDbContext<YourAppUser>
 }
 ```
 
-在IdentityDbContext中，您将注入用户标识类以及许多其他可选组件。
+在`IdentityDbContext`中，您将注入用户标识类以及许多其他可选组件。
 
 ```c#
 public class IdentityDbContext<TUser, TRole, TKey, TUserLogin, TUserRole, TUserClaim> :
@@ -537,7 +537,7 @@ public class IdentityDbContext<TUser, TRole, TKey, TUserLogin, TUserRole, TUserC
 
 如上所示，可以注入用户身份，角色类型，用户身份的主键，用于链接外部登录的类型，用于表示用户/角色映射的类型以及表示声明的类型。
 
-启用ASP.NET Identity的最后一步是使用ASP.NET Core注册框架。此步骤发生在Startup类的ConfigureServices方法中。
+启用ASP.NET Identity的最后一步是使用ASP.NET Core注册框架。此步骤发生在`Startup`类的`ConfigureServices`方法中。
 
 ```c#
 public void ConfigureServices(IServiceCollection services)
@@ -576,7 +576,7 @@ ervices.ConfigureApplicationCookie(options =>
 
 ### 使用用户管理器
 
-UserManager对象是使用和管理基于ASP.NET标识的成员资格系统的中心对象。不需要直接创建它的实例，当在启动时注册ASP.NET身份时，它的一个实例将静默注册到DI系统。
+`UserManager`对象是使用和管理基于ASP.NET标识的成员资格系统的中心对象。不需要直接创建它的实例，当在启动时注册ASP.NET身份时，它的一个实例将静默注册到DI系统。
 
 ```c#
 public class AccountController : Controller
@@ -596,7 +596,7 @@ public class AccountController : Controller
 
 #### 处理用户
 
-要创建一个新用户，需要调用CreateAsync方法并将应用程序中使用的具有ASP.NET标识的用户对象传递给它。该方法返回一个IdentityResult值，该值包含一个错误对象列表和一个Boolean属性来表示成功或失败。
+要创建一个新用户，需要调用`CreateAsync`方法并将应用程序中使用的具有ASP.NET标识的用户对象传递给它。该方法返回一个`IdentityResult`值，该值包含一个错误对象列表和一个Boolean属性来表示成功或失败。
 
 ```c#
 public class IdentityResult
@@ -612,9 +612,9 @@ public class IdentityError
 }
 ```
 
-CreateAsync方法有两个重载：一个只接受User对象，另一个接受密码。前一种方法只是没有为用户设置任何密码。通过使用ChangePasswordAsync方法，您可以稍后设置或更改密码。
+`CreateAsync`方法有两个重载：一个只接受User对象，另一个接受密码。前一种方法只是没有为用户设置任何密码。通过使用`ChangePasswordAsync`方法，您可以稍后设置或更改密码。
 
-将用户添加到成员资格系统时，您将面临的问题是，确定如何以及在何处验证添加到系统中的数据的一致性。您应该拥有一个知道如何验证自身的用户类，还是应该将验证部署为一个单独的层?ASP.NET Identity选择后一种模式。可以支持接口IUserValidator <TUser>来实现给定类型的任何自定义验证器。
+将用户添加到成员资格系统时，您将面临的问题是，确定如何以及在何处验证添加到系统中的数据的一致性。您应该拥有一个知道如何验证自身的用户类，还是应该将验证部署为一个单独的层?ASP.NET Identity选择后一种模式。可以支持接口`IUserValidator <TUser>`来实现给定类型的任何自定义验证器。
 
 ```c#
 public interface IUserValidator<TUser>
@@ -625,9 +625,9 @@ public interface IUserValidator<TUser>
 
 可以创建实现该接口的类，然后在应用程序启动时将其注册到DI系统。
 
-可以通过调用DeleteAsync来删除成员资格系统中的用户。该方法与CreateAsync具有相同的签名。相反，要更新现有用户的状态，可以使用许多预定义方法，例如SetUserNameAsync，SetEmailAsync，SetPhoneNumberAsync，SetTwoFactorEnabledAsync等。要编辑声明，您可以使用AddClaimAsync，RemoveClaimAsync和类似方法来处理登录。
+可以通过调用`DeleteAsync`来删除成员资格系统中的用户。该方法与`CreateAsync`具有相同的签名。相反，要更新现有用户的状态，可以使用许多预定义方法，例如`SetUserNameAsync`，`SetEmailAsync`，`SetPhoneNumberAsync`，`SetTwoFactorEnabledAsync`等。要编辑声明，您可以使用`AddClaimAsync`，`RemoveClaimAsync`和类似方法来处理登录。
 
-每次调用特定更新方法时，都会执行对基础用户存储的调用。或者，您可以在内存中编辑用户对象，然后使用UpdateAsync方法以批处理模式应用所有更改。
+每次调用特定更新方法时，都会执行对基础用户存储的调用。或者，您可以在内存中编辑用户对象，然后使用`UpdateAsync`方法以批处理模式应用所有更改。
 
 #### 获取用户
 
@@ -641,17 +641,17 @@ var user2 = await _userManager.FindByNameAsync("dino");
 var user3 = await _userManager.FindByEmailAsync("dino@yourapp.com");
 ```
 
-如果用户存储支持IQueryable接口，可以在从UserManager对象公开的Users集合之上构建任何LINQ查询。
+如果用户存储支持`IQueryable`接口，可以在从`UserManager`对象公开的`Users`集合之上构建任何LINQ查询。
 
 ```c#
 var emails = _userManager.Users.Select(u => u.Email);
 ```
 
-如果只需要特定的信息，例如电子邮件或电话号码，那么您可以使用单个API调用-GetEmailAsync，GetPhoneNumberAsync等来完成。
+如果只需要特定的信息，例如电子邮件或电话号码，那么您可以使用单个API调用-`GetEmailAsync`，`GetPhoneNumberAsync`等来完成。
 
 #### 处理密码
 
-在ASP.NET Identity中，密码使用RFC2898算法自动进行哈希散列，并进行一万次迭代。从安全角度来看，这是一种非常安全的密码存储方式。散列通过IPasswordHasher接口的服务进行。像往常一样，您可以通过在DI系统中添加新的Hasher来替换你自己的Hasher。
+在ASP.NET Identity中，密码使用RFC2898算法自动进行哈希散列，并进行一万次迭代。从安全角度来看，这是一种非常安全的密码存储方式。散列通过`IPasswordHasher`接口的服务进行。像往常一样，您可以通过在DI系统中添加新的Hasher来替换你自己的Hasher。
 
 要验证密码的强度，并拒绝弱密码，您可以依赖内置的验证器基础结构并对其进行配置，或者您可以创建自己的密码。配置内置验证器意味着设置最小长度并确定是否需要字母和/或数字。这是一个例子：
 
@@ -670,7 +670,7 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-要使用自定义密码验证程序，您需要创建一个实现IPasswordValidator的类，并在调用AddIdentity之后，在应用程序启动时使用AddPasswordValidator注册它。
+要使用自定义密码验证程序，您需要创建一个实现`IPasswordValidator`的类，并在调用`AddIdentity`之后，在应用程序启动时使用`AddPasswordValidator`注册它。
 
 #### 处理角色
 
@@ -678,7 +678,7 @@ public void ConfigureServices(IServiceCollection services)
 
 在ASP.NET Core和ASP.NET Identity中，角色是保存在用户存储中的已命名的声明组。
 
-在ASP.NET Identity应用程序中，声明、用户、支持的角色以及用户和角色之间的映射是分开存储的。涉及角色的所有操作都分组在RoleManager对象中。与UserManager对象一样，当在应用程序启动时调用AddIdentity时，也会将RoleManager添加到DI系统。同样，您通过DI在控制器中注入RoleManager实例。角色存储在不同的角色存储中。在EF场景中，它只是同一SQL Server数据库中的一个不同的表。
+在ASP.NET Identity应用程序中，声明、用户、支持的角色以及用户和角色之间的映射是分开存储的。涉及角色的所有操作都分组在`RoleManager`对象中。与`UserManager`对象一样，当在应用程序启动时调用`AddIdentity`时，也会将`RoleManager`添加到DI系统。同样，您通过DI在控制器中注入`RoleManager`实例。角色存储在不同的角色存储中。在EF场景中，它只是同一SQL Server数据库中的一个不同的表。
 
 以编程方式管理角色几乎与以编程方式管理用户相同。以下是如何创建角色的示例。
 
@@ -700,13 +700,13 @@ var user = await _userManager.FindByNameAsync("dino");
 var result = await _userManager.AddToRoleAsync(user, "Admin");
 ```
 
-要将用户添加到角色，需要使用UserManager类的API。除了AddToRoleAsync之外，管理器还提供了RemoveFromRoleAsync和GetUsersInRoleAsync等方法。
+要将用户添加到角色，需要使用UserManager类的API。除了`AddToRoleAsync`之外，管理器还提供了`RemoveFromRoleAsync`和`GetUsersInRoleAsync`等方法。
 
 #### 用户身份验证
 
-使用ASP.NET Identity对用户进行身份验证需要许多步骤，涉及诸如验证凭据，处理失败尝试和锁定用户，处理禁用用户以及处理2FA逻辑（如果启用该功能）等操作。然后，您必须使用Claim填充ClaimsPrincipal对象并发出身份验证cookie。
+使用ASP.NET Identity对用户进行身份验证需要许多步骤，涉及诸如验证凭据，处理失败尝试和锁定用户，处理禁用用户以及处理2FA逻辑（如果启用该功能）等操作。然后，您必须使用Claim填充`ClaimsPrincipal`对象并发出身份验证cookie。
 
-所有步骤都封装在SignInManager类公开的API中。SignInManager是通过DI获得的，方法与您在UserManager和RoleManager对象中看到的方式相同。要执行登录页面的所有步骤，请使用PasswordSignInAsync方法。
+所有步骤都封装在`SignInManager`类公开的API中。`SignInManager`是通过DI获得的，方法与您在`UserManager`和`RoleManager`对象中看到的方式相同。要执行登录页面的所有步骤，请使用`PasswordSignInAsync`方法。
 
 ```c#
 public async Task<IActionResult> Login(string user, string password, bool rememberMe)
@@ -724,31 +724,31 @@ public async Task<IActionResult> Login(string user, string password, bool rememb
 }
 ```
 
-PasswordSignInAsync方法使用用户名和密码（作为明文）以及一些布尔标志来表示生成的身份验证cookie的持久性，以及是否应该考虑锁定。
+`PasswordSignInAsync`方法使用用户名和密码（作为明文）以及一些布尔标志来表示生成的身份验证cookie的持久性，以及是否应该考虑锁定。
 
 注意，用户锁定是ASP.NET Identity内置功能，通过该功能可以禁止用户登录系统。该功能由两条信息控制，是否为应用程序启用了锁定和锁定结束日期。您可以使用特定的方法来启用和禁用锁定，还可以使用特定的方法来设置锁定结束日期。如果禁用锁定或启用了锁定，则用户处于活动状态，但当前日期已超过锁定结束日期。
 
-登录过程的结果来自SignInResult类，该类型通知身份验证是否成功，是否需要2FA，或者用户是否被锁定。
+登录过程的结果来自`SignInResult`类，该类型通知身份验证是否成功，是否需要2FA，或者用户是否被锁定。
 
 
 
-## 授权政策
+## 授权策略（Authorization Policies）
 
-软件应用程序的授权层确保允许当前用户访问给定资源，执行给定操作或对给定资源执行给定操作。在ASP.NET Core中，有两种方法可以设置授权层。您可以使用角色，也可以使用策略。从以前版本的ASP.NET平台维护了以前的基于角色的授权。基于策略的授权对于ASP.NET Core来说是全新的，并且非常强大和灵活。
+软件应用程序的授权层确保允许当前用户访问给定资源，执行给定操作。在ASP.NET Core中，有两种方式建立授权层。可以使用角色，也可以使用策略。以前的基于角色的授权是在以前版本的ASP.NET平台中维护的。基于策略的授权对于ASP.NET Core来说是全新的，并且非常强大和灵活。
 
 ### 基于角色的授权
 
-授权比认证更进一步。身份验证是关于发现用户的身份以跟踪其活动，并且仅允许已知用户进入系统。授权更具体，是关于定义用户调用预定义应用程序端点的要求。受权限约束并随后授权层的任务的常见示例包括显示或隐藏用户界面的元素，执行动作或仅流入其他服务。在ASP.NET中，角色是从早期开始实施授权层的常用方法。
+授权比身份验证更进一步。身份验证就是发现用户的身份，以跟踪其活动，并只允许已知用户进入系统。授权更为具体，它定义了用户调用预定义应用程序的端点的需求。受权限限制的任务以及随后进入授权层的任务的常见示例包括显示或隐藏用户界面的元素、执行操作或仅仅通过其他服务传递。在ASP.NET中，角色是从早期开始实现授权层的常用方法。
 
-从技术上讲，角色是一个没有附加行为的普通字符串。但是，它的值被ASP.NET和ASP.NET Core安全层视为元信息。例如，两个层都检查主体对象中存在的角色。 （请参阅主体中标识对象中的方法IsInRole。）除此之外，应用程序还使用角色向该角色中的所有用户授予权限。
+从技术上讲，角色是一个没有附加行为的普通字符串。但是，它的值被ASP.NET和ASP.NET Core安全层作为元信息处理。例如，两个层都检查主体对象中存在的角色。 （请参阅主体中identity对象中的方法`IsInRole`。）除此之外，应用程序还使用角色向该角色中的所有用户授予权限。
 
-在ASP.NET Core中，已记录用户的声明中角色信息的可用性取决于支持标识存储。例如，如果您使用社交身份验证，则根本不会看到角色。通过Twitter或Facebook进行身份验证的用户不会带来任何可能对您的应用程序有重要意义的角色信息。但是，您的应用程序可能会根据内部和特定于域的规则为该用户分配角色。
+在ASP.NET Core中，角色信息在已登录用户声明中的可用性取决于备份标识存储。例如，如果您使用社交身份验证，那么将永远不会看到角色。通过Twitter或Facebook进行身份验证的用户不会带来任何可能对您的应用程序有重要意义的角色信息。但是，您的应用程序可能会根据内部和特定领域的规则为该用户分配角色。
 
-总之，角色只是元信息，应用程序 - 只有应用程序 - 可以转化为执行或不执行某些操作的权限。 ASP.NET Core Framework仅提供一些基础结构来保存，检索和承载角色。用户和角色之间支持的角色和映射列表通常存储在基础成员资格系统中（无论是自定义还是基于ASP.NET标识），并在验证用户凭据时检索。接下来，在某种程度上，角色信息附加到用户帐户并暴露给系统。身份对象上的IsInRole方法（ASP.NET Core中的ClaimsIdentity）是用于实现基于角色的授权的杠杆。
+总之，角色只是元信息，应用程序可以转化为执行或不执行某些操作的权限。 ASP.NET Core 框架仅提供一些基础结构来保存，检索和承载角色。用户和角色之间支持的角色和映射列表通常存储在基础成员资格系统中（无论是自定义还是基于ASP.NET标识），并在验证用户凭据时检索。接下来，以某种方式，角色信息被附加到用户帐户并公开给系统。身份对象上的`IsInRole`方法（ASP.NET Core中的ClaimsIdentity）是用于实现基于角色的授权的杠杆。
 
 #### 授权属性
 
-Authorize属性是保护控制器或其某些方法的声明性方法。
+`Authorize`属性是声明式方法，用于保护控制器或其部分方法。
 
 ```c#
 [Authorize]
@@ -758,11 +758,11 @@ public class CustomerController : Controller
 }
 ```
 
-请注意，如果指定不带参数，则Authorize属性仅检查用户是否经过身份验证。在上面的代码片段中，所有可以成功登录系统的用户同样可以调用CustomerController类的任何方法。要仅选择用户的子集，请使用角色。
+注意，如果没有指定参数，那么`Authorize`属性只检查用户是否经过身份验证。在上面的代码片段中，所有可以成功登录系统的用户同样都可以调用`CustomerController`类的任何方法。要只选择一部分用户，可以使用角色。
 
-Authorize属性上的Roles属性表示只有任何列出的角色中的用户才能被授予对控制器方法的访问权限。
+`Authorize`属性上的`Roles`属性表示，只有符合列出的任何一个角色的用户才能被授予对控制器方法的访问权限。
 
-在下面的代码中，Admin和System用户同样可以调用BackofficeController类。
+在下面的代码中，Admin和System用户都可以调用`BackofficeController`类。
 
 ```c#
 [Authorize(Roles="Admin, System")]
@@ -773,30 +773,30 @@ public class BackofficeController : Controller
    [Authorize(Roles="System")]
    public IActionResult Reset()
    {
-      // You MUST be a SYSTEM user to get here
+      // 您必须是系统用户才能到达这里
       ...
    }
 
    [Authorize]
    public IActionResult Public()
    {
-      // You just need be authenticated and can view this 
-      // regardless of role(s) assigned to you
+      // 您只需要经过身份验证就可以查看
+      // 不管分配给你的角色是什么
       ...
    }
 
    [AllowAnonymous)]
    public IActionResult Index()
    {
-      // You don't need to be authenticated to get here
+      // 您不需要经过身份验证就可以到达这里
       ...
    }
 }
 ```
 
-Index方法根本不需要身份验证。 Public方法只需要经过身份验证的用户。重置方法严格要求系统用户。您可能与Admin或System用户一起使用的所有其他方法。
+`Index`方法根本不需要身份验证。 Public方法只需要一个经过身份验证的用户。重置方法严格要求系统用户。您可能与Admin或System用户一起使用的所有其他方法。
 
-如果访问控制器需要多个角色，则可以多次应用“授权”属性。或者，您始终可以编写自己的授权过滤器。在下面的代码中，只有具有Admin和System角色的用户才被授予调用控制器的权限。
+如果访问控制器需要多个角色，则可以多次应用`Authorize`注解属性。或者，您始终可以编写自己的授权过滤器。在下面的代码中，只有具有Admin和System角色的用户才被授予调用控制器的权限。
 
 ```c#
 [Authorize(Roles="Admin")]
@@ -807,7 +807,7 @@ public class BackofficeController : Controller
 }
 ```
 
-（可选）Authorize属性还可以通过ActiveAuthenticationSchemes属性接受一个或多个身份验证方案。
+（可选）`Authorize`属性还可以通过`ActiveAuthenticationSchemes`属性接受一个或多个身份验证方案。
 
 ```c#
 [Authorize(Roles="Admin, System", ActiveAuthenticationSchemes="Cookies"]
@@ -817,33 +817,27 @@ public class BackofficeController : Controller
 }
 ```
 
-ActiveAuthenticationSchemes属性是一个逗号分隔的字符串，列出授权层在当前上下文中将信任的身份验证组件。换句话说，它声明仅当用户通过Cookies方案进行身份验证并具有任何列出的角色时才允许访问BackofficeController类。如上所述，传递给ActiveAuthenticationSchemes属性的字符串值必须符合在应用程序启动时向身份验证服务注册的处理程序。随后，身份验证方案本质上是一个选择处理程序的标签。
+`ActiveAuthenticationSchemes`属性是一个逗号分隔的字符串，列出授权层在当前上下文中将信任的身份验证组件。换句话说，它声明仅当用户通过Cookies方案进行身份验证并具有所列出的任何角色时才允许访问`BackofficeController`类。如上所述，传递给`ActiveAuthenticationSchemes`属性的字符串值必须符合在应用程序启动时向身份验证服务注册的处理程序。随后，身份验证方案本质上是一个选择处理程序的标签。
 
 #### 授权过滤器
 
-Authorize属性提供的信息由预定义的系统提供的授权过滤器使用。此筛选器在任何其他ASP.NET Core筛选器之前运行，因为它负责检查用户是否可以执行所请求的操作。如果不是，则授权过滤器使管道短路并取消当前请求。
+`Authorize`属性提供的信息由预定义的系统提供的授权过滤器使用。此筛选器在任何其他ASP.NET Core筛选器之前运行，因为它负责检查用户是否可以执行所请求的操作。如果不是，则授权过滤器使管道短路并取消当前请求。
 
 可以创建自定义授权过滤器，但通常不需要这样做。实际上，最好配置默认过滤器所依赖的现有授权层。
 
-#### 角色，权限和替代
+#### 角色，权限和覆盖
 
-角色是一种简单的方法，可以根据应用程序的用户或不能做的事情对用户进行分组。然而，角色并不是很有表现力;至少不足以满足大多数现代应用的需求。例如，考虑一个相对简单的授权体系结构：站点的常规用户和授权访问后台并更新内容的高级用户。基于角色的授权层可以围绕两个角色 - 用户和管理员构建。在此基础上，您可以定义每组用户可以访问的控制器和方法。
+角色是一种简单的方法，可以根据应用程序的用户可以做什么或不能做什么来对他们进行分组。然而，角色并不是很有表现力，至少还不足以满足大多数现代应用程序的需求。例如，考虑一个相对简单的授权体系结构：站点的常规用户和授权访问后台并更新内容的高级用户。基于角色的授权层可以围绕这两个角色——用户和管理员构建。在此基础上，您可以定义每组用户可以访问的控制器和方法。
 
-问题在于，在现实世界中，事情很少如此简单。在现实世界中，通常会遇到用户在给定用户角色中可以做或不可做的细微区别。你有角色，但你需要做出例外和否决。例如，在可以访问后台的用户中，有些只被授权编辑客户数据，有些应该只对内容有效，有些可以同时进行。您将如何呈现如图8-4所示的授权方案？
+问题在于，在现实世界中，事情很少如此简单。在现实世界中，通常会遇到用户在给定用户角色中可以做或不可做的细微区别。你有角色，但是您需要进行例外和重写。例如，在可以访问后台的用户中，有些只被授权编辑客户数据，有些应该只处理内容，而有些两者都可以。你将如何呈现该方案呢？
 
-![8_4](assets/8_4.jpg)
+一般的作法是，可以创建四个不同的角色：User，Admin，CustomerAdmin和ContentsAdmin。 Admin角色将是CustomerAdmin和ContentsAdmin的联合。它可以工作，但是当严格遵守业务规则的例外需求数量增加时，所需角色的数量将显着增加。
 
-这是由框和箭头图表做的例证。 “用户”框和“管理员”框具有灰色背景，“管理员”框具有出站箭头，分别将其连接到标有“客户”，“内容”和“客户+内容”的其他白色框。
+最重要的是，角色不一定是处理授权的最有效方式，尽管它们对于向后兼容性和非常简单的场景非常有用。对于其他情况，还需要其他东西，输入基于策略的授权。
 
-角色基本上是扁平的概念。即使是如图8-4所示的简单层次结构，你会如何扁平化？例如，您可以创建四个不同的角色：User，Admin，CustomerAdmin和ContentsAdmin。 Admin角色将是CustomerAdmin和ContentsAdmin的联合。
+### 基于策略（Policy）的授权
 
-它可以工作，但是当严格遵守业务规则的否决数量增加时，所需角色的数量将显着增加。
-
-最重要的是，角色不一定是处理授权的最有效方式，尽管它们对于向后兼容性和非常简单的场景非常有用。对于其他情况，还需要其他东西。输入基于策略的授权。
-
-### 基于策略的授权
-
-在ASP.NET Core中，基于策略的授权框架旨在解耦授权和应用程序逻辑。策略是设计为需求集合的实体。要求是当前用户必须满足的条件。最简单的策略是用户通过身份验证。另一个常见要求是用户与给定角色相关联。另一个要求是用户具有特定权利要求或具有特定价值的特定权利要求。在大多数通用术语中，需求是关于用户身份的断言，必须证明该声明对于用户被授予访问给定方法的权限。
+在ASP.NET Core中，基于策略的授权框架旨在解耦授权和应用程序逻辑。策略是作为需求集合而设计的实体。需求是当前用户必须满足的条件。最简单的策略是对用户进行身份验证。一个常见的需求是用户与给定的角色相关联。另一个需求是用户具有特定的声明。在大多数通用术语中，需求是关于用户身份的断言，必须证明该声明对于用户被授予访问给定方法的权限。
 
 #### 定义授权策略
 
@@ -859,11 +853,11 @@ var policy = new AuthorizationPolicyBuilder()
     .Build();
 ```
 
-构建器对象使用各种扩展方法收集需求，然后构建策略对象。如您所见，需求依据身份验证状态和方案，角色以及通过身份验证cookie（或者，如果使用的话，不记名令牌）读取的任何声明组合。
+构建器对象使用各种扩展方法收集需求，然后构建策略对象。如您所见，需求作用于身份验证状态和模式、角色以及通过身份验证cookie(或者，如果使用的话，Bearer 令牌)读取的任何声明组合。
 
-注释承载令牌是身份验证cookie的替代方法，用于携带有关用户身份的信息。承载令牌通常由非浏览器客户端调用的Web服务使用，例如移动应用程序。我们将在第10章“设计Web API”中处理持有者令牌。
+Bearer toekns是身份验证cookie的替代方法，用于携带有关用户身份的信息。Bearer令牌通常由非浏览器客户端（例如移动应用程序）调用的Web服务使用。
 
-如果用于定义需求的预定义扩展方法都不适用于您，那么您始终可以通过自己的断言来定义新的需求。就是这样：
+如果用于定义需求的预定义扩展方法都不适用，那么可以通过自己的断言来定义新的需求。如下：
 
 ```c#
 var policy = new AuthorizationPolicyBuilder()
@@ -878,13 +872,13 @@ var policy = new AuthorizationPolicyBuilder()
     .Build();
 ```
 
-RequireAssertion方法接受一个接收HttpContext对象的lambda并返回一个布尔值。因此，断言是一种条件陈述。请注意，如果在策略定义中多次连接RequireRole，则用户必须遵守所有角色。如果你想表达一个OR条件，那么你必须诉诸一个断言。实际上，在上面的示例中，策略允许作为内容编辑者或高级用户的用户。
+`RequireAssertion`方法接受一个接收`HttpContext`对象的lambda并返回一个布尔值。因此，断言是一个条件语句。注意，如果在策略定义中多次连接`RequireRole`，那么用户必须遵守所有角色。如果你想表达一个OR条件，那么你必须使用一个断言。实际上，在上面的示例中，该策略允许编辑内容的用户或高级用户。
 
-定义后，还必须在授权中间件中注册策略。
+一旦定义，策略也必须在授权中间件上注册。
 
-#### 注册政策
+#### 注册策略
 
-授权中间件首先在启动类的ConfigureServices方法中注册为服务。在此过程中，您将使用所有必需的策略配置服务。可以通过构建器对象创建策略，并通过AddPolicy扩展方法添加（或仅声明）。
+授权中间件首先在`Startup`类的`ConfigureServices`方法中注册为服务。这样，你就可以使用所有必需的策略配置服务。可以通过构建器对象创建策略，并通过`AddPolicy`扩展方法添加（或仅声明）策略：
 
 ```c#
 services.AddAuthorization(options=>
@@ -898,7 +892,7 @@ services.AddAuthorization(options=>
 };
 ```
 
-添加到授权中间件的每个策略都有一个名称，然后该名称将用于引用控制器类的Authorize属性中的策略。以下是如何设置策略而不是角色来定义控制器方法的权限。
+添加到授权中间件的每个策略都有一个名称，然后该名称将用于在控制器类上的`Authorize`属性中引用策略。以下是如何设置策略（而不是角色）来定义控制器方法的权限。
 
 ```c#
 [Authorize(Policy = "ContentsEditor")]
@@ -908,7 +902,7 @@ public IActionResult Save(Article article)
 }
 ```
 
-通过Authorize属性，您可以以声明方式设置策略，并允许ASP.NET Core的授权层在方法执行之前强制执行。或者，您可以以编程方式强制执行策略。这是必要的代码。
+通过`Authorize`注解属性，您可以以声明方式设置策略，并允许ASP.NET Core的授权层在方法执行之前强制执行。或者，您可以以编程方式强制执行策略。这是必要的代码。
 
 ```c#
 public class AdminController : Controller
@@ -926,21 +920,21 @@ public class AdminController : Controller
         if (!allowed.Succeeded)
             return new ForbiddenResult();
 
-        // Proceed with the method implementation 
+        // 继续方法实现
         ...
     }
 }
 ```
 
-像往常一样，通过DI注入对授权服务的引用。 AuthorizeAsync方法获取应用程序的主体对象和策略名称，并返回具有Succeeded布尔属性的AuthorizationResult对象。当其值为false时，您会找到FailCalled或FailRequirements of Failure属性的原因。如果权限的编程检查失败，则应返回ForbiddenResult对象。
+像往常一样，通过DI注入对授权服务的引用。 `AuthorizeAsync`方法获取应用程序的主体对象和策略名称，并返回具有`Succeeded`布尔属性的`AuthorizationResult`对象。当其值为`false`时，您会找到FailCalled或FailRequirements of Failure属性的原因。如果权限的编程检查失败，则应返回`ForbiddenResult`对象。
 
-注意当权限检查失败时返回ForbiddenResult或ChallengeResult之间存在细微差别;如果考虑ASP.NET Core 1.x，差异甚至更加棘手。 ForbiddenResult是一个很好的答案 - 你失败了 - 并且返回了一个HTTP 401状态代码。 ChallengeResult是一种温和的回应。如果用户已登录，它最终会出现在ForbiddenResult中，如果未记录，则会重定向到登录页面。但是，从ASP.NET Core 2.0开始，ChallengeResult不再将未登录的用户重定向到登录页面。因此，对失败权限作出反应的唯一合理方法是通过ForbiddenResult。
+注意，当权限检查失败时，返回`ForbiddenResult`或`ChallengeResult`之间存在细微差别，如果考虑ASP.NET Core 1.x，差异甚至更加棘手。 `ForbiddenResult`是一个简洁的答案—— 你失败了，并且返回了一个HTTP 401状态代码。 `ChallengeResult`是一种温和的回应。如果用户已登录，它最终会出现在`ForbiddenResult`中，如果未登录，则会重定向到登录页面。但是，从ASP.NET Core 2.0开始，`ChallengeResult`不再将未登录的用户重定向到登录页面。因此，对失败权限作出反应的唯一合理方法是通过`ForbiddenResult`。
 
-### Razor Views的政策
+### Razor Views的策略
 
-到目前为止，我们已经看到了控制器方法的策略检查。您还可以在Razor视图中执行相同的检查，特别是如果您正在使用第5章“ASP.NET MVC视图”中讨论的Razor页面。
+到目前为止，我们已经看到了控制器方法的策略检查。您还可以在Razor视图中执行相同的检查。
 
-```asp
+```html
 @{ 
    var authorized = await Authorization.AuthorizeAsync(User, "ContentsEditor")
 }
@@ -952,7 +946,7 @@ public class AdminController : Controller
 }
 ```
 
-要使以前的代码起作用，必须首先注入对授权服务的依赖关系。
+要使前面的代码工作，必须首先向授权服务注入依赖项。
 
 ```c#
 @inject IAuthorizationService Authorization
@@ -960,15 +954,15 @@ public class AdminController : Controller
 
 在视图中使用授权服务可以帮助隐藏当前用户无法访问的用户界面的片段。
 
-重要仅基于授权权限检查显示或隐藏用户界面元素（例如，指向安全页面的链接）是不够安全的。只要您还在控制器方法级别执行权限检查，这样做也可以。请记住，控制器方法是访问系统后端的唯一方法，人们总是可以通过在浏览器中键入URL来尝试直接访问页面。隐藏的链接并不完全安全。理想的方法是检查门的权限，门是控制器级别。唯一的例外是从ASP.NET Core 2.0开始，您使用Razor页面。
+仅基于授权权限检查来显示或隐藏用户界面元素(例如链接到安全页面)是不够安全的。只要您还在控制器方法级别进行权限检查，就可以这样做。请记住，控制器方法是获得对系统后端访问权的唯一方法，人们总是可以通过在浏览器中键入URL直接访问页面。隐藏的链接不是完全安全的。理想的方法是在入口上检查权限，入口是控制器级别。唯一的例外是从ASP.NET Core 2.0开始，使用Razor页面。
 
-#### 自定义要求
+#### 自定义需求（Custom Requirement）
 
-库存需求包括声明和身份验证，并提供基于断言进行自定义的通用机制。您也可以创建自定义要求。
+库存需求包括声明和身份验证，并提供基于断言进行自定义的通用机制。您也可以创建自定义需求。
 
-策略要求由两个元素组成 - 一个只保存数据的需求类和一个将根据用户验证数据的授权处理程序。如果未能使用库存工具表达所需的策略，则可以创建自定义要求。
+策略需求由两个元素组成，一个只保存数据的需求类和一个将根据用户验证数据的授权处理程序。如果未能使用库存工具表达所需的策略，则可以创建自定义需求。
 
-例如，假设我们希望通过添加用户必须具有至少三年经验的要求来扩展ContentsEditor策略。这是自定义要求的示例类。
+例如，假设我们希望通过添加用户必须具有至少三年经验的要求来扩展ContentsEditor策略。下面是一个定制需求的示例类。
 
 ````c#
 public class ExperienceRequirement : IAuthorizationRequirement
@@ -981,7 +975,7 @@ public class ExperienceRequirement : IAuthorizationRequirement
 }
 ````
 
-需求必须至少有一个授权处理程序。处理程序是AuthorizationHandler <T>类型的类，其中T是需求类型。下面的代码说明了ExperienceRequirement类型的示例处理程序。
+一个需求必须至少有一个授权处理程序。处理程序是`AuthorizationHandler <T>`类型的类，其中T是需求类型。下面的代码说明了`ExperienceRequirement`类型的示例处理程序。
 
 ```c#
 public class ExperienceHandler : AuthorizationHandler<ExperienceRequirement>
@@ -991,7 +985,7 @@ public class ExperienceHandler : AuthorizationHandler<ExperienceRequirement>
          ExperienceRequirement requirement)
     {
 
-        // Save User object to access claims
+        // 保存User对象以访问声明
         var user = context.User;
         if (!user.HasClaim(c => c.Type == "EditorSince"))
            return Task.CompletedTask;
@@ -1004,15 +998,13 @@ public class ExperienceHandler : AuthorizationHandler<ExperienceRequirement>
 }
 ```
 
-样本授权处理程序读取与用户关联的声明并检查自定义EditorSince声明。如果没有找到，它只会返回而不做任何事情。仅当索赔存在且索赔包含不小于指定年数的整数值时，才会返回成功。自定义声明应该是以某种方式链接到用户的一条信息 - 例如，Users表中的一列保存到身份验证cookie。但是，一旦您拥有对用户的引用，您始终可以从声明中找到用户名并对数据库或外部服务运行查询，以了解经验年数并使用处理程序中的信息。
+示例授权处理程序读取与用户关联的声明，并在声明之后检查自定义EditorSince 。如果没有找到，它只会返回，而不做任何事情。只有当声明存在且声明包含不小于指定年数的整数值时，才会返回成功。自定义声明应该是以某种方式链接到用户的一条信息。例如，`Users`表中的一列保存到身份验证cookie。但是，一旦您拥有对用户的引用，您始终可以从声明中找到用户名并对数据库或外部服务运行查询。
 
-不可否认，如果EditorSince值保持DateTime并且计算自用户作为编辑器开始以来已经过了给定的年数，则上面的示例会更加真实。
+授权处理程序调用方法`Succeed`，表明已成功验证该需求。如果需求没有通过，那么处理程序不需要做任何事情，只需返回即可。但是，如果处理程序想要确定需求的失败，那么无论同一需求上的其他处理程序是否成功，它会在授权上下文对象上调用`Fail`方法。
 
-授权处理程序调用方法Succeed，指示已成功验证该要求。如果要求没有通过，那么处理程序不需要做任何事情而只能返回。但是，如果处理程序想要确定需求的失败，那么无论同一需求上的其他处理程序是否成功，它就会在授权上下文对象上调用Fail方法。
+通常，从处理程序调用`Fail`应被视为特殊情况。实际上，授权处理程序通常会成功或什么也不做，因为一个需求可能有多个处理程序，而另一个可能会成功。无论如何，当您想要阻止任何其他处理程序成功执行时，调用`Fail`仍然是关键情况下的一种选择。此外需要注意的是，即使以编程方式调用Fail，授权层也会评估其他所有需求，因为处理程序可能具有日志记录等副作用。
 
-重要通常，从处理程序调用Fail应被视为特殊情况。事实上，授权处理程序通常会成功或什么也不做，因为需求可以有多个处理程序，而另一个可能会成功。无论如何，当您想要阻止任何其他处理程序成功时，Calling Fail仍然是关键情况的选项。另请注意，即使以编程方式调用Fail，授权层也会评估其他所有需求，因为处理程序可能具有日志记录等副作用。
-
-以下是向策略添加自定义要求的方法。由于这是自定义要求，因此您没有扩展方法，并且必须继续执行策略对象的“要求”集合。
+以下是向策略添加自定义需求的方法。~~由于这是自定义需求，因此没有扩展方法，并且必须继续执行策略对象的“要求”集合。~~
 
 ```c#
 services.AddAuthorization(options =>
@@ -1024,13 +1016,13 @@ services.AddAuthorization(options =>
 });
 ```
 
-此外，您还必须在IAuthorizationHandler类型的范围内向DI系统注册新处理程序。
+此外，您还必须在`IAuthorizationHandler`类型的范围内向DI系统注册新处理程序。
 
 ````c#
 services.AddSingleton<IAuthorizationHandler, ExperienceHandler>();
 ````
 
-如上所述，需求可以有多个处理程序。当在DI系统中为授权层中的相同要求注册多个处理程序时，至少有一个成功就足够了。
+如上所述，需求可以有多个处理程序。当在授权层中为相同的需求向DI系统注册多个处理程序时，至少有一个成功就足够了。
 
 在授权处理程序的实现中，有时可能需要检查请求属性或路由数据。
 
@@ -1042,15 +1034,35 @@ if (context.Resource is AuthorizationFilterContext)
 }
 ```
 
-在ASP.NET Core中，AuthorizationHandlerContext对象将Resource属性集公开给过滤器上下文对象。根据所涉及的框架，上下文对象是不同的。例如，MVC和SignalR发送它们自己的特定上下文对象。是否转换Resource属性中保存的值取决于您需要访问的内容。例如，用户信息始终存在，因此您无需为此进行强制转换。但是，如果您需要特定于MVC的详细信息，例如路由或URL和请求信息，那么您必须进行强制转换。
+在ASP.NET Core中，`AuthorizationHandlerContext`对象将`Resource`属性集公开给过滤器上下文对象。根据所涉及的框架，上下文对象是不同的。例如，MVC和SignalR发送它们自己的特定上下文对象。是否转换`Resource`属性中保存的值取决于您需要访问的内容。例如，用户信息始终存在，因此您无需为此进行强制转换。但是，如果您需要特定于MVC的详细信息，例如路由或URL和请求信息，那么您必须进行强制转换。
+
+ 
 
 
 
-## 概要
 
-保护ASP.NET Core应用程序需要通过两层身份验证和授权。身份验证是旨在将身份与来自特定用户代理的请求相关联的步骤。授权旨在检查该身份是否可以某种方式执行它所请求的操作。身份验证通过以创建身份验证cookie为中心的基本API，并且还可以依赖于提供高度可定制的成员身份系统-ASP.NET身份的专用框架的服务。授权有两种形式。一种是传统的基于角色的授权，其工作方式与它在经典ASP.NET MVC中的工作方式相同。另一种是基于策略的身份验证，这是一种新方法，可以创建更丰富，更具表现力的权限模型。策略是基于声明和自定义逻辑的需求集合，基于可以从HTTP上下文或外部源注入的任何其他信息。需求与一个或多个处理程序相关联，处理程序负责实际评估需求。
 
-在讨论ASP.NET身份时，我们讨论了一些与数据库相关的对象和概念。在下一章中，我们将只讨论ASP.NET Core中的数据访问。
+------
+
+
+
+#### 参考资源
+
+- 《Programming ASP.NET Core》
+
+
+
+本文后续会随着知识的积累不断补充和更新，内容如有错误，欢迎指正。
+
+最后一次更新时间：2018-10-31
+
+
+
+------
+
+
+
+
 
 
 
