@@ -422,42 +422,40 @@ await HttpContext.SignOutAsync("TEMP");
 
 
 
-##  TODO：通过ASP.NET IDENTITY认证用户
+##  通过ASP.NET IDENTITY认证用户
 
-到目前为止，您已经了解了ASP.NET Core中用户身份验证的基础知识。然而，整个功能范围在于用户身份验证。它通常以会员制的名义进行。会员制不仅仅是管理用户认证和身份数据的过程;它还涉及用户管理，密码哈希，验证和重置，角色及其管理以及更高级的功能，如双因素身份验证（2FA）。
+用户身份验证背后隐藏着一大堆特性，它通常以资格制度的名义存在。资格制度不只是管理用户认证和身份数据的过程;它还处理用户管理、密码哈希、验证和重置、角色及其管理以及更高级的功能，如双因素身份验证(2FA)。
 
-构建自定义成员资格系统并不是一项艰巨的任务，但它可能是一项重复性的任务，而且它是您每次都需要重新创建的经典轮，以及您构建的每个应用程序。同时，成员资格系统并不容易抽象成可以在多个应用程序中以最小开销重用的东西。多年来已经进行了许多尝试，而微软本身就是其中的一部分。我个人对会员系统的看法是，如果您要编写和维护同一复杂度的多个系统，您可能希望花一些时间并使用自己的可扩展性点构建自己的系统。在其他情况下，选择是在两个极端之间 - 本章前面讨论的普通用户身份验证或ASP.NET身份。
+### ASP.NET Identity（身份）概述
 
-### ASP.NET身份的一般性
+ASP.NET Identity是一个成熟的，全面的大型框架，它在成员资格系统上提供了一个抽象层。~~如果您所需要的只是通过从简单数据库表中读取的普通凭据对用户进行身份验证，那就太过分了。但与此同时，~~ASP.NET Identity旨在将存储与安全层分离。因此，它提供了一个丰富的API，其中包含大量的可扩展性点，您可以根据上下文调整内容，同时还包括通常只需要配置的API。
 
-ASP.NET Identity是一个成熟的，全面的大型框架，它为成员资格系统提供了一个抽象层。如果只需要通过从简单数据库表中读取的普通凭证来验证用户，那就太过分了。但与此同时，ASP.NET Identity旨在将存储与安全层分离。因此，最终，它提供了一个丰富的API，其中包含大量的可扩展性点，您可以根据上下文调整内容，同时还包括通常只需要配置的API。
+配置ASP.NET Identity意味着指示存储层(关系层和面向对象层)的详细信息以及最能代表用户的标识模型的详细信息。
 
-配置ASP.NET标识意味着指示存储层的详细信息（关系和面向对象）以及最能代表用户的标识模型的详细信息。图8-3说明了ASP.NET标识的体系结构。
+下图说明了ASP.NET标识的体系结构。
 
-![8_3](assets/8_3.jpg)
+ ![identity](assets/identity.jpg)
 
 #### 用户管理器
 
-用户管理器是中央控制台，您可以从中执行ASP.NET Identity支持的所有操作。如上所述，这包括用于查询现有用户，创建新用户以及更新或删除用户的API。用户管理器还提供了支持密码管理，外部登录，角色管理以及更高级功能的方法，例如用户锁定，2FA，需要时通过电子邮件发送以及密码强度验证。
+用户管理器是中央控制台，您可以从中执行ASP.NET Identity支持的所有操作。如前所述，这包括一个用于查询现有用户、创建新用户和更新或删除用户的API。用户管理器还提供了支持密码管理、外部登录、角色管理甚至更高级功能的方法，如用户锁定、2FA、在需要时发送电子邮件以及密码强度验证。
 
-在代码中，您可以通过UserManager <TUser>类的服务调用上述函数。泛型类型是指提供的用户实体的抽象。换句话说，通过该类，您可以在给定的用户模型上执行所有编码任务。
+在代码中，您可以通过UserManager <TUser>类的服务调用上述函数。泛型类型指的是提供的用户实体的抽象。换句话说，通过该类，您可以在给定的用户模型上执行所有编码任务。
 
 #### 用户身份抽象
-
-在ASP.NET Identity中，用户身份的模型成为您在机器中注入的参数，并且由于用户身份抽象机制和底层用户存储抽象，它或多或少地透明地工作。
 
 ASP.NET Identity提供了一个基本用户类，该用户类已包含您希望在用户实体上拥有的许多常用属性，例如主键，用户名，密码哈希，电子邮件地址和电话号码。 ASP.NET Identity还提供更复杂的属性，例如电子邮件确认，锁定状态，访问失败计数以及角色和登录列表。 ASP.NET Identity中的基本用户类是IdentityUser。您可以直接使用它，也可以从中派生自己的类。
 
 ```c#
 public class YourAppUser : IdentityUser
 {
-    // App-specific properties
+    //额外的属性
     public string Picture { get; set; }
     public string Status { get; set; }
 }
 ```
 
-IdentityUser类将一些方面硬编码到框架中。将类保存到数据库时，Id属性被视为主键。即使我很难想到这样做的原因，也无法改变这方面。默认情况下，主键呈现为字符串，但在框架设计中甚至已经抽象了主键的类型，因此您可以在从IdentityUser派生时根据自己的喜好进行更改。
+IdentityUser类有一些方面硬编码到框架中。将类保存到数据库时，Id属性被视为主键。这方面是无法改变的，尽管我几乎想不出做这件事的理由。主键默认情况下是作为字符串呈现的，但甚至主键的类型也在框架的设计中被抽象了，所以在从IdentityUser派生时，您可以根据自己的喜好修改它。
 
 ```c#
 public class YourAppUser : IdentityUser<int>
@@ -474,11 +472,11 @@ public class YourAppUser : IdentityUser<int>
 public virtual TKey Id { get; set; }
 ```
 
-注意在旧版本的ASP.NET Identity中 - 对于经典ASP.NET - 主键呈现为GUID，这在某些应用程序中产生了一些问题。在ASP.NET Core中，您可以根据需要使用GUID。
+注意在旧版本的ASP.NET Identity中，对于经典ASP.NET主键呈现为GUID，这在某些应用程序中产生了一些问题。在ASP.NET Core中，您可以根据需要使用GUID。
 
 #### 用户存储抽象
 
-身份用户类通过某些存储API的服务保存到某个持久层。最喜欢的API基于Entity Framework Core，但是用户存储的抽象允许您插入几乎任何知道如何存储信息的框架。主存储接口是IUserStore <TUser>。这是摘录。
+身份用户类通过某些存储API的服务保存到某个持久层。最受欢迎的API基于Entity Framework Core，但是用户存储的抽象实际上允许你使用，任何知道如何存储信息的框架。主存储接口是IUserStore <TUser>：
 
 ```c#
 public interface IUserStore<TUser, in TKey> : IDisposable where TUser : class, IUser<TKey>
@@ -492,13 +490,11 @@ public interface IUserStore<TUser, in TKey> : IDisposable where TUser : class, I
 }
 ```
 
-如您所见，抽象是身份用户类之上的普通CRUD API。查询功能非常基本，因为它只允许您按名称或ID检索用户。
+如你所见，抽象是身份用户类之上的一个普通CRUD API。查询功能非常基本，因为它只允许你按名称或ID检索用户。
 
-但是，具体的ASP.NET Identity用户存储比IUserStore接口建议的要多得多。表8-2列出了其他功能的存储接口。
+然而，一个具体的ASP.NET Identity用户存储比IUserStore接口建议的要多得多。下表列出了用于其他功能的存储接口。
 
-表8-2一些其他存储接口:
-
-| 附加接口              | 描述                                                         |
+| 额外接口              | 目的                                                         |
 | --------------------- | ------------------------------------------------------------ |
 | IUserClaimStore       | 接口组用于存储有关用户的声明。如果您将声明作为用户实体本身属性的不同信息存储，则此选项非常有用。 |
 | IUserEmailStore       | 接口组用于存储电子邮件信息，例如用于密码重置。               |
@@ -509,13 +505,13 @@ public interface IUserStore<TUser, in TKey> : IDisposable where TUser : class, I
 | IUserRoleStore        | 接口组用于存储角色信息。                                     |
 | IUserTwoFactorStore   | 接口组用于存储与2FA相关的用户信息。                          |
 
-所有这些接口都由实际的用户存储实现。如果您创建自定义用户存储（例如，针对自定义SQL Server架构或自定义NoSQL存储的用户存储），则您负责实施。 ASP.NET Identity附带了一个基于Entity Framework的用户存储，可通过Microsoft.AspNetCore.Identity.EntityFrameworkCore NuGet包获得。该存储支持表8-2中列出的接口。
+所有这些接口都由实际的用户存储实现的。如果创建了一个自定义用户存储（例如，针对自定义SQL Server架构或自定义NoSQL存储的用户存储），将由自己负责实现。 ASP.NET Identity附带了一个基于Entity Framework的用户存储，可通过Microsoft.AspNetCore.Identity.EntityFrameworkCore NuGet包获得。该存储支持上表中列出的接口。
 
-#### 配置ASP.NET标识
+#### 配置ASP.NET Identity
 
-要开始使用ASP.NET Identity，首先需要选择（或创建）用户存储组件并设置基础数据库。假设您选择实体框架用户存储，您必须做的第一件事是在您的应用程序中创建一个DbContext类。 DbContext类及其所有依赖项的作用将在第9章中详细解释，第9章完全专注于Entity Framework Core。
+要开始使用ASP.NET Identity，首先需要选择（或创建）用户存储组件并设置基础数据库。假设您选择Entity Framework用户存储，您必须做的第一件事是在应用程序中创建一个DbContext类。 DbContext类表示通过Entity Framework以编程方式访问数据库的中央控制台。与ASP.NET Identity一起使用的DbContext类继承自系统提供的基类（IdentityDbContext类），并包含用于用户和其他实体（如登录，声明和电子邮件）的DbSet类。
 
-简而言之，DbContext类表示通过Entity Framework以编程方式访问数据库的中央控制台。与ASP.NET Identity一起使用的DbContext类继承自系统提供的基类（IdentityDbContext类），并包含用于用户和其他实体（如登录，声明和电子邮件）的DbSet类。这是你如何布置课程。
+下面是如何布置一个类：
 
 ```c#
 public class YourAppDatabase : IdentityDbContext<YourAppUser>
@@ -524,9 +520,7 @@ public class YourAppDatabase : IdentityDbContext<YourAppUser>
 }
 ```
 
-要将连接字符串配置为实际数据库，请使用常规Entity Framework Core代码。稍后详细介绍，然后在第9章。
-
-在IdentityDbContext中，您将注入用户标识类以及许多其他可选组件。这是班级的完整签名。
+在IdentityDbContext中，您将注入用户标识类以及许多其他可选组件。
 
 ```c#
 public class IdentityDbContext<TUser, TRole, TKey, TUserLogin, TUserRole, TUserClaim> :
@@ -541,22 +535,22 @@ public class IdentityDbContext<TUser, TRole, TKey, TUserLogin, TUserRole, TUserC
 }
 ```
 
-如您所见，您可以注入用户标识，角色类型，用户标识的主键，用于链接外部登录的类型，用于表示用户/角色映射的类型以及表示声明的类型。
+如上所示，可以注入用户身份，角色类型，用户身份的主键，用于链接外部登录的类型，用于表示用户/角色映射的类型以及表示声明的类型。
 
-启用ASP.NET标识的最后一步是使用ASP.NET Core注册框架。此步骤发生在启动类的ConfigureServices方法中。
+启用ASP.NET Identity的最后一步是使用ASP.NET Core注册框架。此步骤发生在Startup类的ConfigureServices方法中。
 
 ```c#
 public void ConfigureServices(IServiceCollection services)
 {
-    // Grab the connection string to use (or have it fixed)
-    // Assume Configuration is set in the Startup class constructor (see Ch.7)
+    // 获取要使用的连接字符串
+    // 假设在Startup类构造函数中设置了配置
     var connString = Configuration.GetSection("database").Value;     
 
-    // Normal EF code to register a DbContext around a SQL Server database
+    // 用于在SQL Server数据库周围注册DbContext的普通EF代码
     services.AddDbContext<YourAppDatabase>(options =>       
                options.UseSqlServer(connString));              
 
-    // Attach the previously created DbContext to the ASP.NET Identity framework
+    // 将之前创建的DbContext附加到ASP.NETCore框架
     services.AddIdentity<YourAppUser, IdentityRole>()               
             .AddEntityFrameworkStores<YourIdentityDatabase>();   
 }
@@ -578,11 +572,11 @@ ervices.ConfigureApplicationCookie(options =>
 });
 ```
 
-同样，您也可以更改cookie名称，并且通常可以完全控制cookie。
+类似地，您还可以更改cookie的名称，并且通常可以完全控制cookie。
 
 ### 使用用户管理器
 
-UserManager对象是您通过其使用和管理基于ASP.NET标识的成员资格系统的中心对象。您不直接创建它的实例;当您在启动时注册ASP.NET身份时，它的一个实例将静默注册到DI系统。
+UserManager对象是使用和管理基于ASP.NET标识的成员资格系统的中心对象。不需要直接创建它的实例，当在启动时注册ASP.NET身份时，它的一个实例将静默注册到DI系统。
 
 ```c#
 public class AccountController : Controller
@@ -598,11 +592,11 @@ public class AccountController : Controller
 }
 ```
 
-在您需要使用它的任何控制器类中，您只需以某种方式注入它;例如，您可以通过构造函数注入它，如前面的代码片段所示。
+在任何需要使用它的控制器类中，只需以某种方式注入它。例如，您可以通过构造函数注入它，如前面的代码片段所示。
 
-#### 与用户打交道
+#### 处理用户
 
-要创建新用户，请调用CreateAsync方法并将具有ASP.NET标识的应用程序中使用的用户对象传递给它。该方法返回一个IdentityResult值，该值包含一个错误对象列表和一个Boolean属性来表示成功或失败。
+要创建一个新用户，需要调用CreateAsync方法并将应用程序中使用的具有ASP.NET标识的用户对象传递给它。该方法返回一个IdentityResult值，该值包含一个错误对象列表和一个Boolean属性来表示成功或失败。
 
 ```c#
 public class IdentityResult
@@ -618,9 +612,9 @@ public class IdentityError
 }
 ```
 
-CreateAsync方法有两个重载：一个只接受用户对象，另一个接受密码。前一种方法只是没有为用户设置任何密码。通过使用ChangePasswordAsync方法，您可以稍后设置或更改密码。
+CreateAsync方法有两个重载：一个只接受User对象，另一个接受密码。前一种方法只是没有为用户设置任何密码。通过使用ChangePasswordAsync方法，您可以稍后设置或更改密码。
 
-将用户添加到成员资格系统时，您将面临确定如何以及在何处验证添加到系统中的数据的一致性的问题。您是否应该拥有一个知道如何验证自身的用户类，或者您是否应该将验证部署为单独的层？ ASP.NET Identity选择后一种模式。可以支持接口IUserValidator <TUser>来实现给定类型的任何自定义验证器。
+将用户添加到成员资格系统时，您将面临的问题是，确定如何以及在何处验证添加到系统中的数据的一致性。您应该拥有一个知道如何验证自身的用户类，还是应该将验证部署为一个单独的层?ASP.NET Identity选择后一种模式。可以支持接口IUserValidator <TUser>来实现给定类型的任何自定义验证器。
 
 ```c#
 public interface IUserValidator<TUser>
@@ -629,15 +623,15 @@ public interface IUserValidator<TUser>
 }
 ```
 
-您可以创建实现该接口的类，然后在应用程序启动时将其注册到DI系统。
+可以创建实现该接口的类，然后在应用程序启动时将其注册到DI系统。
 
-可以通过调用DeleteAsync来删除成员资格系统中的用户。该方法与CreateAsync具有相同的签名。相反，要更新现有用户的状态，您有许多预定义方法，例如SetUserNameAsync，SetEmailAsync，SetPhoneNumberAsync，SetTwoFactorEnabledAsync等。要编辑声明，您可以使用AddClaimAsync，RemoveClaimAsync和类似方法来处理登录。
+可以通过调用DeleteAsync来删除成员资格系统中的用户。该方法与CreateAsync具有相同的签名。相反，要更新现有用户的状态，可以使用许多预定义方法，例如SetUserNameAsync，SetEmailAsync，SetPhoneNumberAsync，SetTwoFactorEnabledAsync等。要编辑声明，您可以使用AddClaimAsync，RemoveClaimAsync和类似方法来处理登录。
 
 每次调用特定更新方法时，都会执行对基础用户存储的调用。或者，您可以在内存中编辑用户对象，然后使用UpdateAsync方法以批处理模式应用所有更改。
 
 #### 获取用户
 
-ASP.NET身份会员系统提供了两种用于获取用户数据的模式。您可以通过参数查询用户对象，无论是ID，电子邮件还是用户名，或者您可以使用LINQ。以下代码段说明了一些查询方法的使用。
+ASP.NET身份资格系统提供了两种用于获取用户数据的模式。可以通过参数(ID、电子邮件或用户名)查询用户对象，也可以使用LINQ。下面的代码片段说明了一些查询方法的使用。
 
 ```c#
 var user1 = await _userManager.FindByIdAsync(123456);
@@ -647,26 +641,26 @@ var user2 = await _userManager.FindByNameAsync("dino");
 var user3 = await _userManager.FindByEmailAsync("dino@yourapp.com");
 ```
 
-如果用户存储支持IQueryable接口，则可以在从UserManager对象公开的Users集合之上构建任何LINQ查询。
+如果用户存储支持IQueryable接口，可以在从UserManager对象公开的Users集合之上构建任何LINQ查询。
 
 ```c#
 var emails = _userManager.Users.Select(u => u.Email);
 ```
 
-如果您只需要特定的信息，例如电子邮件或电话号码，那么您可以使用单个API调用-GetEmailAsync，GetPhoneNumberAsync等来完成。
+如果只需要特定的信息，例如电子邮件或电话号码，那么您可以使用单个API调用-GetEmailAsync，GetPhoneNumberAsync等来完成。
 
 #### 处理密码
 
-在ASP.NET Identity中，密码使用RFC2898算法自动进行哈希散列，并进行一万次迭代。从安全角度来看，这是一种非常安全的密码存储方式。散列通过IPasswordHasher接口的服务进行。像往常一样，您可以通过在DI系统中添加新的垫圈来替换您自己的垫圈。
+在ASP.NET Identity中，密码使用RFC2898算法自动进行哈希散列，并进行一万次迭代。从安全角度来看，这是一种非常安全的密码存储方式。散列通过IPasswordHasher接口的服务进行。像往常一样，您可以通过在DI系统中添加新的Hasher来替换你自己的Hasher。
 
-要验证密码的强度 - 并拒绝弱密码 - 您可以依赖内置的验证器基础结构并进行配置，或者您可以创建自己的密码。配置内置验证器意味着设置最小长度并确定是否需要字母和/或数字。这是一个例子：
+要验证密码的强度，并拒绝弱密码，您可以依赖内置的验证器基础结构并对其进行配置，或者您可以创建自己的密码。配置内置验证器意味着设置最小长度并确定是否需要字母和/或数字。这是一个例子：
 
 ```c#
 public void ConfigureServices(IServiceCollection services)
 {
     services.AddIdentity<YourAppUser, IdentityRole>(options=>
     {
-        // At least 6 characters long and digits required
+        //至少需要6个字符长和数字
         options.Password.RequireUppercase = false;
         options.Password.RequireLowercase = false;
         options.Password.RequireDigit = true;
@@ -676,20 +670,20 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-要使用自定义密码验证程序，您需要创建一个实现IPasswordValidator的类，并在调用AddIdentity后在应用程序启动时使用AddPasswordValidator注册它。
+要使用自定义密码验证程序，您需要创建一个实现IPasswordValidator的类，并在调用AddIdentity之后，在应用程序启动时使用AddPasswordValidator注册它。
 
 #### 处理角色
 
-在一天结束时，角色只是声明，事实上，在本章的前面，我们已经看到存在名为Role的预定义声明。抽象地说，角色只是一个没有权限和逻辑映射到它的字符串，它描述了用户可以在应用程序中扮演的角色。将角色映射逻辑和权限对于使应用程序更加生动并使其变得现实是必要的。但是，这个责任属于开发人员。
+最后，角色只是声明，事实上，在本文的前面，我们已经看到了一个预定义的声明，名为Role。抽象地说，角色只是一个没有权限和逻辑映射到它的字符串，它描述了用户可以在应用程序中扮演的角色。。将逻辑和权限映射到角色是为应用程序添加趣味并使其变得现实所必需的。
 
-但是，在成员制度的背景下，角色的意图更加具体。像ASP.NET Identity这样的会员系统包含了开发人员应该自己保存和检索用户及相关信息的大部分工作。成员资格系统所做的部分工作是将用户映射到角色。在此上下文中，角色成为用户可以或不可以对应用程序执行的操作的列表。在ASP.NET Core和ASP.NET Identity中，角色是保存在用户存储中的命名的声明组。
+在ASP.NET Core和ASP.NET Identity中，角色是保存在用户存储中的已命名的声明组。
 
-在ASP.NET Identity应用程序声明中，用户，支持的角色以及用户和角色之间的映射是分开存储的。涉及角色的所有操作都分组在RoleManager对象中。与UserManager对象一样，当在应用程序启动时调用AddIdentity时，也会将RoleManager添加到DI系统。同样，您通过DI在控制器中注入RoleManager实例。角色存储在不同的角色存储中。在EF场景中，它只是同一SQL Server数据库中的一个不同的表。
+在ASP.NET Identity应用程序中，声明、用户、支持的角色以及用户和角色之间的映射是分开存储的。涉及角色的所有操作都分组在RoleManager对象中。与UserManager对象一样，当在应用程序启动时调用AddIdentity时，也会将RoleManager添加到DI系统。同样，您通过DI在控制器中注入RoleManager实例。角色存储在不同的角色存储中。在EF场景中，它只是同一SQL Server数据库中的一个不同的表。
 
 以编程方式管理角色几乎与以编程方式管理用户相同。以下是如何创建角色的示例。
 
 ```c#
-// Define the ADMIN role
+// 定义管理角色
 var roleAdmin = new IdentityRole
 {
     Name = "Admin"
@@ -699,20 +693,20 @@ var roleAdmin = new IdentityRole
 var result = await _roleManager.CreateAsync(roleAdmin);
 ```
 
-在ASP.NET Identity中，在用户映射到角色之前，角色无效。
+在ASP.NET Identity中，在用户映射到角色之前，角色是无效的。
 
 ```c#
 var user = await _userManager.FindByNameAsync("dino");
 var result = await _userManager.AddToRoleAsync(user, "Admin");
 ```
 
-要将用户添加到角色，请使用UserManager类的API。除了AddToRoleAsync之外，管理器还提供了RemoveFromRoleAsync和GetUsersInRoleAsync等方法。
+要将用户添加到角色，需要使用UserManager类的API。除了AddToRoleAsync之外，管理器还提供了RemoveFromRoleAsync和GetUsersInRoleAsync等方法。
 
-#### 验证用户
+#### 用户身份验证
 
-使用ASP.NET Identity对用户进行身份验证需要许多步骤，因为框架的复杂性和复杂性。步骤涉及诸如验证凭据，处理失败尝试和锁定用户，处理禁用用户以及处理2FA逻辑（如果启用该功能）等操作。然后，您必须使用声明填充ClaimsPrincipal对象并发出身份验证cookie。
+使用ASP.NET Identity对用户进行身份验证需要许多步骤，涉及诸如验证凭据，处理失败尝试和锁定用户，处理禁用用户以及处理2FA逻辑（如果启用该功能）等操作。然后，您必须使用Claim填充ClaimsPrincipal对象并发出身份验证cookie。
 
-所有步骤都封装在SignInManager类公开的API中。登录管理器通过DI获得，方法与您在UserManager和RoleManager对象中看到的方式相同。要执行登录页面的所有步骤，请使用PasswordSignInAsync方法。
+所有步骤都封装在SignInManager类公开的API中。SignInManager是通过DI获得的，方法与您在UserManager和RoleManager对象中看到的方式相同。要执行登录页面的所有步骤，请使用PasswordSignInAsync方法。
 
 ```c#
 public async Task<IActionResult> Login(string user, string password, bool rememberMe)
@@ -732,9 +726,9 @@ public async Task<IActionResult> Login(string user, string password, bool rememb
 
 PasswordSignInAsync方法使用用户名和密码（作为明文）以及一些布尔标志来表示生成的身份验证cookie的持久性，以及是否应该考虑锁定。
 
-注意用户锁定是ASP.NET Identity内置功能，通过该功能可以禁止用户登录系统。该功能由两条信息控制 - 是否为应用程序启用了锁定和锁定结束日期。您具有启用和禁用锁定的临时方法，并且您具有设置锁定结束日期的临时方法。如果禁用锁定或启用了锁定，则用户处于活动状态，但当前日期已超过锁定结束日期。
+注意，用户锁定是ASP.NET Identity内置功能，通过该功能可以禁止用户登录系统。该功能由两条信息控制，是否为应用程序启用了锁定和锁定结束日期。您可以使用特定的方法来启用和禁用锁定，还可以使用特定的方法来设置锁定结束日期。如果禁用锁定或启用了锁定，则用户处于活动状态，但当前日期已超过锁定结束日期。
 
-登录过程的结果由SignInResult类型汇总，该类型通知验证是否成功，是否需要2FA，或者用户是否被锁定。
+登录过程的结果来自SignInResult类，该类型通知身份验证是否成功，是否需要2FA，或者用户是否被锁定。
 
 
 
