@@ -64,13 +64,13 @@ public class SomeController : Controller
 }
 ```
 
-### ADO.NET适配器 TODO：
+### ADO.NET适配器
 
-在ASP.NET Core 2.0中，Microsoft带回了旧的ADO.NET API的一些组件，特别是DataTable对象，数据读取器和数据适配器。虽然始终支持作为.NET Framework的组成部分，但近年来ADO.NET经典API在开发支持Entity Framework的新应用程序时逐渐被放弃。因此，它在.NET Core API 1.x的设计中被牺牲，然后在版本2.0中受到大众需求的带回。因此，在ASP.NET 2.0应用程序中，您可以编写数据访问代码来管理连接，SQL命令和游标，就像在.NET时代开始时一样。
+在ASP.NET Core 2.0中，Microsoft带回了旧的ADO.NET API的一些组件，特别是DataTable对象，数据读取器和数据适配器。在ASP.NET 2.0应用程序中，您可以编写数据访问代码来管理连接，SQL命令和游标。
 
-#### 发出直接SQL命令
+#### 直接使用SQL命令
 
-在ASP.NET Core中，ADO.NET API具有与完整.NET Framework中几乎相同的编程接口，并且具有相同的编程范例。首先，您可以通过管理与数据库的连接并以编程方式创建命令及其参数来完全控制每个命令。这是一个例子：
+在ASP.NET Core中，ADO.NET API具有与完整.NET Framework中几乎相同的编程接口，并且具有相同的编程范例。可以通过管理与数据库的连接并以编程方式创建命令及其参数来完全控制每个命令。
 
 ```c#
 var conn = new SqlConnection();
@@ -78,7 +78,7 @@ conn.ConnectionString = "...";
 var cmd = new SqlCommand("SELECT * FROM customers", conn);
 ```
 
-准备就绪后，必须通过打开的连接发出命令。为实现这一目标，还需要更多代码。
+准备就绪后，必须通过打开的连接发出命令：
 
 ```c#
 conn.Open();
@@ -89,18 +89,18 @@ var reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
 reader.Close();
 ```
 
-由于打开数据读取器时请求的紧密连接行为，因此在关闭阅读器时会自动关闭连接。 SqlCommand类可以通过各种方法执行命令，如表9-1中所述。
+由于打开数据读取器时请求的紧密连接行为，因此在关闭阅读器时会自动关闭连接。 SqlCommand类可以通过各种方法执行命令。
 
-表9-1 SqlCommand类的执行方法
+SqlCommand类的执行方法
 
 | 运行             | 描述                                                         |
 | ---------------- | ------------------------------------------------------------ |
-| ExecuteNonQuery  | 执行命令但不返回任何值。非UPDATE等非查询语句的理想选择。     |
+| ExecuteNonQuery  | 执行命令但不返回任何值。UPDATE等非查询语句的理想选择。       |
 | ExecuteReader    | 执行命令并返回指向输出流开头的游标。非常适合查询命令。       |
 | ExecuteScalar    | 执行命令并返回单个值。非常适合返回标量值（如MAX或COUNT）的查询命令。 |
 | ExecuteXmlReader | 执行命令并返回XML阅读器。非常适合返回XML内容的命令。         |
 
-表9-1中的方法提供了多种选项来获取要执行的任何SQL语句或存储过程的结果。这是一个示例，说明如何浏览数据读取器的记录。
+上述表格中提供了多种选项来获取要执行的任何SQL语句或存储过程的结果。这是一个示例，说明如何浏览数据读取器的记录。
 
 ```c#
 var reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);
@@ -113,11 +113,11 @@ while(reader.Read())
 reader.Close();
 ```
 
-注意.NET Core中的ADO.NET API与.NET Framework中的API相同，并且不支持SQL Server区域中的更新近期开发，例如SQL Server 2016及更高版本中的本机JSON支持。例如，没有像ExecuteJsonReader方法那样将JSON数据解析为类。
+注意：.NET Core中的ADO.NET API与.NET Framework中的API相同，并且不支持SQL Server区域中的更新近期开发，例如SQL Server 2016及更高版本中的原生JSON支持。例如，没有像ExecuteJsonReader方法那样将JSON数据解析为类。
 
-#### 在断开的容器中加载数据
+#### 在断开连接的容器中加载数据
 
-如果您需要在保持最小内存量的同时处理长响应，则使用阅读器是理想的选择。否则，最好将查询结果加载到断开连接的容器（如DataTable对象）中。这里有一些设施。
+如果需要处理长时间的响应，同时将内存数量保持在最低限度，那么使用Reader是理想的选择。否则，最好将查询结果加载到断开连接的容器（如DataTable对象）中。
 
 ```c#
 conn.Open();
@@ -130,7 +130,7 @@ table.Load(reader);
 reader.Close();
 ```
 
-DataTable对象是具有架构，关系和主键的数据库表的内存中版本。最简单的方法是获取数据读取器光标并在声明的列中加载整个内容。映射按列索引进行，Load方法后面的实际代码非常接近前面介绍的循环。但是，从您的角度来看，它只需要一种方法，但仍然需要您负责管理数据库连接的状态。因此，通常，您可以采取的最安全的方法是使用Dispose模式并在C＃using语句中创建数据库连接。
+DataTable对象是具有模式、关系和主键的数据库表的内存版本。填充数据的最简单方法是获取数据阅读器游标并在声明的列中加载整个内容。映射是通过列索引进行的，而Load方法背后的实际代码与前面介绍的循环非常接近。但是，从您的角度来看，它只需要一种方法，但是仍然由你负责管理数据库连接的状态。出于这个原因，通常，您可以采用的最安全的方法是使用Dispose模式并在c# using语句中创建数据库连接。
 
 #### 通过适配器获取
 
@@ -145,25 +145,13 @@ var adapter = new SqlDataAdapter(cmd);
 adapter.Fill(table);
 ```
 
-同样，如果您熟悉ADO.NET API，您将在.NET和ASP.NET Core 2.0中找到它，就像它最初一样。这可以保证可以将另外一段遗留代码移植到其他平台。除此之外，对ADO.NET的支持还提供了另一个机会，可以在.NET Core和ASP.NET Core中使用SQL Server 2016的更高级功能，例如JSON支持和更新历史。实际上，对于这些功能，您无需EF6或EF Core的临时支持。
+### 使用微型O/RM框架
 
-### 使用Micro O / RM框架
+与上面讨论的DataTable对象相比，O/RM将相同的低级数据加载到强类型的类中，而不是一般的面向表的容器中。当提到.NET Framework的O/RM框架时，大多数开发人员都会想到Entity Framework或者NHibernate。这些是最流行的框架，同时也是最庞大的。对于O/RM框架，是否庞大与它支持的功能的数量有关，从映射功能到缓存，从事务性到并发性。在现代的O/RM中，对LINQ查询语法的支持至关重要。它提供了很多的特性和功能，这些不可避免地会影响内存占用，甚至影响单个操作的性能。这就是为什么开始使用微型O/RM框架的原因。
 
-O / RM框架执行查询数据行并将它们映射到内存中对象属性的肮脏和值得称道的工作。与上面讨论的DataTable对象相比，O / RM将相同的低级数据加载到强类型类而不是通用的面向表的容器中。对于.NET Framework的O / RM框架，大多数开发人员都会想到Entity Framework或者NHibernate。这些是最受欢迎的框架，但也是最庞大的框架。对于O / RM框架，gigantic的属性与它支持的功能的数量有关，从映射功能到缓存，从事务性到并发。在现代的O / RM for .NET中，对LINQ查询语法的支持至关重要。它产生了很多功能，这些功能不可避免地会影响内存占用，甚至影响单个操作的性能。这就是为什么一些人和公司最近开始使用微型O / RM框架的原因。 ASP.NET Core应用程序存在一些选项。
+#### 微型O/RM示例
 
-#### 微型O / RM与完整O / RM
-
-面对现实吧。微型O / RM与完整的O / RM完成相同的基本工作，大多数情况下，您并不需要完全成熟的O / RM。想要一个例子吗？ Stack Overflow是地球上交易量最大的网站之一，它不使用完整的O / RM。 Stack Overflow甚至设法创建他们自己的微型O / RM只是出于性能原因。话虽如此，我个人的感觉是，大多数应用程序仅使用Entity Framework，因为它是.NET Framework的一部分，因为它使编写查询的问题与C＃代码而不是SQL有关。生产力确实很重要，总的来说，我倾向于考虑使用完整的O / RM作为更有成效的选择，因为示例和功能的数量，包括内部优化命令，以确保始终进行充分的权衡。
-
-如果微型O / RM可以拥有更小的内存占用，那么它主要是因为它缺乏功能。问题是任何缺少的功能是否会影响您的应用程序。主要缺少的功能是二级缓存和内置的关系支持。二级缓存是指具有由框架管理的附加缓存层，该缓存层在连接和事务之间保持配置的时间量。 NHibernate支持二级缓存，但实体框架中不支持二级缓存（尽管有些解决方法可以在EF6中实现，并且EF Core存在扩展项目）。这就是说，二级缓存在微观和完整的O / RM框架之间并不是一个很大的区别。更为相关的是其他缺失的功能 - 支持关系.
-
-当您在EF中编写查询时，无论基数如何，您都可以在查询中包含任何外键关系。将查询结果扩展到连接表是语法的一部分，不需要通过不同且更清晰的语法构建查询。您通常不会使用微型O / RM。在微型O / RM中，这正是您进行权衡的关键所在。您可以花费更多时间编写需要更高级SQL技能的更复杂查询，从而提高操作性能。或者，您可以跳过SQL技能并让系统为您完成工作。这种来自框架的额外服务是以内存占用和整体性能为代价的。
-
-此外，完整的O / RM可以提供不是每个人都喜欢和使用的设计者和/或迁移设施，这有助于使整个O / RM的图像更加巨大。
-
-#### 微型O / RM 样品
-
-Stack Overflow团队选择创建一个量身定制的迷你O / RM- Dapper框架 - 负责编写超级优化的SQL查询并添加大量的外部缓存层。 Dapper框架可从http://github.com/StackExchange/Dapper获得。该框架在针对SQL数据库执行SELECT语句并将返回的数据映射到对象时发光。它的性能几乎与使用数据读取器相同 - 这是在.NET中查询数据的最快方式，但它可以返回内存中对象的列表。
+Stack Overflow团队选择创建一个量身定制的迷你O/RM——Dapper框架，负责编写超级优化的SQL查询并添加大量的外部缓存层。 Dapper框架可从http://github.com/StackExchange/Dapper获得。该框架在针对SQL数据库执行SELECT语句并将返回的数据映射到对象方面表现出色。它的性能几乎与使用数据读取器相同，这是在.NET中查询数据的最快方式，但它可以返回内存中的对象列表。
 
 ```c#
 var customer = connection.Query<Customer>(
@@ -171,7 +159,7 @@ var customer = connection.Query<Customer>(
            new { Id = 123 });
 ```
 
-NPoco框架遵循相同的指导原则，甚至代码与Dapper的差别也很小。 NPoco框架可在http://github.com/schotime/npoco上找到。
+另一个O/RM框架——NPoco框架，同样遵循相同的指导原则，甚至代码与Dapper的差别也很小。 NPoco框架可在http://github.com/schotime/npoco上找到。
 
 ```c#
 using (IDatabase db = new Database("connection_string"))  
@@ -180,23 +168,26 @@ using (IDatabase db = new Database("connection_string"))
 }
 ```
 
-微型O / RM系列每天都在增长，其他许多用于ASP.NET Core，例如Insight.Database（http://github.com/jonwagner/Insight.Database）和PetaPoco，它们作为单个提供要整合到您的应用程序中的大文件（http://www.toptensoftware.com/petapoco）。
+除此之外，还有其他一些微型O/RM框架，例如：
 
-然而，关于微型O / RM的关键不在于您应该使用哪种，而是使用微型O / RM而不是完整的O / RM。
+Insight.Database：https://github.com/jonwagner/Insight.Database
 
-说明根据Stack Overflow工程师在Dapper主页（http://github.com/StackExchange/Dapper）上发布的数字，性能方面，Dapper在单个查询上的速度比实体框架快10倍。这是一个巨大的差异，但不一定足以让每个人决定使用Dapper或其他微型O / RM。这种选择取决于您运行的查询数量以及编写它们的开发人员的技能，以及您必须提高性能的替代方案。
+PetaPoco：https://github.com/CollaboratingPlatypus/PetaPoco
 
-### 使用NoSQL商店
+### 使用NoSQL存储
 
-NoSQL这个术语意味着很多东西并指向许多不同的产品。最后，NoSQL可以概括为当你不想要或不需要关系存储时它是所选择的数据存储范例。总而言之，当您真正想要使用NoSQL存储时，只有一个用例：当记录的模式发生变化但记录在逻辑上相关时。
+NoSQL可以概括为当你不希望或者不需要关系存储时，NoSQL是你选择的数据存储范式。总之，只有一个用例需要使用NoSQL存储：当记录的模式发生变化，但是记录在逻辑上是相关的。
 
-考虑填写和存储在多租户应用程序中的表单或问卷。每个租户都可以拥有自己的字段列表，您需要为各种用户保存值。每个租户表单可能不同，但结果记录在逻辑上都是相关的，理想情况下应该在同一个商店中。在关系数据库中，除了创建作为所有可能字段的并集的模式之外，您几乎没有其他选项。但即使在这种情况下，为租户添加新字段也需要更改表的架构。按行而不是按列组织数据会带来其他问题，例如每次租户查询超过SQL页面大小时的性能命中。同样，它取决于具体的应用程序使用情况，但事实上，无模式数据对于关系存储来说并不理想。输入NoSQL商店。
+下面是书中给出的一个场景：
 
-如上所述，有许多方法可以对NoSQL商店进行编目。对于本书，我更喜欢将它们分成物理和内存存储。尽管存在物理/内存对比，但区别非常薄。 NoSQL存储主要用作缓存形式，而不太常用作主数据存储。当它们被用作主要数据存储时，通常是因为应用程序具有事件源架构。
+> 可以考虑使用表单或问卷来填写和存储多租户应用程序。每个租户都可以有自己的字段列表，您需要为各种用户保存值。每个租户表单可能不同，但结果记录在逻辑上是相关的，最好放在同一个存储中。在关系数据库中，除了创建所有可能字段的联合模式之外，您只有很少的选项。但即使在这种情况下，为租户添加新字段也需要更改表的模式。按行而不是按列组织数据会带来其他问题，例如每当查询租户的页面大小超过SQL页面大小时，性能都会受到影响。同样，这取决于特定的应用程序使用情况，但事实是，无模式数据对于关系存储来说并不理想。
+>
 
-#### 经典实体店
+NoSQL存储通常作为一种缓存形式使用，很少用作主要数据存储。当它们用作主数据存储时，通常是因为应用程序具有事件源架构。
 
-物理NoSQL存储是一种无模式数据库，可将.NET Core对象保存到磁盘，并提供获取和过滤它们的功能。最受欢迎的NoSQL商店可能是MongoDB，它与微软的Azure DocumentDB密切相关。有趣的是，只需更改连接字符串，就可以使用MongoDB API编写的应用程序写入DocumentDB数据库。这是为DocumentDB编写的示例查询。
+#### 物理存储
+
+物理NoSQL存储是一种无模式数据库，可将.NET Core对象保存到磁盘，并提供获取和过滤它们的函数。最受欢迎的NoSQL存储可能是MongoDB，它与微软的Azure DocumentDB密切相关。有趣的是，只需更改连接字符串，就可以使用MongoDB API编写的应用程序写入到DocumentDB数据库。下面是一个DocumentDB查询示例。
 
 ```c#
 var client = new DocumentClient(azureEndpointUri, password);
@@ -207,19 +198,19 @@ var questionnaire = client.CreateDocumentQuery<Questionnaire>(requestUri)
         .FirstOrDefault();
 ```
 
-NoSQL商店的主要优点是能够存储形状不同但相关的数据和规模存储以及简单的查询功能。其他物理NoSQL数据库是RavenDB，CouchDB和CouchBase，它们特别适用于移动应用程序。
+NoSQL存储的主要优点是能够存储形状不同但相关的数据和规模存储以及简单的查询功能。其他物理NoSQL数据库是RavenDB，CouchDB和CouchBase，它们特别适用于移动应用程序。
 
 #### 内存存储
 
-内存存储本质上是大型缓存应用程序，可用作键值字典。即使它们备份内容，它们也被视为大块内存，其中应用程序驻留数据以便快速检索。 Redis（http://redis.io）是内存存储的一个很好的例子。
+内存存储本质上是作为键值字典工作的大型缓存应用程序。尽管它们备份了内容，但它们被认为是应用程序存放数据以便快速检索的大块内存。 Redis（http://redis.io）是内存存储的一个很好的例子。
 
-要了解此类框架的相关性，请再次考虑Stack Overflow公开记录的体系结构。 Stack Overflow（www.stackoverflow.com）使用Redis的自定义版本作为中间二级缓存，以长时间维护问题和数据，而无需从数据库重新查询。 Redis支持磁盘级持久性，LRU驱逐，复制和分区。 Redis不能直接从ASP.NET Core访问，但可以通过ServiceStack API完成（请参阅http://servicestack.net）。
+要了解此类框架的相关性，请再次考虑Stack Overflow的公开文档体系结构。 Stack Overflow（www.stackoverflow.com）使用一个定制版本的Redis作为中间二级缓存，可以长时间地维护问题和数据，而无需从数据库重新查询。 Redis支持磁盘级持久化，LRU删除，复制和分区。 Redis不能直接从ASP.NET Core访问，但可以通过ServiceStack API完成（请参阅http://servicestack.net）。
 
 另一个内存中的NoSQL数据库是Apache Cassandra，它可以通过DataStax驱动程序在ASP.NET Core中访问。
 
 
 
-## EF核心常见任务
+## EF Core常见任务
 
 如果您打算保留ASP.NET Core的完整O / RM领域，则选择仅限于新的，定制的Entity Framework版本，即EF Core。 EF Core支持一种提供程序模型，通过它可以使用各种关系DBMS，特别是SQL Server，Azure SQL数据库，MySQL和SQLite。对于所有这些数据库，EF Core都有一个本机提供程序。此外，存在内存提供程序，这有助于测试目的。对于PostgreSQL，您需要来自http://npgsql.org的外部提供程序。预计2018年初将推出针对EF Core的Oracle提供商。
 
