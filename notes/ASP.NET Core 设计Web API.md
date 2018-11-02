@@ -17,7 +17,7 @@ Web API的核心是HTTP端点的集合。这意味着在ASP.NET Core中，一个
 
 #### 从Action方法返回JSON
 
-要返回JSON数据，您所要做的就是在一个新的或现有的Controller类中创建一个特别的方法。新方法的唯一特定要求是返回JsonResult对象。
+要返回JSON数据，您所要做的就是在一个新的或现有的`Controller`类中创建一个特别的方法。新方法的唯一特定要求是返回`JsonResult`对象。
 
 ```c#
 public IActionResult LatestNews(int count)
@@ -27,13 +27,13 @@ public IActionResult LatestNews(int count)
 }
 ```
 
-Json方法确保将给定对象打包到JsonResult对象中。一旦从控制器类返回，JsonResult对象就由动作调用程序处理，这是实际序列化发生的时间点。可以检索所需的数据，将其打包到对象中，然后将其传递给Json方法。
+`Json`方法确保将给定对象打包到`JsonResult`对象中。一旦从控制器类返回，`JsonResult`对象就由动作调用程序处理，这是实际序列化发生的时间点。可以检索所需的数据，将其打包到对象中，然后将其传递给`Json`方法。
 
 调用端点（endpoint ）的实际URL可以通过通常的路由方法确定——常规路由或属性路由。
 
 #### 返回其他数据类型
 
-提供其他数据类型不需要不同的方法。模式始终是相同的。检索数据并将其序列化为格式正确的字符串。基础控制器类上的Content方法允许你使用第二个参数序列化任何文本，以指示浏览器有关预期的MIME类型。
+提供其他数据类型不需要不同的方法。模式始终是相同的。检索数据并将其序列化为格式正确的字符串。基础控制器类上的`Content`方法允许你使用第二个参数序列化任何文本，以指示浏览器有关预期的MIME类型。
 
 ```c#
 [HttpGet]
@@ -57,7 +57,7 @@ public IActionResult Download(int id)
 }
 ```
 
-如果文件位于服务器上（例如，您的应用程序驻留在本地），那么你可以按名称找到它。如果文件已上载到数据库或Azure blob存储，那么将以字节流的形式来检索其内容，并将引用传递给适当的File方法重载。你需要设置正确的MIME类型， File方法的第三个参数是指下载文件的名称。
+如果文件位于服务器上（例如，您的应用程序驻留在本地），那么你可以按名称找到它。如果文件已上载到数据库或Azure blob存储，那么将以字节流的形式来检索其内容，并将引用传递给适当的`File`方法重载。你需要设置正确的MIME类型， `File`方法的第三个参数是指下载文件的名称。
 
 #### 请求特定格式的数据
 
@@ -77,15 +77,15 @@ public IActionResult Weather(int days = 3, string format = "json")
 }
 ```
 
-ForecastsXmlFormatter是一个自定义类，它只返回一个自定义的手工编写的XML字符串，该字符串被写入任何在特定上下文中工作的模式。
+`ForecastsXmlFormatter`是一个自定义类，它只返回一个自定义的手工编写的XML字符串，该字符串被写入任何在特定上下文中工作的模式。
 
-为了避免使用“json”和“xml”这样的字符串，可以考虑使用MediaTypeNames类定义的MIME类型常量。不过请注意，在类的当前定义中缺少相当多的MIME类型 - 特别是application / json。
+为了避免使用“json”和“xml”这样的字符串，可以考虑使用`MediaTypeNames`类定义的MIME类型常量。不过请注意，在类的当前定义中缺少相当多的MIME类型 - 特别是`application / json`。
 
 #### 限制动词
 
 在目前所考虑的所有示例中，处理请求的代码都是控制器方法。因此，您可以使用控制器操作方法的所有编程特性来控制参数的绑定，更重要的是，使用HTTP谓词和/或必要的标头或cookie来触发代码。
 
-下面的代码限制仅通过GET请求调用端点api / weather.
+下面的代码限制仅通过GET请求调用端点`api / weather`.
 
 ```c#
 [HttpGet]
@@ -120,7 +120,7 @@ public void Configure(IApplicationBuilder app,
 }
 ```
 
-方法Run——终止中间件——捕获任何没有以其他方式处理的请求。例如，它捕获不经过任何配置控制器的请求。与此同时，无论实际端点是什么，上面的代码都会检查特定的查询字符串参数(名为q)，并根据该值过滤国家的内部列表。可以将代码重构为文件服务器。
+方法`Run`——终止中间件——捕获任何没有以其他方式处理的请求。例如，它捕获不经过任何配置控制器的请求。与此同时，无论实际端点是什么，上面的代码都会检查特定的查询字符串参数(名为q)，并根据该值过滤国家的内部列表。可以将代码重构为文件服务器。
 
 #### 终止中间件以仅捕获某些请求
 
@@ -143,7 +143,7 @@ private static void DownloadFile(IApplicationBuilder app)
 }
 ```
 
-由于Map方法，每次传入的请求指向/api/file路径时，代码都会尝试查找id查询字符串参数。然后，它会构建一个文件路径并将内容返回给调用者。
+由于`Map`方法，每次传入的请求指向`/api/file`路径时，代码都会尝试查找id查询字符串参数。然后，它会构建一个文件路径并将内容返回给调用者。
 
 
 
@@ -204,7 +204,7 @@ REST请求的模式：
 
 #### RESTful Action Results
 
-与Web API相关的IActionResult类型：
+与Web API相关的`IActionResult`类型：
 
 | Type                       | 描述                                                   |
 | -------------------------- | ------------------------------------------------------ |
@@ -215,11 +215,11 @@ REST请求的模式：
 | OkResult                   | 返回200状态码                                          |
 | UnsupportedMediaTypeResult | 返回415状态码                                          |
 
-除了AcceptedResult和CreatedResult之外，您还可以找到xxxAtActionResult和xxxAtRouteResult类型。不同之处在于类型如何表示URI，以监视已接受操作的状态以及刚刚创建的资源的位置。 xxxAtActionResult类型将URI表示为一对控制器和操作字符串，而xxxAtRouteResult类型使用一个路由名称。
+除了`AcceptedResult`和`CreatedResult`之外，您还可以找到`xxxAtActionResult`和`xxxAtRouteResult`类型。不同之处在于类型如何表示URI，以监视已接受操作的状态以及刚刚创建的资源的位置。 `xxxAtActionResult`类型将URI表示为一对控制器和操作字符串，而`xxxAtRouteResult`类型使用一个路由名称。
 
-对于一些其他Action结果类型，有一个xxxObjectResult变体。好的例子是OkObjectResult和BadRequestObjectResult。不同之处在于，对象结果类型还允许向响应追加对象。所以OkResult只设置了200状态代码，而OkObjectResult设置了200状态码并附加了你选择的对象。使用此功能的一种常见方法是在出现错误请求时，返回一个使用检测到的错误更新的ModelState字典。另一个例子可能是NotFoundObjectResult，它可以设置请求的当前时间。
+对于一些其他Action结果类型，有一个`xxxObjectResult`变体。好的例子是`OkObjectResult`和`BadRequestObjectResult`。不同之处在于，对象结果类型还允许向响应追加对象。所以`OkResult`只设置了200状态代码，而`OkObjectResult`设置了200状态码并附加了你选择的对象。使用此功能的一种常见方法是在出现错误请求时，返回一个使用检测到的错误更新的`ModelState`字典。另一个例子可能是`NotFoundObjectResult`，它可以设置请求的当前时间。
 
-最后，另一个有趣的区别是NoContentResult和EmptyResult。两者都返回空响应，但NoContentResult设置状态代码为204，而EmptyResult设置状态代码为200。
+最后，另一个有趣的区别是`NoContentResult`和`EmptyResult`。两者都返回空响应，但`NoContentResult`设置状态代码为204，而`EmptyResult`设置状态代码为200。
 
 #### 常见的Actions纲要
 
@@ -262,7 +262,7 @@ public ObjectResult Get(Guid id)
 }
 ```
 
-所有返回类型都是从IActionResult派生的，而实际实例是使用Controller基类公开的特殊辅助方法创建的。值得注意的是，与以前的Web API相比，在ASP.NET Core中，控制器辅助方法通过捕获大多数常见的REST事务来简化工作。实际上，如果您查看CreatedResult类的源代码，您会看到以下代码：
+所有返回类型都是从`IActionResult`派生的，而实际实例是使用`Controller`基类公开的特殊辅助方法创建的。值得注意的是，与以前的Web API相比，在ASP.NET Core中，控制器辅助方法通过捕获大多数常见的REST事务来简化工作。实际上，如果您查看`CreatedResult`类的源代码，您会看到以下代码：
 
 ```c#
 // 从基类ObjectResult调用
@@ -294,15 +294,15 @@ public ObjectResult Get(Guid id)
 
 如果控制器检测到Accept标头，它将遍历标头内容中列出的类型，直到找到它可以提供的格式。扫描遵循MIME类型出现的顺序。如果没有找到控制器可以支持的类型，则使用JSON。
 
-注意，如果传入的请求包含Accept标头，并且控制器发回的响应类型为ObjectResult，则会触发内容协商。如果通过Json方法序列化控制器响应，那么无论发送什么标头信息，都不会进行协商。
+注意，如果传入的请求包含Accept标头，并且控制器发回的响应类型为`ObjectResult`，则会触发内容协商。如果通过Json方法序列化控制器响应，那么无论发送什么标头信息，都不会进行协商。
 
-另一种操作结果类型UnsupportedMediaTypeResult，表面看起来似乎与内容协商有某种关系。处理此操作结果将返回415 HTTP状态代码，这意味着发送Content-Type标头（除Accept之外的另一个HTTP消息头）来描述请求的内容。例如，Content-Type标头表示正在上载的图像文件的实际格式。如果控制器不支持该内容类型（例如，服务器不支持的PNG被上载），则可能返回415代码。鉴于此，UnsupportedMediaTypeResult类型实际上与内容协商并不真正相关。
+另一种操作结果类型`UnsupportedMediaTypeResult`，表面看起来似乎与内容协商有某种关系。处理此操作结果将返回415 HTTP状态代码，这意味着发送Content-Type标头（除Accept之外的另一个HTTP消息头）来描述请求的内容。例如，Content-Type标头表示正在上载的图像文件的实际格式。如果控制器不支持该内容类型（例如，服务器不支持的PNG被上载），则可能返回415代码。鉴于此，`UnsupportedMediaTypeResult`类型实际上与内容协商并不真正相关。
 
 
 
 ## 保护WEB API
 
-在ASP.NET Core中，Action方法的Authorize属性指示运行时，只有经过身份验证的用户才能调用该方法。在ASP.NET Core（以及任何类型的Web应用程序）中，cookie是存储和转发有关用户身份信息的主要方式。当涉及到Web上的API时，还需要考虑其他场景。客户端可以是桌面应用程序，也可以是移动应用程序。突然之间，cookie不再是保护API的有效方式，同时还能让尽可能多的客户端广泛使用它。
+在ASP.NET Core中，Action方法的`Authorize`属性指示运行时，只有经过身份验证的用户才能调用该方法。在ASP.NET Core（以及任何类型的Web应用程序）中，cookie是存储和转发有关用户身份信息的主要方式。当涉及到Web上的API时，还需要考虑其他场景。客户端可以是桌面应用程序，也可以是移动应用程序。突然之间，cookie不再是保护API的有效方式，同时还能让尽可能多的客户端广泛使用它。
 
 总的来说，我将web API的安全选项分为两类：简单但某种程度上有效的方法和最佳实践方法。
 
@@ -342,25 +342,27 @@ var ip = HttpContext.Connection.RemoteIpAddress;
 
 通常，检查IP地址和/或HTTP标头（如referer甚至用户代理）等技术主要是提高门槛的方法。
 
-### 使用Identity Management Server todo:
+### 使用Identity Management Server
 
-通常，身份管理服务器是位于许多应用程序和组件中间并外包身份服务的服务器。换句话说，不是在内部使用身份验证逻辑，而是配置这样的服务器并期望它完成工作。在Web API的上下文中，身份服务器可以在配置的相关API和访问控制之间提供单点登录。在ASP.NET Core空间（但也在经典的ASP.NET空间中），一个流行的选择是Identity Server，ASP.NET Core版本4。 （请参阅http://www.identityserver.com。）Identity Server是一个开源产品，可实现OpenID Connect和OAuth协议。在这方面，它有资格作为委派访问控制以保证您的Web API安全的出色工具。在本章的其余部分中，我们将引用用于ASP.NET Core的Identity Server 4。
+通常，身份管理服务器是位于许多应用程序和组件中间并外包身份服务的服务器。换句话说，与其在内部使用身份验证逻辑，不如配置这样的服务器，并期望它完成这项工作。在Web API的上下文中，身份服务器可以在配置的相关API和访问控制之间提供单点登录。在ASP.NET Core中（或经典的ASP.NET中），一个常用的选择是Identity Server，ASP.NET Core版本4。 （请参阅http://www.identityserver.com。）Identity Server是一个开源产品，实现了OpenID Connect和OAuth协议。在这方面，它可以作为一种优秀的工具来委托访问控制，以保持web API的安全性。 
 
-注意使用身份服务器控制对Web API的访问的优点是，您仍然使用Authorize属性标记操作方法，但不使用cookie来显示用户的身份。 Web API接收（并检查）作为HTTP标头的授权令牌。一旦配置了用户的数据以访问Web API，令牌的内容就由所选的Identity Server实例设置。由于不涉及cookie，受Identity Server保护的Web API可以轻松地为移动应用程序，桌面应用程序以及任何现有或（为什么不？）未来的HTTP客户端提供服务。
+使用身份服务器控制对Web API的访问的优点是，您仍然使用Authorize属性标记注解操作方法，但不使用cookie来显示用户的身份。 Web API接收（并检查）作为HTTP标头的授权令牌。令牌的内容是由所选的Identity Server实例设置的，一旦配置了用户的数据，就可以访问web API。由于不涉及cookie，受Identity Server保护的Web API可以轻松地为移动应用程序，桌面应用程序以及任何当前或将来的HTTP客户端提供服务。
 
 #### 为Identity Server v4做好准备
 
-图10-2显示了Identity Server如何与您的Web API及其启用的客户端进行交互的总体情况。
+下图展示了Identity Server如何与Web API及其启用的客户端进行交互：
 
 ![identityserver](assets/identityserver.jpg)
 
-Identity Server必须是专用的自托管应用程序，在ASP.NET Core中，您可以决定直接通过Kestrel或通过反向代理公开。在任何情况下，您都需要一个众所周知的HTTP地址来访问服务器。公平地说，您需要一个众所周知的HTTPS地址来联系服务器。 HTTPS为通过线路交换的任何内容增加了隐私。 Identity Server提供访问控制，但实际上，您始终希望在身份服务器之上安装HTTPS。
+Identity Server必须是专用的自托管应用程序，在ASP.NET Core中，你可以决定直接通过Kestrel或通过反向代理公开。无论如何，都需要一个众所周知的HTTP地址来访问服务器。更明确点说，您需要一个众所周知的HTTPS地址来联系服务器。HTTPS为通过网络交换的任何内容增加了隐私。 Identity Server提供访问控制，但实际上，您始终希望在身份服务器之上使用HTTPS。
 
-图10-2显示Identity Server最好是与API分开的应用程序。为了充分展示它，我们将有三个不同的项目 - 一个用于托管Identity Server，一个用于托管示例Web API，另一个用于模拟客户端应用程序。
+上图显示了Identity Server最好是与API分开的独立应用程序。为了充分展示它，我们将有三个不同的项目——一个用于托管Identity Server，一个用于托管示例Web API，另一个用于模拟客户端应用程序。
 
 #### 为Identity Server构建主机环境
 
-要托管Identity Server，请开始创建一个全新的ASP.NET Core项目并添加IdentityServer4 NuGet包。如果您已经在使用ASP.NET Identity（请参阅第8章），那么您可能还想添加IdentityServer4.AspNetIdentity。可能需要其他软件包，具体取决于您打开的实际功能。启动类如下所示（后面将介绍Config方法）。
+要托管Identity Server，请开始创建一个全新的ASP.NET Core项目并添加IdentityServer4 NuGet包。如果您已经在使用ASP.NET Identity，那么可能还需要添加`IdentityServer4.AspNetIdentity`。除此之外，可能还需要其他软件包，具体取决于你将要实现的功能。
+
+启动类如下所示（后面将介绍Config方法）：
 
 ```c#
 public class Startup
@@ -387,15 +389,9 @@ public class Startup
 }
 ```
 
-图10-3显示了您看到的主页。因此，服务器没有端点，也没有用户界面，但添加管理员用户界面来更改配置方面由您决定。 Identity Server 4的AdminUI服务已作为加载项发布。 （见http://www.identityserver.com）。
-
-![10_3](assets/10_3.jpg)
-
-让我们了解有关服务器配置参数的更多信息，特别是客户端，API资源和签名凭据。
-
 #### 将客户端添加到Identity Server
 
-客户端列表是指允许连接到Identity Server并访问资源和服务器保护的API的客户端应用程序。必须为每个客户端应用程序配置允许执行的操作以及如何执行此操作。例如，客户端应用程序可以限制为仅调用API的一部分。您至少可能希望配置具有ID和密钥以及授权类型和范围的客户端应用程序。
+客户端列表是指允许连接到Identity Server并访问服务器保护的资源和API的客户端应用程序。必须为每个客户端应用程序配置允许执行的操作以及如何执行此操作。例如，客户端应用程序可以限制为仅调用API的一部分。至少，您可能希望使用ID和密钥以及授权类型和作用域配置客户机应用程序。
 
 ```c#
 public class Config
@@ -418,15 +414,15 @@ public class Config
     ...
 ```
 
-如果您曾尝试使用社交网络API，则可能熟悉ID和机密。例如，要访问Facebook数据，首先要创建一个Facebook应用程序，该应用程序完全由几个字符串ID和秘密标识，因为它们在Identity Server中命名。授权类型指示允许客户端与服务器交互的方式。客户端应用程序可以具有多种授权类型。应该注意，这里的客户端应用程序与运行实际应用程序不同。实际上，如此处所讨论的客户端应用程序是OpenID Connect和OAuth2概念。例如，具体的移动应用程序和实际网站可以使用相同的客户端应用程序来访问Identity Server。
+如果您曾经尝试使用社交网络API，那么您可能熟悉IDs和秘密。例如，要访问Facebook数据，首先创建一个Facebook应用程序，该应用程序完全由几个字符串——ID和secret标识，因为它们在Identity Server中命名。授权类型指示如何允许客户机与服务器交互。客户端应用程序可以有多种授予类型。应该注意，这里的客户机应用程序与运行实际应用程序不同。实际上，正如本文所讨论的，客户机应用程序是一个OpenID Connect和OAuth2概念。例如，具体的移动应用程序和实际的网站可以使用相同的客户端应用程序访问Identity Server。
 
-如果您打算保护Web API，通常使用ClientCredentials，这意味着单个用户不需要请求令牌;请求令牌仅对客户端应用程序是必需的。换句话说，作为Web API所有者，您授予对客户端应用程序及其所有单个用户的访问权限。但是，通常，Identity Server可用于基于每个用户执行访问控制，这会为同一客户端应用程序创建多个授权类型甚至多个授权类型的需求。有关在服务器到服务器通信中保护Web API的方案的更多信息，您可能需要查看http://docs.identityserver.io/en/release/topics/grant_types.html。
+如果要保护Web API，通常使用ClientCredentials，这意味着对于单个用户来说，不需要请求令牌，请求令牌仅对客户端应用程序是必需的。换句话说，作为Web API所有者，您授予对客户端应用程序及其所有个人用户的访问权限。不过，通常情况下，Identity Server可用于基于每个用户执行访问控制，这会为同一客户端应用程序创建多个授权类型的需求。有关在服务器到服务器通信中保护Web API的方案的更多信息，您可能需要查看：http://docs.identityserver.io/en/release/topics/grant_types.html。
 
-使用ClientCredentials选项时，生成的流程与图10-2中的完全相同。需要调用受保护API的实际应用程序首先将令牌请求发送到Identity Server令牌端点。在这样做时，实际应用程序使用其中一个配置的Identity Server客户端的凭据（ID和机密）。如果身份验证成功，则实际应用程序将获得一个访问令牌，该令牌代表要传递给Web API的客户端。 （本章稍后将详细介绍。）
+使用ClientCredentials选项时，生成的流程与上图中的完全相同。需要调用受保护API的实际应用程序首先将令牌请求发送到Identity Server令牌端点。在此过程中，实际应用程序使用配置的Identity Server客户端之一的凭据（ID和Secret）。如果身份验证成功，实际的应用程序将获得一个访问令牌，该令牌表示要传递给web API的客户机。
 
-#### 将API资源添加到Identity Server
+#### 向Identity Server添加API资源
 
-通常，API资源是指您希望防止未经授权访问的资源（例如，Web API）。具体而言，API资源只是标识Identity Server中的Web API的标签。 API资源由密钥和显示名称组成。通过API资源，客户端应用程序设置其范围的方式与声明要在Facebook应用程序中访问的用户的声明的方式非常相似。声明感兴趣的API资源会阻止客户端应用程序访问任何Web API或Web API的一部分，而不是范围。在向Identity Server注册时，Web API会声明它处理的资源。
+通常，API资源是指您希望防止未经授权访问的资源（例如，Web API）。具体而言，API资源只是标识Identity Server中的Web API的标签。 API资源由密钥和显示名称组成。通过API资源，客户端应用程序设置其作用域的方式与声明要在Facebook应用程序中访问的用户的声明的方式非常相似。声明感兴趣的API资源可以防止客户端应用程序访问范围之外的任何Web API或Web API的一部分。在向Identity Server注册时，Web API会声明它处理的资源。
 
 ```c#
 public class Config
@@ -444,13 +440,13 @@ public class Config
 ...}
 ```
 
-在上面的代码中，Identity Server配置为支持两个资源 - fun-API和weather-API。之前定义的客户端应用程序仅对weather-API感兴趣。
+在上面的代码中，Identity Server配置为支持两个资源：fun-API和weather-API。之前定义的客户端应用程序仅对weather-API感兴趣。
 
 #### 客户端和资源的持久性
 
-在这里讨论的示例中，我们使用静态定义的客户端和资源。虽然在某些已部署的应用程序中甚至可能出现这种情况，但确实不太现实。当您控制游戏中的所有组件时，它可以在封闭的环境中有意义，并且可以在必须更改某些内容时重新编译和重新部署API，服务器和实际应用程序，并且需要新资源或新客户端。
+在本文讨论的示例中，我们使用静态定义的客户端和资源。虽然在某些已部署的应用程序中可能出现这种情况，但实际上并不现实。
 
-更有可能的是，客户端和资源是从某个持久性存储加载的。这可以通过几种方式实现。一个需要您编写自己的代码来检索客户端和资源，并将它们作为内存中对象传递给Identity Server。第二种方式利用了Identity Server的内置基础架构。
+假如客户端和资源是从某个持久化存储加载的。这可以通过几种方式实现。其中一个要求您编写自己的代码来检索客户机和资源，并将它们作为内存对象传递给Identity Server。第二种方法利用了Identity Server的内置基础结构。
 
 ```c#
 services.AddIdentityServer()
@@ -464,37 +460,37 @@ services.AddIdentityServer()
     ...
 ```
 
-如果采用这种方式，则需要迁移才能传递数据库的模式，然后以静默方式创建该模式。要创建迁移程序集，您需要运行与您需要安装的其他NuGet程序包IdentityServer4.EntityFramework捆绑在一起的临时命令。最后，请注意，出于性能原因，Identity Server还为您提供了插入缓存组件的机会。在这种情况下，无论用于保存数据的实际底层技术如何，插入的组件都实现给定的接口就足够了。
+如果采用这种方式，则需要通过迁移来传递数据库的模式，然后以静默方式创建该模式。要创建迁移程序集，您需要运行与您需要安装的其他NuGet程序包`IdentityServer4.EntityFramework`捆绑在一起的特殊命令。最后，请注意，由于性能原因，Identity Server还为您提供了插入缓存组件的机会。在这种情况下，插入组件实现给定的接口就足够了，而不管用于保存数据的实际底层技术是什么。
 
-注意有关持久性和签名的各种选项的综合视图，请参阅http://docs.identityserver.io/en/release/quickstarts/8_entity_framework.html。
+有关持久性和签名的各种选项的综合视图，请参阅http://docs.identityserver.io/en/release/quickstarts/8_entity_framework.html。
 
 #### 签署凭证
 
-在上面的启动代码中，您已经看到AddDeveloperSigningCredential方法用于创建临时密钥以签署作为身份证明发回的令牌。如果在第一次运行后查看项目，则会看到添加名为tempkey.rsa的JSON文件。
+在上面的启动代码中，您已经看到`AddDeveloperSigningCredential`方法，用于创建临时密钥以签署作为身份证明被发回的令牌。如果在第一次运行后查看项目，会看到添加了一个名为tempkey.rsa的JSON文件。
 
 ```json
 {"KeyId":"c789...","Parameters":{"D":"ndm8...",...}}
 ```
 
-虽然这可能很适合尝试，但它肯定需要替换为生产方案的持久密钥或证书。实际上，在某些时候，您可能希望在检查当前环境之后切换到AddSigningCredential。 AddSigningCredential方法添加一个签名密钥服务，该服务检索AddDeveloperSigningCredential从持久存储中动态创建的相同密钥信息。 AddSigningCredential方法可以接受各种格式的数字签名。它可以是X509Certificate2类型的对象，也可以是对证书库中的证书的引用。
+虽然这可能是一个不错的尝试，但它肯定需要被用于生产场景的持久密钥或证书所替代。实际上，在某些时候，您可能希望在检查当前环境之后切换到`AddSigningCredential`。 `AddSigningCredential`方法添加一个签名密钥服务，该服务检索AddDeveloperSigningCredential`从持久存储中动态创建的相同密钥信息。 `AddSigningCredential`方法可以接受各种格式的数字签名。它可以是X509Certificate2类型的对象，也可以是对证书库中的证书的引用。
 
-```
+```c#
 AddIdentityServer()
     .AddSigningCredential("CN=CERT_SIGN_TEST_CERT");
 ```
 
-它也可以是SigningCredentials类或RsaSecurityKey的实例。
+它也可以是`SigningCredentials`类或`RsaSecurityKey`的实例。
 
-注意有关签名的各种选项的综合视图，请参阅http://docs.identityserver.io/en/release/topics/crypto.html。
+注意有关签名的各种选项的综合描述，请参阅http://docs.identityserver.io/en/release/topics/crypto.html。
 
 #### 使Web API适应Identity Server
 
-此时，服务器已启动并正在运行，并准备控制对API的访问。但是，Web API仍然缺少一层将其连接到Identity Server的代码。要通过Identity Server添加授权，您需要执行两个步骤。首先，添加IdentityServer4.AccessTokenValidation包。该软件包添加了必要的中间件来验证来自Identity Server的令牌。其次，您可以按如下方式配置服务。
+至此，服务器已启动并正在运行，可以控制对API的访问。但是，Web API仍然缺少一层将其连接到Identity Server的代码。要通过Identity Server添加授权，您需要执行两个步骤。首先，添加`IdentityServer4.AccessTokenValidation`包。该软件包添加了必要的中间件来验证来自Identity Server的令牌。其次，您可以按如下方式配置服务。
 
 ```c#
 public void ConfigureServices(IServiceCollection services)
 {
-    // Configure the MVC application model
+    // 配置MVC应用程序模型
     services.AddMvcCore();
     services.AddAuthorization();
     services.AddJsonFormatters();
@@ -508,32 +504,26 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-请注意，代码段中使用的MVC应用程序模型配置是您需要的绝对最小值。身份验证方案是Bearer，Authority参数指向Identity Server的URL。 ApiName参数是指Web API实现的API资源，而RequireHttpsMetadata则确定发现API端点不需要HTTPS。
+请注意，代码段中使用的MVC应用程序模型配置是您需要的绝对最小值。身份验证方案是Bearer，`Authority`参数指向Identity Server的URL。 `ApiName`参数是指Web API实现的API资源，而`RequireHttpsMetadata`则确定不需要HTTPS来发现API端点。
 
-此外，您只需将所有非公开的API放在Authorize属性的保护下。可以通过HttpContext.User属性检查用户信息。这里的所有都是它的！当访问令牌呈现给Web API时，Identity Server的访问令牌验证中间件将对其进行调查，并将传入请求的受众范围与ApiName属性的值相匹配。 （参见图10-4。）如果未找到匹配项，则返回未经授权的错误代码。
+此外，您只需将所有不打算公开的API放在`Authorize`注解属性下即可。可以通过`HttpContext.User`属性检查用户信息。当访问令牌呈现给Web API时，Identity Server的访问令牌验证中间件将对其进行研究核对，并将传入请求的受众范围与`ApiName`属性的值相匹配。 如果未找到匹配项，则返回未经授权的错误代码。
 
-![10_4](assets/10_4.jpg)
-
-现在让我们看看实际调用API需要什么。
-
-##### 把它放在一起
-
-在安全层有效的情况下，Web API的调用者现在必须提供一些连接凭据。连接分两步进行。首先，调用者尝试从配置的Identity Server端点获取请求令牌。这样做，调用者提供凭据。凭据必须与向Identity Server注册的客户端应用程序的凭据匹配。其次，如果识别出凭证，则发出访问令牌，该令牌必须传递给Web API。这是代码。
+在安全层的作用下，Web API的调用者现在必须提供一些连接凭据。连接分两步进行。首先，调用者尝试从配置的Identity Server端点获取请求令牌。这样做，调用者提供凭据。凭据必须与向Identity Server注册的客户端应用程序的凭据匹配。其次，如果确认了凭证，就会发出一个访问令牌，该令牌必须传递给Web API。这是代码。
 
 ```c#
-// Obtains the actual URL to request the token from the instance of Identity Server.
-// By default, it is <server-URL>/connect/token.
+// 获取实际URL，以从Identity Server实例请求令牌
+// 默认情况下，它是/connect/token.
 var disco = DiscoveryClient.GetAsync("http://localhost:6000").Result;
 
-// Attempts to get an access token to call the web API. ID and secret of 
-// the client application to use must be provided.
+// 试图获取访问令牌来调用web API。身份和秘密
+// 必须提供要使用的客户机应用程序。
 var tokenClient = new TokenClient(disco.TokenEndpoint, 
                                   "public-account", "public-account-secret");
 var tokenResponse = tokenClient.RequestClientCredentialsAsync("weather-API").Result;
 if (tokenResponse.IsError) { ... }
 ```
 
-上面代码中使用的类要求将IdentityModel NuGet包添加到客户端应用程序项目中。最后，在将调用放入Web API时，必须将访问令牌作为HTTP标头附加。
+上面代码中使用的类要求将IdentityModel NuGet包添加到客户端应用程序项目中。最后，在将调用放入Web API时，必须将访问令牌附加到HTTP标头。
 
 ```c#
 var http = new HttpClient();
@@ -542,17 +532,35 @@ var response = http.GetAsync("http://localhost:6001/weather/now").Result;
 if (!response.IsSuccessStatusCode) { ... }
 ```
 
-如果您要将API许可给客户，您所要做的就是1）提供您在Identity Server中创建的客户端应用程序的凭据以调用Web API，以及2）提供您为API选择的名称资源。您还可以为每个客户创建一个客户端应用程序，并为每个请求附加其他声明，或者在Web API方法中运行一些授权代码，以检查实际调用者的身份并做出相关决策。
+如果您要将API授权给客户，您所要做的就是：
+
+1、提供您在Identity Server中创建的客户端应用程序的凭据，以便调用Web API。
+
+2、提供您为API资源选择的名称。您还可以为每个客户创建一个客户端应用程序，并为每个请求附加其他声明，或者在Web API方法中运行一些授权代码，以检查实际调用者的身份并做出相关决策。
 
 
 
-## 概要
-
-Web API是当今大多数应用程序中的常见元素。 Web API用于向Angular或MVC前端提供数据，以及为移动或桌面应用程序提供服务。在Web到Web场景中，可以通过cookie轻松实现安全性，但基于承载的方法可以清除cookie的任何依赖性，从而使API易于从任何HTTP客户端调用。
-
-身份管理服务器是位于Web API（但也是Web应用程序）与其呼叫者之间并提供身份验证的应用程序，与社交网络可以完全相同。底层协议是相同的 - OpenID Connect和OAuth2。 Identity Server是一种开源产品，您可以在自己的环境中进行设置，并配置为充当身份验证和授权服务器。
 
 
+
+
+------
+
+
+
+
+
+#### 参考资源
+
+- 《Programming ASP.NET Core》
+
+
+
+本文后续会随着知识的积累不断补充和更新，内容如有错误，欢迎指正。
+
+最后一次更新时间：2018-11-02
+
+------
 
 
 
