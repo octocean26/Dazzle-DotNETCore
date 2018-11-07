@@ -25,7 +25,7 @@ namespace Securing_Sample
                 new Claim(ClaimTypes.Role,"admin")
 
             };
-
+              
 
             // 从声明中创建认证对象
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

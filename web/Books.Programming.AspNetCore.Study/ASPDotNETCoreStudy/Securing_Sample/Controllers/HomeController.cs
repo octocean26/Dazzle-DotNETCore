@@ -14,5 +14,5 @@ namespace Securing_Sample.Controllers
         {
             return View();
         }
-    }
+    } 
 }
