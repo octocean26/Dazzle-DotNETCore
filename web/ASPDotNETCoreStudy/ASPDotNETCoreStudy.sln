@@ -11,9 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MvcCoreViewSample", "MvcCor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RazorSample", "RazorSample\RazorSample.csproj", "{313D164D-A13F-4BC5-B3F9-7E71B056E661}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DI_Sample_CH7", "DI_Sample_CH7\DI_Sample_CH7.csproj", "{2883CBFD-5964-4FC1-A396-D954E4686466}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Securing_Sample", "Securing_Sample\Securing_Sample.csproj", "{176407EC-2E53-4F81-A3B6-51CD5660B9D9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Securing_Sample", "Securing_Sample\Securing_Sample.csproj", "{176407EC-2E53-4F81-A3B6-51CD5660B9D9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,10 +35,6 @@ Global
 		{313D164D-A13F-4BC5-B3F9-7E71B056E661}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{313D164D-A13F-4BC5-B3F9-7E71B056E661}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{313D164D-A13F-4BC5-B3F9-7E71B056E661}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2883CBFD-5964-4FC1-A396-D954E4686466}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2883CBFD-5964-4FC1-A396-D954E4686466}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2883CBFD-5964-4FC1-A396-D954E4686466}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2883CBFD-5964-4FC1-A396-D954E4686466}.Release|Any CPU.Build.0 = Release|Any CPU
 		{176407EC-2E53-4F81-A3B6-51CD5660B9D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{176407EC-2E53-4F81-A3B6-51CD5660B9D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{176407EC-2E53-4F81-A3B6-51CD5660B9D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
