@@ -26,6 +26,12 @@
 
 
 
+### 管道
+
+TODO:
+
+
+
 ### 环境（Environments）
 
 环境（如“开发”环境和“生产”环境）主要是用来区分应用程序根据不同的使用场景来实现不同的操作的。ASP.NET Core在应用启动时会读取环境变量，运行时环境根据设置的环境变量值不同，而使ASP.NET Core配置不同的应用行为。内置的环境变量值有Development、Staging 和 Production。
