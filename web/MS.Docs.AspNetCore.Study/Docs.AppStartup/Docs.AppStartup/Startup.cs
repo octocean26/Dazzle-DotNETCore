@@ -22,6 +22,7 @@ namespace Docs.AppStartup
 
         public void ConfigureServices(IServiceCollection services)
         {
+            
             ILogger<Startup> logger = _loggerFactory.CreateLogger<Startup>();
             if (_env.IsDevelopment())
             {

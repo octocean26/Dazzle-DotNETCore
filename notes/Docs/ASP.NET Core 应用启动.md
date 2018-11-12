@@ -237,9 +237,99 @@ namespace Docs.AppStartup
 
 
 
+## 使用Startup过滤器扩展Startup
 
+可以使用IStartupFilter在应用程序的Configure中间件管道的开头或结尾配置中间件。在应用程序请求处理管道的开始或结束时，IStartupFilter有助于确保中间件在由库添加的中间件之前或之后运行。
 
+IStartupFilter实现了单个方法Configure，该方法接收并返回一个Action<IApplicationBuilder>。IApplicationBuilder定义用于配置应用程序请求管道的类。
 
+IStartupFilter定义如下：
+
+```c#
+namespace Microsoft.AspNetCore.Hosting
+{
+	public interface IStartupFilter
+	{
+		Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next);
+	}
+}
+```
+
+每个IStartupFilter在请求管道中实现一个或多个中间件。过滤器是按照添加到服务容器的顺序调用的。过滤器可以在向下一个过滤器传递控制之前或之后添加中间件，从而附加到应用程序管道的开头或结尾。
+
+下述代码自定义一个过滤器，实现IStartupFilter：
+
+```c#
+public class RequestSetOptionsStartupFilter : IStartupFilter
+{
+    public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next)
+    {
+        return builder => {
+        	//向IStartupFilter注册中间件
+            builder.UseMiddleware<RequestSetOptionsMiddleware>();
+            next(builder);
+        };
+    }
+}
+```
+
+其中RequestSetOptionsMiddleware的代码如下，它包含一个中间件，该中间件通过查询字符串参数设置选项值：
+
+```c#
+public class RequestSetOptionsMiddleware
+{
+    private readonly RequestDelegate _next;
+    private IOptions<AppOptions> _injectedOptions;
+
+    public RequestSetOptionsMiddleware(
+        RequestDelegate next, IOptions<AppOptions> injectedOptions)
+    {
+        _next = next;
+        _injectedOptions = injectedOptions;
+    }
+
+    public async Task Invoke(HttpContext httpContext)
+    {
+        Console.WriteLine("RequestSetOptionsMiddleware.Invoke");
+
+        var option = httpContext.Request.Query["option"];
+
+        if (!string.IsNullOrWhiteSpace(option))
+        {
+            _injectedOptions.Value.Option = System.Net.WebUtility.HtmlEncode(option);
+        }
+
+        await _next(httpContext);
+    }
+}
+```
+
+上述代码中的IOptions<AppOptions>是为了通过依赖注入，基于IOptions直接在构造函数中得到Appoptions的实例，injectedOptions包含的AppOptions是已经被实例化的，这样就可以直接在后面使用。AppOptions的定义如下，IOptions的作用是为了引入依赖注入：
+
+```c#
+public class AppOptions
+{
+    public string Option { get; set; } = "Option Default Value";
+}
+```
+
+最后，在 IWebHostBuilder.ConfigureServices 中的服务容器中注册IStartupFilter：
+
+```c#
+public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
+    WebHost.CreateDefaultBuilder(args)
+    .ConfigureServices(service => {
+        service.AddTransient<IStartupFilter, RequestSetOptionsStartupFilter>();
+    })
+    .UseStartup<Startup>();
+```
+
+运行上述代码，如果添加断点将会看到，当提供 option 的查询字符串参数时，中间件在 MVC 中间件呈现响应之前处理分配值。
+
+中间件执行顺序由IStartupFilter注册的顺序设置：
+
+- 多个IStartupFilter实现可能与相同的对象进行交互。如果排序很重要，请将它们的 IStartupFilter 服务注册进行排序，以匹配其中间件应有的运行顺序。
+- 库可能添加包含一个或多个 IStartupFilter 实现的中间件，这些实现在向 IStartupFilter 注册的其他应用中间件之前或之后运行。 若要在库的 IStartupFilter 添加中间件之前调用 IStartupFilter 中间件，请在将库添加到服务容器之前定位服务注册。 若要在此后调用，请在添加库之后定位服务注册。
 
 
 
