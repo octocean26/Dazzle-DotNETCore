@@ -14,7 +14,7 @@ namespace Docs.DI.Models
             IOperationSingletonInstance instanceOperation)
         {
             this.TransientOperation = transientOperation;
-            this.ScopedOperation = ScopedOperation;
+            this.ScopedOperation = scopedOperation;
             this.SingletonOperation = singletonOperation;
             this.SingletonInstanceOperation = instanceOperation;
         }
