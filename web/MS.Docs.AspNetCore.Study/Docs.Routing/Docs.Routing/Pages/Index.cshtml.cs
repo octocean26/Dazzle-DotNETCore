@@ -12,6 +12,7 @@ namespace Docs.Routing.Pages
         public void OnGet()
         {
             //sdfsdf
+             
         }
     }
 }
