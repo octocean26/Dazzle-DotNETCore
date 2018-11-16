@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -31,6 +32,8 @@ namespace Docs.Routing
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            services.AddRouting();
+
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
@@ -53,6 +56,31 @@ namespace Docs.Routing
             app.UseCookiePolicy();
 
             app.UseMvc();
+
+
+
+
+            var trackPackageRouteHandler = new RouteHandler(context =>
+            {
+                var routeValues = context.GetRouteData().Values;
+                return context.Response.WriteAsync($"Route values:{string.Join(", ", routeValues) }");
+
+            });
+
+            var routeBuilder = new RouteBuilder(app, trackPackageRouteHandler);
+
+            routeBuilder.MapRoute(
+                "Track Package Route",
+                "package/{operation:regex(^track|create|detonate$)}/{id:int}");
+
+            routeBuilder.MapGet("hello/{name}", context => {
+                var name = context.GetRouteValue("name");
+                // 路由处理程序将会和"hello/<anything>"匹配
+                // 也会匹配hello/<anything>/<anything>
+                // routeBuilder.MapGet("hello/{*name}"
+
+                return context.Response.WriteAsync($"Hi, {name}!");
+            });
         }
     }
 }
