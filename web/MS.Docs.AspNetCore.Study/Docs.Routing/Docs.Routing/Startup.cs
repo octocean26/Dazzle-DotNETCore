@@ -55,8 +55,7 @@ namespace Docs.Routing
             app.UseStaticFiles();
             app.UseCookiePolicy();
 
-            app.UseMvc();
-
+            
 
 
 
@@ -81,6 +80,13 @@ namespace Docs.Routing
 
                 return context.Response.WriteAsync($"Hi, {name}!");
             });
+
+            var routes = routeBuilder.Build();
+
+            app.UseRouter(routes);
+
+            app.UseMvc();
+
         }
     }
 }
