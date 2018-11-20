@@ -19,7 +19,11 @@
 
 路由通过 RouterMiddleware 类连接到中间件管道。 ASP.NET Core MVC 向中间件管道添加路由，作为其配置的一部分。 若要了解如何使用路由作为独立组件，请参阅使用路由中间件部分（见下文）。
 
-#### URL匹配 
+#### URL匹配
+
+URL 匹配是一个过程，通过该过程，路由可向处理程序调度传入请求。传入请求将进入 RouterMiddleware，后者将对序列中的每个路由调用 RouteAsync 方法。 IRouter 实例将选择是否通过将 RouteContext.Handler 设置为非 NULL RequestDelegate 来处理请求。 如果路由为请求设置处理程序，将停止路由处理，并调用处理程序来处理该请求。 如果尝试了所有路由，且请求未找到任何处理程序，中间件将调用 next，请求管道中的下一个中间件将被调用。
+
+
 
 
 
