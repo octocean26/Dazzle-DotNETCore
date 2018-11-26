@@ -36,13 +36,24 @@ namespace Docs.Configuration
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
                 config.SetBasePath(Directory.GetCurrentDirectory());
+                //内存配置提供程序
                 config.AddInMemoryCollection(arrayDict);
+                //JSON配置文件提供程序
                 config.AddJsonFile("json_array.json", optional: false, reloadOnChange: false);
                 config.AddJsonFile("startship.json", optional: false, reloadOnChange: false);
+                //XML配置文件提供程序
                 config.AddXmlFile("tvshow.xml", optional: false, reloadOnChange: false);
                 config.AddEFConfiguration(options => options.UseInMemoryDatabase("InMemoryDb"));
+                
+                //使用 CreateDefaultBuilder 初始化新的 WebHostBuilder 时会自动调用 AddCommandLine
+                //如果需要在其他配置之后，仍然能够使用命令行参数覆盖该配置，需要在最后调用AddCommandLine方法
                 config.AddCommandLine(args);
+
+                //设置其他前缀的环境变量的调用
+                config.AddEnvironmentVariables(prefix: "My_");
+
             })
                 .UseStartup<Startup>();
     }
 }
+
