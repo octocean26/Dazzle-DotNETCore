@@ -4,9 +4,49 @@
 
 ## 中间件概述
 
-中间件是一种组装到应用程序管道中的软件，用于处理请求和响应。每个组件可以选择是否将请求传递到管道中的下一个组件，可以在调用管道中的下一个组件之前和之后执行工作。
+每个访问ASP.NET Core应用程序的请求在到达实际处理它并生成响应的代码部分之前，会受到所配置的中间件的操作的影响。术语中间件（middleware）一词指的是在某种链条中组装的软件组件，这种链条被称为应用程序管道(application pipeline)。中间件是一种组装到应用程序管道中的软件，用于处理请求和响应。每个组件可以选择是否将请求传递到管道中的下一个组件，可以在调用管道中的下一个组件之前和之后执行工作。
 
-#### 请求委托（RequestDelegate）
+### 管道架构
+
+管道中的每个组件都可以在处理请求之前和之后进行工作以生成响应，并且可以完全自由地决定是否将请求传递给管道中的下一个组件。
+
+![pipeline](assets/pipeline.jpg)
+
+如图所示，管道来自中间件组件的组合。组件链以一个称为终止中间件的特殊组件结束。终止中间件是触发请求的实际处理和循环转折点的组件。中间件组件是按照注册的顺序调用的，以便对请求进行预处理。在循环结束时，终止的中间件运行，之后，相同的中间件组件有机会以相反的顺序对请求进行后处理。 
+
+### 请求委托（RequestDelegate）
+
+中间件组件是一段完全由请求委托表示的代码，请求委托采用如下形式：
+
+```c#
+public delegate Task RequestDelegate(HttpContext context);
+```
+
+换句话说，它是一个接收`HttpContext`对象并执行一些工作的函数。根据中间件组件向应用程序管道注册的方式，它可以处理所有传入请求或仅处理选定的请求。注册中间件组件的默认方式如下：
+
+```c#
+app.Use(async (context, next) =>
+{
+    // 第一次处理请求的机会。还没有为请求生成响应。
+    <Perform pre-processing of the request>
+
+    // 让位于管道中的下一个组件
+    await next();
+
+    // 第二次处理请求的机会。在这里，已经生成了请求的响应。
+    <Perform post-processing of the request>
+});
+```
+
+你可以在正向传递到管道中下一个组件之前和之后运行的代码块中使用流控制语句（如条件语句）。中间件组件可以采用多种形式，前面讨论的请求委托只是最简单的。
+
+### 下一个中间件的重要性
+
+虽然调用下一个委托是可选的，但是需要注意，如果任何中间件组件忽略了调用下一个委托，那么该请求的整个管道都会短路，并且可能根本不会调用默认的终止中间件。
+
+每当中间件组件返回而不向下一个中间件让步时，响应生成过程就在此结束。
+
+两个说明中间件组件短路请求的例子是`UseMvc`和`UseStaticFiles`。前者解析当前URL，如果它可以与其中一个支持的路由匹配，它会将该控件传递给相应的控制器以生成并返回响应。如果URL对应于位于已配置的Web路径中的物理文件，则后者将执行相同的操作。
 
 请求委托用于构建请求管道，请求委托处理每个HTTP请求。
 
@@ -51,6 +91,29 @@ public void Configure(IApplicationBuilder app, IHostingEnvironment env)
 上述代码中，如果在`app.Use()`方法的委托中，没有调用`next.Invoke()`，将会使管道短路，页面将不会输出任何内容。
 
 注意：在向客户端发送响应后，不能再调用`next.Invoke`，因为调用`next`后写入响应正文将会引发异常。
+
+#### 补充：处理HTTP响应
+
+由于HTTP协议的基本规则，中间件组件是一段很微妙的代码。对输出流的写入是一个顺序操作。因此，一旦写入了响应主体(或刚刚开始写入)，就不能添加HTTP响应头。这是因为，在HTTP响应中，标题出现在正文前面。
+
+只要所有中间件代码都是在团队的完全控制下由内联函数组成的，这就不一定是一个大问题，并且响应头的任何问题都可以很容易地修复。相反，如果你正在编写一个其他人可以使用的第三方中间件组件呢?在这种情况下，组件必须能够在不同的运行时环境中运行。如果组件的业务逻辑需要更改响应主体，该怎么办?
+
+当你的代码开始向输出流写入内容时，它就会阻止后面的其他组件添加HTTP响应头。同时，如果你需要添加HTTP头，那么其他组件可能会偶尔阻塞你。为了解决这个问题，ASP.NET Core中的`Response`对象公开了`OnStarting`事件。事件在第一个组件尝试写入输出流之前触发。因此，如果你的中间件需要编写响应标头，那么你要做的就是为`OnStarting`事件注册一个处理程序，并从那里附加这个标头。
+
+```c#
+app.Use(async (context, nextMiddleware) =>
+{
+    context.Response.OnStarting(() =>
+    {
+        context.Response.Headers.Add("courtesy", "Programming ASP.NET Core");
+        return Task.CompletedTask;
+    });
+
+    await nextMiddleware();
+});
+```
+
+注意，在`OnStarting`处理程序中添加响应头在大多数情况下都可以工作，但需要提及一些边缘情况。特别是，有时您可能需要等待生成整个响应，然后才能确定要添加的标头及其内容。在这种情况下，你可以考虑围绕`Response.Body`属性创建一种内存缓冲区，该属性接收所有写入而不会实际填充响应输出流。当所有中间件组件都完成后，它会将所有内容复制回来。这个想法在这里得到了很好的说明：https：//stackoverflow.com/questions/43403941。
 
 
 
@@ -114,6 +177,31 @@ public void Configure(IApplicationBuilder app, IHostingEnvironment env)
 - `Use`：如果不调用next请求委托，可以实现管道的短路。
 - `Run`：它是一种约定，某些中间件组件可以公开在管道末尾运行的方法（`Run[Middleware]`）。
 - `Map`：用作创建管道分支的约定，Map*基于给定请求路径的匹配项来创建请求管道分支。如果请求路径以给定路径开头，则执行分支。
+
+需要特别注意的是：
+
+可以多次调用`Run`方法，但只处理第一个方法。这是因为`Run`方法是请求处理结束的地方，也是管道链流被反转的地方。在第一次找到正在运行的中间件时，就会发生反转。在第一个中间件之后定义的任何正在运行的中间件永远不会到达。
+
+例如：
+
+```c#
+public void Configure(IApplicationBuilder app)
+{
+    // Terminating middleware
+    app.Run(async context =>
+    {
+        await context.Response.WriteAsync("Courtesy of 'Programming ASP.NET Core'");
+    });
+
+    // No errors, but never reached
+    app.Run(async context =>
+    {
+        await context.Response.WriteAsync("Courtesy of 'Programming ASP.NET Core' repeated");
+    });
+}
+```
+
+中间件组件在`Startup`类的`Configure`方法中注册。
 
 #### Map()、MapWhen()方法的使用
 
@@ -254,6 +342,9 @@ public void Configure(IApplicationBuilder app, IHostingEnvironment env)
 
 最后，一定要注意，无论使用哪种形式，定义匹配规则的顺序非常重要，直接影响到是否能够匹配到定义的规则。
 
+> 通常，Map调用放在管道中较早的位置。中间件组件是经典ASP.NET中HTTP模块的概念对等物。但是，Map方法与HTTP模块有一个关键区别。实际上，HTTP模块无法过滤URL。在编写HTTP模块时，您必须自己检查URL并决定是处理还是忽略该请求。没有办法只为某些URL注册模块。
+>
+
 
 
 ## 编写中间件
@@ -326,7 +417,11 @@ public class OctOceanMiddleware
 }
 ```
 
+构造函数接收`RequestDelegate`指针，该指针指向已配置链中的下一个中间件组件，并将其保存到内部成员。相反，`Invoke`方法只包含您将传递给`Use`方法的代码，您可以在其中注册内联中间件。` Invoke`方法的签名必须与`RequestDelegate`类型的签名匹配。
+
 上述代码的格式基本固定，注意最后要调用`next(context)`方法，否则将会短路。
+
+
 
 #### 第二步：通过IApplicationBuilder扩展方法公共中间件：
 
@@ -339,6 +434,8 @@ public static  class OctOceanMiddlewareExtensions
     }
 }
 ```
+
+`UseMiddleware <T>`方法将指定的类型注册为中间件组件。
 
 #### 第三步：在Startup.Configure调用中间件：
 
@@ -571,6 +668,30 @@ public class IndexModel : PageModel
 `Release(IMiddleware)`：在每个请求结束时释放一个`IMiddleware`实例。
 
 你可以实现该接口，定义自己的中间件工厂，具体可以参考链接：https://docs.microsoft.com/zh-cn/aspnet/core/fundamentals/middleware/extensibility-third-party-container?view=aspnetcore-2.1#imiddlewarefactory
+
+
+
+
+
+------
+
+
+
+#### 参考资源
+
+- [ASP.NET Core 中间件](https://docs.microsoft.com/zh-cn/aspnet/core/fundamentals/middleware)
+- [ASP.NET Core 中基于工厂的中间件激活](https://docs.microsoft.com/zh-cn/aspnet/core/fundamentals/middleware/extensibility)
+- 《Programming ASP.NET Core》
+
+
+
+本文后续会随着知识的积累不断补充和更新，内容如有错误，欢迎指正。
+
+最后一次更新时间：2018-12-04
+
+
+
+------
 
 
 

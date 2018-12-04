@@ -548,119 +548,13 @@ var host = new WebHostBuilder()
 
 ## ASP.NET Core 中间件
 
-每个访问ASP.NET Core应用程序的请求在到达实际处理它并生成响应的代码部分之前，会受到所配置的中间件的操作的影响。 术语中间件（middleware）一词指的是在某种链条中组装的软件组件，这种链条被称为应用程序管道(application pipeline)。
+ 
 
-#### 管道架构
-
-链中的每个组件都可以在处理请求之前和/或之后进行工作以生成响应，并且可以完全自由地决定是否将请求传递给管道中的下一个组件。
-
-![pipeline](assets/pipeline.jpg)
-
-如图所示，管道来自中间件组件的组合。组件链以一个称为终止中间件的特殊组件结束。终止中间件是触发请求的实际处理和循环转折点的组件。中间件组件是按照注册的顺序调用的，以便对请求进行预处理。在循环结束时，终止的中间件运行，之后，相同的中间件组件有机会以相反的顺序对请求进行后处理。 
-
-#### 中间件组件的结构
-
-中间件组件是一段完全由请求委托表示的代码。请求委托采用如下形式。
-
-```c#
-public delegate Task RequestDelegate(HttpContext context);
-```
-
-换句话说，它是一个接收HttpContext对象并执行一些工作的函数。根据中间件组件向应用程序管道注册的方式，它可以处理所有传入请求或仅处理选定的请求。注册中间件组件的默认方式如下：
-
-```c#
-app.Use(async (context, next) =>
-{
-    // 第一次处理请求的机会。还没有为请求生成响应。
-    <Perform pre-processing of the request>
-
-    // 让位于管道中的下一个组件
-    await next();
-
-    // 第二次处理请求的机会。在这里，已经生成了请求的响应。
-    <Perform post-processing of the request>
-});
-```
-
-您可以在正向传递到管道中下一个组件之前和之后运行的代码块中使用流控制语句（如条件语句）。中间件组件可以采用多种形式。前面讨论的请求委托只是最简单的。
-
-正如我们将在后面看到的那样，中间件组件可以打包在类中并绑定到扩展方法。因此，我们在Startup类的Configure方法中调用的任何方法都可能是一个中间件组件。
-
-#### 下一个中间件的重要性
-
-调用下一个委托是可选的，但是你应该非常清楚不调用它的后果。如果任何中间件组件忽略了调用下一个委托，那么该请求的整个管道都会短路，并且可能根本不会调用默认的终止中间件。
-
-每当中间件组件返回而不向下一个中间件让步时，响应生成过程就在此结束。因此，只要中间件组件负责完成对当前请求的响应生成，就可以接受不屈服于下一个组件的中间件组件。
-
-两个说明中间件组件短路请求的例子是UseMvc和UseStaticFiles。前者解析当前URL，如果它可以与其中一个支持的路由匹配，它会将该控件传递给相应的控制器以生成并返回响应。如果URL对应于位于已配置的Web路径中的物理文件，则后者将执行相同的操作。
-
-#### 注册中间件组件
-
-可以通过多种方式将中间件组件添加到应用程序的管道中，如下表所示：
-
-| 方法    | 描述                                                         |
-| ------- | ------------------------------------------------------------ |
-| Use     | 作为在任何请求上调用的参数传递的匿名方法。                   |
-| Map     | 作为参数传递的匿名方法，仅在给定的URL上调用。                |
-| MapWhen | 作为参数传递的匿名方法，仅在为当前请求验证了给定的布尔条件时才调用。 |
-| Run     | 作为参数传递的匿名方法，该方法被设置为正在终止的中间件。如果未找到终止中间件，则不会生成响应。 |
-
-请注意，可以多次调用Run方法，但只处理第一个方法。这是因为Run方法是请求处理结束的地方，也是管道链流被反转的地方。在第一次找到正在运行的中间件时，就会发生反转。在第一个中间件之后定义的任何正在运行的中间件永远不会到达。
-
-```c#
-public void Configure(IApplicationBuilder app)
-{
-    // Terminating middleware
-    app.Run(async context =>
-    {
-        await context.Response.WriteAsync("Courtesy of 'Programming ASP.NET Core'");
-    });
-
-    // No errors, but never reached
-    app.Run(async context =>
-    {
-        await context.Response.WriteAsync("Courtesy of 'Programming ASP.NET Core' repeated");
-    });
-}
-```
-
-中间件组件在Startup类的Configure方法中注册。
-
-注意：在使用MVC模型的应用程序中，运行终止中间件可以作为一种通用路由。如之前所述，UseMvc将传入请求短路，将它们重定向到已识别的控制器操作方法。但是，如果没有为给定请求配置路由，则请求将继续通过管道的其余部分，直到找到终止中间件。
+####   
 
 ### 编写中间件组件
 
-让我们看一些内联中间件组件的示例，即通过匿名方法表示的中间件代码。在本章结束之前，我们还将看到如何在可重用元素中打包中间件代码。
-
-#### 使用方法
-
-下面是注册中间件组件的Use方法的基本用法。该方法简单地将请求处理的实际输出包装到日志消息的前后。
-
-![middleware_components](assets/middleware_components.jpg)
-
-这是必要的代码。演示中的SomeWork类只通过方法Now返回当前时间。
-
-```c#
-public void Configure(IApplicationBuilder app)
-{
-    app.Use(async (context, nextMiddleware) =>
-    {
-        await context.Response.WriteAsync("BEFORE");
-        await nextMiddleware();   
-        await context.Response.WriteAsync("AFTER");
-    });
-
-    app.Run(async (context) =>
-    {
-        var obj = new SomeWork();
-        await context
-            .Response
-            .WriteAsync("<h1 style='color:red;'>" + obj.Now() + "</h1>");
-    });
-}
-```
-
-您可以使用中间件执行一些重要任务或配置要测量的环境。这是另一个例子。
+ 您可以使用中间件执行一些重要任务或配置要测量的环境。这是另一个例子。
 
 ```c#
 app.Use(async (context, nextMiddleware) =>
@@ -674,169 +568,19 @@ app.Use(async (context, nextMiddleware) =>
 
 这里，代码使用HTTP上下文中的信息来设置所有请求的最大正文大小。如果我们要为所有请求设置最大体型，那么我们最好在Kestrel级别上做这件事情。但是，中间件基础结构允许我们仅针对某些请求更改请求的状态。
 
-#### Map方法
-
-Map方法的工作方式与Use方法相同，只是代码的执行受传入URL的影响。
-
-```c#
-app.Map("/now", now =>
-{
-    now.Run(async context =>
-    {
-        var time = DateTime.UtcNow.ToString("HH:mm:ss (UTC)");
-        await context
-            .Response
-            .WriteAsync("<h1 style='color:red;'>" + time + "</h1>");
-    });
-});
-```
-
-上述代码仅在请求的URL为/ now时运行。因此，Map方法允许根据路径对管道进行分支。 
-
-![map_middle](assets/map_middle.jpg)
-
-如果组合前面两个中间件，那么注册它们的顺序可以改变输出。通常，Map调用放在管道中较早的位置。
-
-中间件组件是经典ASP.NET中HTTP模块的概念对等物。但是，Map方法与HTTP模块有一个关键区别。实际上，HTTP模块无法过滤URL。在编写HTTP模块时，您必须自己检查URL并决定是处理还是忽略该请求。没有办法只为某些URL注册模块。
-
-#### MapWhen方法
-
-MapWhen方法是Map的变体，它使用通用布尔表达式而不是URL路径。
-
-以下示例仅当查询字符串表达式包含名为utc的参数时，才会触发指定的值：
-
-```c#
-app.MapWhen(
-    context => context.Request.Query.ContainsKey("utc"),
-    utc =>
-    {
-        utc.Run(async context =>
-        {
-            var time = DateTime.UtcNow.ToString("HH:mm:ss (UTC)");
-            await context
-                .Response
-                .WriteAsync("<h1 style='color:blue;'>" + time + "</h1>");
-        });
-    });
-```
-
-#### 处理HTTP响应
-
-由于HTTP协议的基本规则，中间件组件是一段很微妙的代码。对输出流的写入是一个顺序操作。因此，一旦写入了响应主体(或刚刚开始写入)，就不能添加HTTP响应头。这是因为，在HTTP响应中，标题出现在正文前面。
-
-只要所有中间件代码都是在团队的完全控制下由内联函数组成的，这就不一定是一个大问题，并且响应头的任何问题都可以很容易地修复。相反，如果您正在编写一个其他人可以使用的第三方中间件组件呢?在这种情况下，组件必须能够在不同的运行时环境中运行。如果组件的业务逻辑需要更改响应主体，该怎么办?
-
-当您的代码开始向输出流写入内容时，它就会阻止后面的其他组件添加HTTP响应头。同时，如果您需要添加HTTP头，那么其他组件可能会偶尔阻塞您。为了解决这个问题，ASP.NET Core中的Response对象公开了OnStarting事件。事件在第一个组件尝试写入输出流之前触发。因此，如果您的中间件需要编写响应标头，那么您要做的就是为OnStarting事件注册一个处理程序，并从那里附加这个标头。
-
-```c#
-app.Use(async (context, nextMiddleware) =>
-{
-    context.Response.OnStarting(() =>
-    {
-        context.Response.Headers.Add("courtesy", "Programming ASP.NET Core");
-        return Task.CompletedTask;
-    });
-
-    await nextMiddleware();
-});
-```
-
-到目前为止，在本章中，我们已经讨论了内联中间件。但是，在前面的介绍中，我们遇到了许多可以在Startup类的Configure方法中调用的临时扩展方法。例如，我们使用UseMvcWithDefaultRoute配置MVC应用程序模型，使用UseExceptionHandler配置异常处理。这些都是中间件组件。不同的形式是因为那些中间件代码被打包成可重用的类。让我们看看如何将我们自己的中间件打包成可重用的类。
-
-注意，在OnStarting处理程序中添加响应头在大多数情况下都可以工作，但需要提及一些边缘情况。特别是，有时您可能需要等待生成整个响应，然后才能确定要添加的标头及其内容。在这种情况下，您可以考虑围绕Response.Body属性创建一种内存缓冲区，该属性接收所有写入而不会实际填充响应输出流。当所有中间件组件都完成后，它会将所有内容复制回来。这个想法在这里得到了很好的说明：https：//stackoverflow.com/questions/43403941。
-
-### 包装中间件组件
-
-除非您在初步处理HTTP请求期间只需要进行一些快速处理，否则将中间件打包成可重用的类总是一个好主意。您为Use或Map方法编写的实际代码不会改变，它只是在包装。
-
-#### 创建中间件类
-
-中间件类是一个普通的C＃类，带有构造函数和名为Invoke的公共方法。不需要基类和已知的契约。系统动态调用该类。下面的代码演示了一个中间件类，它试图确定请求设备是否是移动设备。
-
-```c#
-public class MobileDetectionMiddleware
-{
-   private readonly RequestDelegate _next;
-
-   public MobileDetectionMiddleware(RequestDelegate next)
-   {
-       _next = next;
-   }
-
-   public async Task Invoke(HttpContext context)
-   {
-       //解析用户代理来“猜测”它是否是移动设备。
-       var isMobile = context.IsMobileDevice();
-       context.Items["MobileDetectionMiddleware_IsMobile"] = isMobile;
-
-       // Yields
-       await _next(context);
-
-       // 提供一些UI只是作为存在的证明
-       var msg = isMobile ? "MOBILE DEVICE" : "NOT A MOBILE DEVICE";
-       await context.Response.WriteAsync("<hr>" + msg + "<hr>");
-   }
-}
-```
-
-构造函数接收RequestDelegate指针，该指针指向已配置链中的下一个中间件组件，并将其保存到内部成员。相反，Invoke方法只包含您将传递给Use方法的代码，您可以在其中注册内联中间件。 Invoke方法的签名必须与RequestDelegate类型的签名匹配。
-
-上述代码中，展示了一个使中间件组件能够在相同请求的上下文中共享信息的技巧。在确定请求设备是否是移动设备之后，中间件立即将布尔答案保存到HttpContext实例上Items字典中的适当创建的条目。 Items字典在整个请求处理过程中，都在内存中共享，这意味着任何中间件组件都可以检查它并出于内部原因使用调查结果。但是，为了实现这一点，需要中间件组件相互了解。移动检测中间件的最终效果是在项目字典中存储表示设备是否被视为移动设备的布尔值。请注意，可以从应用程序中的任何位置以编程方式访问相同的信息 - 例如，控制器方法 - 您可以访问HttpContext对象。
-
-#### 注册中间件类
-
-要添加通过类表示的中间件，您需要使用与IApplicationBuilder抽象稍有不同的方法。因此，在Startup类的Configure方法中，使用以下代码：
-
-````c#
-public void Configure(IApplicationBuilder app)
-{
-    // Other middleware configured here
-    ...
 
 
-    // Attach the mobile-detection middleware
-    app.UseMiddleware<MobileDetectionMiddleware>();
-
-    // Other middleware configured here
-    ...
-}
-````
-
-UseMiddleware <T>方法将指定的类型注册为中间件组件。
-
-#### 通过扩展方法注册
-
-虽然从纯粹的功能角度来看并非严格要求，但通常的做法是定义一个扩展方法来隐藏UseMiddleware <T>的使用。效果相同，但代码的可读性得到改善。
-
-```c#
-public static class MobileDetectionMiddlewareExtensions
-{
-    public static IApplicationBuilder UseMobileDetection(this IApplicationBuilder builder)
-    {
-        return builder.UseMiddleware<MobileDetectionMiddleware>();
-    }
-}
-```
-
-这是使用上面定义的扩展方法时启动类的最终版本：
-
-```c#
-public void Configure(IApplicationBuilder app)
-{
-    // Other middleware configured here
-    ...
-
-    // Attach the mobile-detection middleware
-    app.UseMobileDetection();
-
-    // Other middleware configured here
-    ...
-}
-```
-
-虽然扩展方法的名称是任意的，但通常以UseXXX的形式给出一个名称，其中XXX是中间件类的名称。
+ 
 
 
+
+
+
+ 
+
+ 
+
+  
 
 
 
