@@ -36,6 +36,8 @@ public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
 
 将内容根目录设置为Directory.GetCurrentDirectory返回的路径。
 
+内容根确定主机搜索内容文件（如 MVC 视图文件）的位置。 应用从项目的根文件夹启动时，会将项目的根文件夹用作内容根。 这是 Visual Studio 和 dotnet new 模板中使用的默认值。
+
 ###### 加载Host配置
 
 主要通过以下方式加载Host配置：
@@ -71,8 +73,148 @@ public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
 
 ##### ConfigureAppConfiguration 
 
+ConfigureAppConfiguration用于指定应用的其他IConfiguration。
+
+下面的示例代码中，ConfigureAppConfiguration调用一个委托，向应用添加appsettings.xml文件中的配置，可以多次调用ConfigureAppConfiguration方法。
+
+```c#
+public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
+    WebHost.CreateDefaultBuilder(args)
+    .ConfigureAppConfiguration((hostingContext, config) => {
+        config.AddXmlFile("appsettings.xml", optional: true, reloadOnChange: true);
+    })
+    .UseStartup<Startup>();
+```
+
+##### ConfigureLogging
+
+添加委托以配置提供的ILoggingBuilder，可以被多次调用。
+
+下面的示例代码中，ConfigureLogging 调用添加委托，以将最小日志记录级别 (SetMinimumLevel) 配置为 LogLevel.Warning。 此设置重写了CreateDefaultBuilder在appsettings.Development.json和appsettings.Production.json中配置的设置，这两个配置项分别为 LogLevel.Debug 和 LogLevel.Error。
+
+```c#
+public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
+    WebHost.CreateDefaultBuilder(args)
+    .ConfigureLogging(logging => {
+        logging.SetMinimumLevel(LogLevel.Warning);
+    })
+    .UseStartup<Startup>();
+```
+
+##### ConfigureKestrel
+
+用于重写CreateDefaultBuilder中的Kestrel配置。
+
+下面的示例调用ConfigureKestrel来重写CreateDefaultBuilder在配置Kestrel时，Limits.MaxRequestBodySize默认指定的30000000字节。
+
+```c#
+public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
+    WebHost.CreateDefaultBuilder(args)
+    .ConfigureKestrel((context,options)=> {
+        options.Limits.MaxRequestBodySize = 20_000_000;
+    })
+    .UseStartup<Startup>();
+```
+
+### Host配置值
+
+WebHostBuilder派生自IWebHostBuilder接口，WebHostBuilder依赖于以下几种形式设置Host配置值：
+
+- 基于Host生成器配置，Host生成器配置会读取设置的环境变量，其中包括格式ASPNETCORE_{configurationKey} 的环境变量， 例如 ASPNETCORE_ENVIRONMENT。因此可以通过环境变量进行设置Host配置值。
+- 使用UseContentRoot和UseConfiguration等扩展方法显式的设置Host配置值。
+- 使用UseSetting方法，该方法需要指定要设置的Host配置值对应的配置键，该值来自于WebHostDefaults的成员变量，同时还要指定要设置的字符串值。
+
+WebHostDefaults的静态成员变量如下，注意它们是只读的：
+
+```c#
+public static class WebHostDefaults
+{
+	public static readonly string ApplicationKey = "applicationName";
+	public static readonly string StartupAssemblyKey = "startupAssembly";
+	public static readonly string HostingStartupAssembliesKey = "hostingStartupAssemblies";
+	public static readonly string HostingStartupExcludeAssembliesKey = "hostingStartupExcludeAssemblies";
+	public static readonly string DetailedErrorsKey = "detailedErrors";
+	public static readonly string EnvironmentKey = "environment";
+	public static readonly string WebRootKey = "webroot";
+	public static readonly string CaptureStartupErrorsKey = "captureStartupErrors";
+	public static readonly string ServerUrlsKey = "urls";
+	public static readonly string ContentRootKey = "contentRoot";
+	public static readonly string PreferHostingUrlsKey = "preferHostingUrls";
+	public static readonly string PreventHostingStartupKey = "preventHostingStartup";
+	public static readonly string SuppressStatusMessagesKey = "suppressStatusMessages";
+	public static readonly string ShutdownTimeoutKey = "shutdownTimeoutSeconds";
+}
+```
+
+下面对常用的Host配置值进行讲述。在每个配置值中，列出的环境变量来自于”ASPNETCORE_配置键“的形式（习惯全大写），下述列出的设置形式只是对常用的形式进行了表述，并不仅仅局限于代码中指定的这种形式。可以结合上述的WebHostDefaults中的成员进行理解。
+
+#### 应用程序名称
+
+配置键：applicationName
+
+环境变量：ASPNETCORE_APPLICATIONNAME
+
+调用方法设置：调用UseSetting方法，传入WebHostDefaults.ApplicationKey，等同于applicationName。
+
+设置说明：设置IHostingEnvironment.ApplicationName属性。在Host构造期间调用UseStartup或Configure时，会自动默认将该属性的值设置为，包含应用入口点的程序集的名称。可以使用下述方法，显式设置该属性值：
+
+```c#
+WebHost.CreateDefaultBuilder(args)
+//设置IHostingEnvironment.ApplicationName属性值
+.UseSetting(WebHostDefaults.ApplicationKey,"MyAppName")
+```
+
+#### 捕获启动错误
+
+配置键：captureStartupErrors
+
+环境变量：ASPNETCORE_CAPTURESTARTUPERRORS
+
+调用方法设置：调用CaptureStartupErrors方法
+
+设置说明：此设置控制启动错误的捕获。默认为false，除非应用使用 Kestrel 在 IIS 后方运行，其中默认值是 `true`。当 值为false 时，启动期间出错将会导致主机退出。 当 值为true 时，主机在启动期间捕获异常，但是会尝试启动服务器。
+
+```c#
+WebHost.CreateDefaultBuilder(args)
+    .CaptureStartupErrors(true)
+```
+
+#### 内容根
+
+配置键：contentRoot
+
+环境变量：ASPNETCORE_CONTENTROOT
+
+调用方法形式：调用UseContentRoot方法
+
+设置说明：设置ASP.NET Core 内容文件的根路径，默认为应用程序集所在的文件夹。内容根也是Web根的基路径（webroot包含在内容根内），如果内容根不存在，主机将无法启动。
+
+```c#
+WebHost.CreateDefaultBuilder(args)
+    .UseContentRoot("c:\\<content-root>")
+```
+
+#### 详细错误
+
+配置键：detailedErrors
+
+环境变量：ASPNETCORE_DETAILEDERRORS
+
+调用方法形式：调用UseSetting方法
+
+设置说明：用于设置是否应捕获详细错误，默认值为false。当环境设置为Development或启用时，将会捕获详细的异常。
+
+```c#
+WebHost.CreateDefaultBuilder(args)
+    .UseSetting(WebHostDefaults.DetailedErrorsKey, "true")
+```
+
+#### 环境
 
 
 
 
- 
+
+
+
+​                                                   
