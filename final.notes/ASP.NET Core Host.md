@@ -211,6 +211,178 @@ WebHost.CreateDefaultBuilder(args)
 
 #### 环境
 
+配置键：environment
+
+环境变量：ASPNETCORE_ENVIRONMENT
+
+调用方法方式：调用UseEnvironment方法
+
+设置说明：用于设置应用的环境。环境可以设置为任何值，框架定义的值包括Development和Production，值不区分大小写，默认情况下，从ASPNETCORE_ENVIRONMENT 环境变量读取环境。 使用 Visual Studio 时，可能会在 launchSettings.json 文件中设置环境变量。 
+
+```c#
+WebHost.CreateDefaultBuilder(args)
+    .UseEnvironment(EnvironmentName.Development)
+```
+
+#### 承载启动程序集
+
+配置键：hostingStartupAssemblies
+
+环境变量：ASPNETCORE_HOSTINGSTARTUPASSEMBLIES
+
+调用方法方式：调用UseSetting方法
+
+设置说明：设置应用的承载启动程序集，值为以分号分割的程序集字符串，对应的承载启动程序集将在应用启动时被加载。默认值为空字符串，虽然没有显式的指定，但是承载启动程序集会始终包含应用的程序集。提供承载启动程序集时，当应用在启动过程中生成其公用服务时，将加载它们添加到应用的程序集。
+
+```
+WebHost.CreateDefaultBuilder(args)
+    .UseSetting(WebHostDefaults.HostingStartupAssembliesKey, "assembly1;assembly2")
+```
+
+#### HTTPS端口
+
+配置键：https_port
+
+环境变量：ASPNETCORE_HTTPS_PORT
+
+调用方法方式：使用UseSetting方法
+
+设置说明：该配置键未在WebHostDefaults中指定，实际使用时，是一个字符串具体值。它用于设置HTTPS重定向的端口，用于强制实施HTTPS。
+
+```c#
+WebHost.CreateDefaultBuilder(args)
+    .UseSetting("https_port", "8080")
+```
+
+#### 承载启动排除程序集
+
+配置键：hostingStartupExcludeAssemblies
+
+环境变量：ASPNETCORE_HOSTINGSTARTUPEXCLUDEASSEMBLIES
+
+调用方法方式：UseSetting方法
+
+设置说明：值是以分号分隔的承载启动程序集字符串，这些指定的程序集将在启动时排除。
+
+```c#
+WebHost.CreateDefaultBuilder(args)
+    .UseSetting(WebHostDefaults.HostingStartupExcludeAssembliesKey, "assembly1;assembly2")
+```
+
+#### 首选承载URL
+
+配置键：preferHostingUrls
+
+环境变量：ASPNETCORE_PREFERHOSTINGURLS
+
+调用方法方式：调用PreferHostingUrls方法进行设置
+
+设置说明：该设置指示Host是否应该侦听使用WebHostBuilder配置的URL，而不是使用IServer实现配置的URL。默认值为true。
+
+```c#
+WebHost.CreateDefaultBuilder(args)
+    .PreferHostingUrls(false)
+```
+
+#### 阻止承载启动
+
+配置值：preventHostingStartup
+
+环境变量：ASPNETCORE_PREVENTHOSTINGSTARTUP
+
+调用方法方式：使用UseSetting
+
+设置说明：是否阻止承载启动程序集自动加载，包括应用的程序集所配置的承载启动程序集，默认值为false。
+
+```c#
+WebHost.CreateDefaultBuilder(args)
+    .UseSetting(WebHostDefaults.PreventHostingStartupKey, "true")
+```
+
+#### 服务器URL
+
+配置值：urls
+
+环境变量：ASPNETCORE_URLS
+
+调用方式：调用UseUrls方法进行设置
+
+设置说明：设置服务器应响应的以分号分隔（;）的URL前缀列表，例如：http://localhost:123。设置了该值后，必须通过访问设置的URL才能请求服务。使用“`*`”指示服务器应针对请求侦听的使用特定端口和协议（例如 http://*:5000）的 IP 地址或主机名。 协议（http:// 或 https://）必须包含每个 URL。 不同的服务器支持的格式有所不同。
+
+```c#
+WebHost.CreateDefaultBuilder(args)
+    .UseUrls("http://*:5000;http://localhost:5001;https://hostname:5002")
+```
+
+#### 关闭超时
+
+配置值：shutdownTimeoutSeconds
+
+环境变量：ASPNETCORE_SHUTDOWNTIMEOUTSECONDS
+
+调用方式：调用方法UseShutdownTimeout进行设置
+
+设置说明：设置等待Web Host关闭的时长。也可以使用UseSetting方法进行设置，例如：
+
+```c#
+WebHost.CreateDefaultBuilder(args)
+.UseSetting(WebHostDefaults.ShutdownTimeoutKey, "10")
+```
+
+UseSetting方法接受int字符串值，而UseShutdownTimeout扩展方法接收TimeSpan，如下：
+
+```c#
+WebHost.CreateDefaultBuilder(args)
+    .UseShutdownTimeout(TimeSpan.FromSeconds(10))
+```
+
+在超时时间段中，Host将会触发 IApplicationLifetime.ApplicationStopping，并尝试停止Host服务，对服务停止失败的任何错误进行日志记录。
+
+如果在所有Host服务停止之前就达到了超时时间，则会在应用关闭时会终止剩余的所有活动的服务。 即使没有完成处理工作，服务也会停止。 如果停止服务需要额外的时间，那么就需要增加超时时间。
+
+#### 启动程序集
+
+配置值：startupAssembly
+
+环境变量：ASPNETCORE_STARTUPASSEMBLY
+
+调用方式：调用UseStartup方法
+
+设置说明：用于设置要在应用中搜索Startup类的程序集，可以引用按名称（string）或类型（TStartup）的程序集。如果调用多个UseStartup方法，优先选择最后一个方法。
+
+```
+WebHost.CreateDefaultBuilder(args)
+    .UseStartup("StartupAssemblyName")
+```
+
+或者：
+
+```
+WebHost.CreateDefaultBuilder(args)
+    .UseStartup<TStartup>()
+```
+
+#### Web 根路径
+
+配置值：webroot
+
+环境变量：ASPNETCORE_WEBROOT
+
+调用方式：调用UseWebRoot方法
+
+设置说明：设置应用的静态资源的相对路径，如果未指定，默认值是“(Content Root)/wwwroot”（如果该路径存在）。 如果该路径不存在，则使用无操作文件提供程序。
+
+```c#
+WebHost.CreateDefaultBuilder(args)
+    .UseWebRoot("public")
+```
+
+
+
+
+
+
+
 
 
 
