@@ -7,7 +7,7 @@ Host也被称为托管或主机。Host负责应用程序启动和生存期管理
 
 
 
-## Web Host
+## Web Host（IWebHostBuilder）
 
 ASP.NET Core应用需要配置和启动Host，Host负责应用程序的启动和生存期管理，Host至少要配置服务器和请求处理管道。在ASP.NET Core中，使用ASP.NET Core Web主机 （IWebHostBuilder）托管Web应用。
 
@@ -688,4 +688,231 @@ public class MyClass
 ```
 
 ### 作用域验证
+
+如果应用程序的环境是“Development”，当使用CreateDefaultBuilder方法时，该方法将会把属性 ServiceProviderOptions.ValidateScopes的值设为 true。一旦将ValidateScopes 设为 true，默认服务提供程序会执行检查来验证以下内容：
+
+- 没有从根服务提供程序直接或间接解析到有作用域的服务。
+- 未将有作用域的服务直接或间接注入到单一实例。
+
+调用 BuildServiceProvider 时，会创建根服务提供程序。 在启动提供程序和应用时，根服务提供程序的生存期对应于应用/服务的生存期，并在关闭应用时释放。
+有作用域的服务由创建它们的容器释放。 如果作用域创建于根容器，则该服务的生存期会有效地提升至单一实例，因为根容器只会在应用/服务关闭时将其释放。 验证服务作用域，将在调用 BuildServiceProvider 时收集这类情况。
+若要始终验证作用域（包括在生存环境中验证），请使用主机生成器上的 UseDefaultServiceProvider 配置 ServiceProviderOptions：
+
+ ```c#
+WebHost.CreateDefaultBuilder(args)
+    .UseDefaultServiceProvider((context, options) => {
+        options.ValidateScopes = true;
+    })
+ ```
+
+
+
+## .NET Core 通用主机（HostBuilder）
+
+【约定：Web主机在前文中统称为Web Host，为保持汉语的连贯性，此处约定将通用Host统一称为通用主机】
+
+
+
+对于托管不处理HTTP请求的应用推荐使用通用主机，主要基于HostBuilder进行构建和配置。通用主机的目标是将HTTP管道从Web Host API中分离出来，从而启动更多的主机方案。基于通用主机的消息、后台任务和其他非 HTTP 工作负载，可从配置、依赖关系注入 [DI] 和日志记录等功能中受益。
+
+备注：通用主机正处于开发阶段，用于在未来版本中替换 Web 主机，并在 HTTP 和非 HTTP 方案中充当主要的主机 API。
+
+通用主机库位于 Microsoft.Extensions.Hosting 命名空间中，IHostedService 是执行代码的入口点。 每个 IHostedService 实现都按照 ConfigureServices 中服务注册的顺序执行。 主机启动时，每个 IHostedService 上都会调用 StartAsync，主机正常关闭时，以反向注册顺序调用 StopAsync。
+
+### 设置主机
+
+IHostBuilder 是供库和应用初始化、生成和运行主机的主要组件：
+
+```c#
+public static async Task Main(string[] args)
+{
+    var host = new HostBuilder()
+        .Build();
+
+    await host.RunAsync();
+}
+```
+
+### 默认注册的服务
+
+在主机初始化期间默认注册以下服务：
+
+- 环境 (IHostingEnvironment)
+- HostBuilderContext
+- 配置 (IConfiguration)
+- IApplicationLifetime (ApplicationLifetime)
+- IHostLifetime (ConsoleLifetime)
+- IHost
+- 选项 (AddOptions)
+- 日志记录 (AddLogging)
+
+### 主机配置
+
+主机配置主要有以下两种方式：
+
+- 调用 IHostBuilder 上的扩展方法以设置“内容根”和“环境”。
+- 从 ConfigureHostConfiguration 中的配置提供程序读取配置。
+
+#### 使用扩展方法对Host进行配置
+
+##### 内容根
+
+配置键：contentRoot
+
+环境变量：`<PREFIX_>CONTENTROOT`（`<PREFIX_>` 是用户定义的可选前缀）
+
+设置使用：调用UseContentRoot方法
+
+设置说明：此设置确定主机从哪里开始搜索内容文件，默认为应用程序集所在的文件夹。如果路径不存在，主机将无法启动。
+
+```c#
+var host = new HostBuilder()
+    .UseContentRoot("c:\\<content-root>")
+```
+
+##### 环境
+
+配置键：environment
+
+环境变量：`<PREFIX_>ENVIRONMENT`（`<PREFIX_`> 是用户定义的可选前缀）
+
+设置使用：调用UseEnvironment方法
+
+设置说明：用于设置应用的环境，默认值为Production。环境可以设置为任何值，框架定义的值包括“Development"、”Staging“、和“Production”，值不区分大小写。
+
+```c#
+var host = new HostBuilder()
+    .UseEnvironment(EnvironmentName.Development)
+```
+
+##### 应用程序键（名称）
+
+配置键：applicationName
+
+环境变量：`<PREFIX_>APPLICATIONNAME`（`<PREFIX_`> 是用户定义的可选前缀）
+
+设置使用：HostBuilderContext.HostingEnvironment.ApplicationName
+
+设置说明：IHostingEnvironment.ApplicationName 属性是在主机构造期间通过主机配置设定的。 要显式设置值，请使用 HostDefaults.ApplicationKey。该属性的默认值是包含应用入口点的程序集的名称。
+
+#### ConfigureHostConfiguration
+
+ConfigureHostConfiguration 使用 IConfigurationBuilder 来为主机创建 IConfiguration。 主机配置用于初始化 IHostingEnvironment，以供在应用的构建过程中使用。
+
+可多次调用 ConfigureHostConfiguration，并得到累计结果。 主机使用上一次在一个给定键上设置值的选项。
+
+主机配置自动流向应用配置（ConfigureAppConfiguration 和应用的其余部分），也就是说ConfigureHostConfiguration 会影响ConfigureAppConfiguration 配置的内容。
+
+默认情况下不包括以下提供程序，因此必须在 ConfigureHostConfiguration 中显式指定应用所需的任何配置提供程序，包括：
+
+- 文件配置（例如，来自 hostsettings.json 文件）。
+- 环境变量配置。
+- 命令行参数配置。
+- 任何其他所需的配置提供程序。
+
+通过使用 SetBasePath 指定应用的基本路径，然后调用其中一个文件配置提供程序，可以启用主机的文件配置。示例应用使用 JSON 文件 hostsettings.json，并调用 AddJsonFile 来使用文件的主机配置设置。
+
+```c#
+var host = new HostBuilder()
+    .ConfigureHostConfiguration(configHost =>
+    {
+    configHost.SetBasePath(Directory.GetCurrentDirectory());
+    configHost.AddJsonFile("hostsettings.json", optional: true);
+    }).Build();
+```
+
+要添加主机的环境变量配置，请在主机生成器上调用 AddEnvironmentVariables。 AddEnvironmentVariables 接受用户定义的前缀（可选）。 示例应用使用前缀 PREFIX_。 当系统读取环境变量时，便会删除前缀。 配置示例应用的主机后，PREFIX_ENVIRONMENT 的环境变量值就变成 environment 键的主机配置值。
+
+通过调用 AddCommandLine 可添加命令行配置。 最后添加命令行配置以允许命令行参数替代之前配置提供程序提供的配置。
+
+```c#
+var host = new HostBuilder()
+    .ConfigureHostConfiguration(configHost =>
+    {
+        configHost.SetBasePath(Directory.GetCurrentDirectory());
+        configHost.AddJsonFile("hostsettings.json", optional: true);
+        configHost.AddEnvironmentVariables(prefix: "PREFIX_");
+        configHost.AddCommandLine(args);
+    })
+```
+
+hostsettings.json：
+
+```json
+{
+  "environment": "Development"
+}
+```
+
+可以通过 applicationName 和 contentRoot 键提供其他配置。
+
+### ConfigureAppConfiguration
+
+通过在 IHostBuilder 实现上调用 ConfigureAppConfiguration 创建应用配置。 ConfigureAppConfiguration 使用 IConfigurationBuilder 来为应用创建 IConfiguration。 可多次调用 ConfigureAppConfiguration，并得到累计结果。 应用使用上一次在一个给定键上设置值的选项。 HostBuilderContext.Configuration 中提供 ConfigureAppConfiguration 创建的配置，以供进行后续操作和在 Services 中使用。
+
+应用配置会自动接收 ConfigureHostConfiguration 提供的主机配置。
+
+```c#
+var host = new HostBuilder()
+    .ConfigureAppConfiguration((hostContext, configApp) =>
+    {
+        configApp.SetBasePath(Directory.GetCurrentDirectory());
+        configApp.AddJsonFile("appsettings.json", optional: true);
+        configApp.AddJsonFile(
+            $"appsettings.{hostContext.HostingEnvironment.EnvironmentName}.json", 
+            optional: true);
+        configApp.AddEnvironmentVariables(prefix: "PREFIX_");
+        configApp.AddCommandLine(args);
+    })
+```
+
+### ConfigureServices
+
+ConfigureServices 将服务添加到应用的依赖关系注入容器。 可多次调用 ConfigureServices，并得到累计结果。
+
+托管服务是一个类，具有实现 IHostedService 接口的后台任务逻辑。
+
+下述代码使用 AddHostedService 扩展方法向应用添加生存期事件 LifetimeEventsHostedService 和定时后台任务 TimedHostedService 服务：
+
+```c#
+var host = new HostBuilder()
+    .ConfigureServices((hostContext, services) =>
+    {
+        if (hostContext.HostingEnvironment.IsDevelopment())
+        {
+            // Development service configuration
+        }
+        else
+        {
+            // Non-development service configuration
+        }
+
+        services.AddHostedService<LifetimeEventsHostedService>();
+        services.AddHostedService<TimedHostedService>();
+    })
+```
+
+### ConfigureLogging
+
+ConfigureLogging 添加了一个委托来配置提供的 ILoggingBuilder。 可以利用相加结果多次调用 ConfigureLogging。
+
+```c#
+var host = new HostBuilder()
+    .ConfigureLogging((hostContext, configLogging) =>
+    {
+        configLogging.AddConsole();
+        configLogging.AddDebug();
+    })
+```
+
+#### UseConsoleLifetime
+
+UseConsoleLifetime 侦听 Ctrl+C/SIGINT 或 SIGTERM 并调用 StopApplication 来启动关闭进程。 UseConsoleLifetime 解除阻止 RunAsync 和 WaitForShutdownAsync 等扩展。 ConsoleLifetime 预注册为默认生存期实现。 使用注册的最后一个生存期。
+
+```c#
+var host = new HostBuilder()
+    .UseConsoleLifetime()
+```
+
+
 
