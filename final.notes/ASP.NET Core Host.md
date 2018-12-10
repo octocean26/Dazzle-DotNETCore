@@ -377,16 +377,315 @@ WebHost.CreateDefaultBuilder(args)
     .UseWebRoot("public")
 ```
 
+### 重写配置
 
+UseConfiguration可用于配置Web Host，注意和上述中的ConfigureAppConfiguration之间的不同。
 
+#### UseConfiguration和ConfigureAppConfiguration的区别
 
+- 配置的对象不同：UseConfiguration针对Web Host进行配置（框架配置），而ConfigureAppConfiguration针对的是应用程序配置，换句话说，如果只是应用在应用程序上的配置，应该使用ConfigureAppConfiguration，ConfigureAppConfiguration可以多次被调用；如果是应用在框架上的Host配置，比如服务器URL、环境等配置，这些应该使用UseConfiguration。（一般来说如果名称上带有“App”的，都是基于应用程序的，相关的配置就需要使用ConfigureAppConfiguration方法，例如：appsettings.json。）
+- UseConfiguration添加的配置会影响ConfigureAppConfiguration添加的配置，这是因为IWebHostBuilder配置会添加到应用配置中，而使用ConfigureAppConfiguration添加的配置，并不会影响IWebHostBuilder 配置，也就是说基于框架的配置，优先级别更高，不会被ConfigureAppConfiguration影响。
 
+#### 使用UseConfiguration重写配置
 
+在下面的示例中，先使用UseUrls指定Url后，再使用hostsettings.json重写UseUrls提供的配置，重写时调用了UseConfiguration方法，在重写配置的过程中，主机配置是根据需要在 hostsettings.json 文件中指定。 命令行参数可能会重写从 hostsettings.json 文件加载的任何配置。 生成的配置（在 config 中）用于通过 UseConfiguration 配置主机。
 
+```c#
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        CreateWebHostBuilder(args).Build().Run();
+    }
 
+    public static IWebHostBuilder CreateWebHostBuilder(string[] args)
+    {
+        var config = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("hostsettings.json", optional: true)
+            .AddCommandLine(args)
+            .Build();
 
+        return WebHost.CreateDefaultBuilder(args)
+            .UseUrls("http://*:5000")
+            .UseConfiguration(config)
+            .Configure(app =>
+            {
+                app.Run(context => 
+                    context.Response.WriteAsync("Hello, World!"));
+            });
+    }
+}
+```
 
+hostsettings.json：
 
+```
+{
+    urls: "http://*:5005"
+}
+```
 
+注意：UseConfiguration 只将所提供的 IConfiguration 中的键复制到主机生成器配置中。 因此，JSON、INI 和 XML 设置文件的设置 reloadOnChange: true 没有任何影响。
 
-​                                                   
+UseConfiguration 方法需要键来匹配 WebHostBuilder 键（例如 urls、environment）。若要指定在特定的 URL 上运行的主机，所需的值可以在执行 dotnet 运行时从命令提示符传入。 命令行参数重写 hostsettings.json 文件中的 urls 值，且服务器侦听端口 8080：
+
+```
+dotnet run --urls "http://*:8080"
+```
+
+### 管理主机
+
+#### Run()
+
+Run 方法启动 Web 应用并阻塞调用线程，直到关闭主机。
+
+```
+host.Run();
+```
+
+#### Start()
+
+通过调用 Start 方法以非阻塞方式运行主机：
+
+```c#
+using (host)
+{
+    host.Start();
+    Console.ReadLine();
+}
+```
+
+如果将URL的列表传递给Start方法，那么将侦听该列表指定的URL：
+
+```c#
+var urls = new List<string>()
+{
+    "http://*:5000",
+    "http://localhost:5001"
+};
+
+var host = new WebHostBuilder()
+    .UseKestrel()
+    .UseStartup<Startup>()
+    .Start(urls.ToArray());
+
+using (host)
+{
+    Console.ReadLine();
+}
+```
+
+在使用WebHost.CreateDefaultBuilder方法时，应用通过该方法的预配置的默认值初始化并启动新的主机，这些方法在没有控制台输出的情况下启动服务器，并使用 WaitForShutdown 等待中断（Ctrl-C/SIGINT 或 SIGTERM）。
+
+#### Start(RequestDelegate app)和Start(string url,RequestDelegate app)
+
+这两个方法执行的相同的结果，不同的是Start(string url,RequestDelegate app)用于在指定的URL上进行响应，第二个参数RequestDelegate在两个方法中的用法相同：
+
+```c#
+using (var host = WebHost.Start("http://localhost:8080", app => app.Response.WriteAsync("Hello, World!")))
+{
+    Console.WriteLine("Use Ctrl-C to shutdown the host...");
+    host.WaitForShutdown();
+}
+```
+
+运行上述代码后，在浏览器中向http://localhost:5000 发出请求，接收响应“Hello World!” WaitForShutdown 受到阻止，直到发出中断（Ctrl-C/SIGINT 或 SIGTERM）。 应用显示 Console.WriteLine 消息并等待 keypress 退出。
+
+#### `Start(Action<IRouteBuilder> routeBuilder)`和`Start(string url, Action<IRouteBuilder> routeBuilder)`
+
+这两个方法执行的结果相同，使用 IRouteBuilder 的实例 (Microsoft.AspNetCore.Routing) 用于路由中间件，可以指定URL进行响应：
+
+```c#
+using (var host = WebHost.Start("http://localhost:8080", router => router
+    .MapGet("hello/{name}", (req, res, data) => 
+        res.WriteAsync($"Hello, {data.Values["name"]}!"))
+    .MapGet("buenosdias/{name}", (req, res, data) => 
+        res.WriteAsync($"Buenos dias, {data.Values["name"]}!"))
+    .MapGet("throw/{message?}", (req, res, data) => 
+        throw new Exception((string)data.Values["message"] ?? "Uh oh!"))
+    .MapGet("{greeting}/{name}", (req, res, data) => 
+        res.WriteAsync($"{data.Values["greeting"]}, {data.Values["name"]}!"))
+    .MapGet("", (req, res, data) => res.WriteAsync("Hello, World!"))))
+{
+    Console.WriteLine("Use Ctrl-C to shut down the host...");
+    host.WaitForShutdown();
+}
+```
+
+WaitForShutdown 受到阻塞，直到发出中断（Ctrl-C/SIGINT 或 SIGTERM）。 应用显示 Console.WriteLine 消息并等待 keypress 退出。
+
+#### `StartWith(Action<IApplicationBuilder> app)`和`StartWith(string url, Action<IApplicationBuilder> app)`
+
+这两个方法执行的结果相同，都提供委托以配置 IApplicationBuilder，第二个方法提供了响应的URL：
+
+```c#
+using (var host = WebHost.StartWith("http://localhost:8080", app => 
+    app.Use(next => 
+    {
+        return async context => 
+        {
+            await context.Response.WriteAsync("Hello World!");
+        };
+    })))
+{
+    Console.WriteLine("Use Ctrl-C to shut down the host...");
+    host.WaitForShutdown();
+}
+```
+
+备注：上述的这些方法都提供了URL参数版本，除此之外，带URL和不带URL的方法的其他参数的使用都相同。
+
+### IHostingEnvironment 接口
+
+IHostingEnvironment 接口提供有关应用的 Web Hosting环境的信息。 可以使用构造函数注入的方式获取 IHostingEnvironment，以使用其属性和扩展方法。
+
+```c#
+public class CustomFileReader
+{
+    private readonly IHostingEnvironment _env;
+
+    public CustomFileReader(IHostingEnvironment env)
+    {
+        _env = env;
+    }
+
+    public string ReadFile(string filePath)
+    {
+        var fileProvider = _env.WebRootFileProvider;
+        // Process the file here
+    }
+}
+```
+
+基于环境的Startup类和方法可以用于在启动时基于环境配置应用，或者，将IHostingEnvironment 注入到 Startup 构造函数用于 ConfigureServices：
+
+```c#
+public class Startup
+{
+    public Startup(IHostingEnvironment env)
+    {
+        HostingEnvironment = env;
+    }
+
+    public IHostingEnvironment HostingEnvironment { get; }
+
+    public void ConfigureServices(IServiceCollection services)
+    {
+        if (HostingEnvironment.IsDevelopment())
+        {
+            // Development configuration
+        }
+        else
+        {
+            // Staging/Production configuration
+        }
+
+        var contentRootPath = HostingEnvironment.ContentRootPath;
+    }
+}
+```
+
+IHostingEnvironment 服务还可以直接注入到 Configure 方法以设置处理管道：
+
+```c#
+public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+{
+    if (env.IsDevelopment())
+    {
+        // In Development, use the developer exception page
+        app.UseDeveloperExceptionPage();
+    }
+    else
+    {
+        // In Staging/Production, route exceptions to /error
+        app.UseExceptionHandler("/error");
+    }
+
+    var contentRootPath = env.ContentRootPath;
+}
+```
+
+创建自定义中间件时可以将 IHostingEnvironment 注入 Invoke 方法：
+
+```c#
+public async Task Invoke(HttpContext context, IHostingEnvironment env)
+{
+    if (env.IsDevelopment())
+    {
+        // Configure middleware for Development
+    }
+    else
+    {
+        // Configure middleware for Staging/Production
+    }
+
+    var contentRootPath = env.ContentRootPath;
+}
+```
+
+### IApplicationLifetime 接口
+
+IApplicationLifetime允许启动后和关闭活动，该接口的三个属性是用于注册Action方法的取消标记。
+
+| 取消标记            | 触发条件                                                     |
+| ------------------- | ------------------------------------------------------------ |
+| ApplicationStarted  | 主机已完全启动。                                             |
+| ApplicationStopped  | 主机正在完成正常关闭。 应处理所有请求。 关闭受到阻止，直到完成此事件。 |
+| ApplicationStopping | 主机正在执行正常关闭。 仍在处理请求。 关闭受到阻止，直到完成此事件。 |
+
+```c#
+public class Startup
+{
+    public void Configure(IApplicationBuilder app, IApplicationLifetime appLifetime)
+    {
+        appLifetime.ApplicationStarted.Register(OnStarted);
+        appLifetime.ApplicationStopping.Register(OnStopping);
+        appLifetime.ApplicationStopped.Register(OnStopped);
+
+        Console.CancelKeyPress += (sender, eventArgs) =>
+        {
+            appLifetime.StopApplication();
+            // Don't terminate the process immediately, wait for the Main thread to exit gracefully.
+            eventArgs.Cancel = true;
+        };
+    }
+
+    private void OnStarted()
+    {
+        // Perform post-startup activities here
+    }
+
+    private void OnStopping()
+    {
+        // Perform on-stopping activities here
+    }
+
+    private void OnStopped()
+    {
+        // Perform post-stopped activities here
+    }
+}
+```
+
+StopApplication 请求应用终止。 以下类在调用类的 Shutdown 方法时使用 StopApplication 正常关闭应用：
+
+```c#
+public class MyClass
+{
+    private readonly IApplicationLifetime _appLifetime;
+
+    public MyClass(IApplicationLifetime appLifetime)
+    {
+        _appLifetime = appLifetime;
+    }
+
+    public void Shutdown()
+    {
+        _appLifetime.StopApplication();
+    }
+}
+```
+
+### 作用域验证
+
