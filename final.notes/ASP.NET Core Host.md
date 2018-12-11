@@ -751,7 +751,7 @@ public static async Task Main(string[] args)
 主机配置主要有以下两种方式：
 
 - 调用 IHostBuilder 上的扩展方法以设置“内容根”和“环境”。
-- 从 ConfigureHostConfiguration 中的配置提供程序读取配置。
+- 通过ConfigureHostConfiguration中的配置提供程序来读取配置。
 
 #### 使用扩展方法对Host进行配置
 
@@ -905,13 +905,369 @@ var host = new HostBuilder()
     })
 ```
 
-#### UseConsoleLifetime
+### UseConsoleLifetime
 
 UseConsoleLifetime 侦听 Ctrl+C/SIGINT 或 SIGTERM 并调用 StopApplication 来启动关闭进程。 UseConsoleLifetime 解除阻止 RunAsync 和 WaitForShutdownAsync 等扩展。 ConsoleLifetime 预注册为默认生存期实现。 使用注册的最后一个生存期。
 
 ```c#
 var host = new HostBuilder()
     .UseConsoleLifetime()
+```
+
+### Container（容器）配置
+
+为支持插入其他容器中，主机可以接受 IServiceProviderFactory<TContainerBuilder>。 提供工厂不属于 DI 容器注册，而是用于创建具体 DI 容器的主机内部函数。
+
+UseServiceProviderFactory(IServiceProviderFactory<TContainerBuilder>) 重写用于创建应用的服务提供程序的默认工厂。
+
+ConfigureContainer 方法托管自定义容器配置。 ConfigureContainer 提供在基础主机 API 的基础之上配置容器的强类型体验。 可以利用相加结果多次调用 ConfigureContainer。
+
+为应用创建服务容器：
+
+```c#
+public class ServiceContainer
+{
+}
+```
+
+提供服务容器工厂：
+
+```c#
+public class ServiceContainerFactory : IServiceProviderFactory<ServiceContainer>
+{
+    public ServiceContainer CreateBuilder(IServiceCollection services)
+    {
+        return new ServiceContainer(); 
+    }
+
+    public IServiceProvider CreateServiceProvider(ServiceContainer containerBuilder)
+    {
+        throw new NotImplementedException();
+    }
+}
+```
+
+使用该工厂并为应用配置自定义服务容器：
+
+```c#
+var host = new HostBuilder()
+    .UseServiceProviderFactory<ServiceContainer>(new ServiceContainerFactory())
+    .ConfigureContainer<ServiceContainer>((hostContext, container) =>
+    {
+    })
+```
+
+### 主机扩展性
+
+在 IHostBuilder 上使用扩展方法实现主机扩展性。
+
+```c#
+var host = new HostBuilder()
+    .UseHostedService<TimedHostedService>()
+    .Build();
+
+await host.StartAsync();
+```
+
+应用建立 UseHostedService 扩展方法，以注册在 T 中传递的托管服务：
+
+```c#
+using System;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+
+public static class Extensions
+{
+    public static IHostBuilder UseHostedService<T>(this IHostBuilder hostBuilder)
+        where T : class, IHostedService, IDisposable
+    {
+        return hostBuilder.ConfigureServices(services =>
+            services.AddHostedService<T>());
+    }
+}
+```
+
+### 管理主机
+
+IHost 实现负责启动和停止服务容器中注册的 IHostedService 实现。
+
+#### Run()
+
+Run 运行应用并阻止调用线程，直到关闭主机：
+
+```c#
+public class Program
+{
+    public void Main(string[] args)
+    {
+        var host = new HostBuilder()
+            .Build();
+
+        host.Run();
+    }
+}
+```
+
+#### RunAsync()
+
+RunAsync 运行应用并返回在触发取消令牌或关闭时完成的 Task：
+
+```c#
+public class Program
+{
+    public static async Task Main(string[] args)
+    {
+        var host = new HostBuilder()
+            .Build();
+
+        await host.RunAsync();
+    }
+}
+```
+
+#### RunConsoleAsync()
+
+RunConsoleAsync 启用控制台支持、生成和启动主机，以及等待 Ctrl+C/SIGINT 或 SIGTERM 关闭。
+
+```c#
+public class Program
+{
+    public static async Task Main(string[] args)
+    {
+        var hostBuilder = new HostBuilder();
+
+        await hostBuilder.RunConsoleAsync();
+    }
+}
+```
+
+#### Start 和 StopAsync
+
+Start 同步启动主机。
+
+StopAsync 尝试在提供的超时时间内停止主机。
+
+```c#
+public class Program
+{
+    public static async Task Main(string[] args)
+    {
+        var host = new HostBuilder()
+            .Build();
+
+        using (host)
+        {
+            host.Start();
+
+            await host.StopAsync(TimeSpan.FromSeconds(5));
+        }
+    }
+}
+```
+
+#### StartAsync 和 StopAsync
+
+StartAsync 启动应用。
+
+StopAsync 停止应用。
+
+```c#
+public class Program
+{
+    public static async Task Main(string[] args)
+    {
+        var host = new HostBuilder()
+            .Build();
+
+        using (host)
+        {
+            await host.StartAsync();
+
+            await host.StopAsync();
+        }
+    }
+}
+```
+
+#### WaitForShutdown
+
+WaitForShutdown 通过 IHostLifetime 触发，例如 ConsoleLifetime（侦听 Ctrl+C/SIGINT 或 SIGTERM）。 WaitForShutdown 调用 StopAsync。
+
+```c#
+public class Program
+{
+    public void Main(string[] args)
+    {
+        var host = new HostBuilder()
+            .Build();
+
+        using (host)
+        {
+            host.Start();
+
+            host.WaitForShutdown();
+        }
+    }
+}
+```
+
+#### WaitForShutdownAsync
+
+WaitForShutdownAsync 返回在通过给定的令牌和调用 StopAsync 来触发关闭时完成的 Task。
+
+```c#
+public class Program
+{
+    public static async Task Main(string[] args)
+    {
+        var host = new HostBuilder()
+            .Build();
+
+        using (host)
+        {
+            await host.StartAsync();
+
+            await host.WaitForShutdownAsync();
+        }
+
+    }
+}
+```
+
+#### 主机外部控件
+
+使用可从外部调用的方法，能够实现主机的外部控件：
+
+```c#
+public class Program
+{
+    private IHost _host;
+
+    public Program()
+    {
+        _host = new HostBuilder()
+            .Build();
+    }
+
+    public async Task StartAsync()
+    {
+        _host.StartAsync();
+    }
+
+    public async Task StopAsync()
+    {
+        using (_host)
+        {
+            await _host.StopAsync(TimeSpan.FromSeconds(5));
+        }
+    }
+}
+```
+
+在 StartAsync 开始时调用 WaitForStartAsync，在继续之前，会一直等待该操作完成。 它可用于延迟启动，直到外部事件发出信号。
+
+### IHostingEnvironment 接口
+
+IHostingEnvironment 提供有关应用托管环境的信息。 使用构造函数注入获取 IHostingEnvironment 以使用其属性和扩展方法：
+
+```c#
+public class MyClass
+{
+    private readonly IHostingEnvironment _env;
+
+    public MyClass(IHostingEnvironment env)
+    {
+        _env = env;
+    }
+
+    public void DoSomething()
+    {
+        var environmentName = _env.EnvironmentName;
+    }
+}
+```
+
+### IApplicationLifetime 接口
+
+IApplicationLifetime 允许启动后和关闭活动，包括正常关闭请求。 接口上的三个属性是用于注册 Action 方法（用于定义启动和关闭事件）的取消标记。
+
+| 取消标记            | 触发条件                                                     |
+| :------------------ | :----------------------------------------------------------- |
+| ApplicationStarted  | 主机已完全启动。                                             |
+| ApplicationStopped  | 主机正在完成正常关闭。 应处理所有请求。 关闭受到阻止，直到完成此事件。 |
+| ApplicationStopping | 主机正在执行正常关闭。 仍在处理请求。 关闭受到阻止，直到完成此事件 |
+
+构造函数将 IApplicationLifetime 服务注入到任何类中。 示例应用将构造函数注入到 LifetimeEventsHostedService 类（一个 IHostedService 实现）中，用于注册事件。
+
+LifetimeEventsHostedService.cs：
+
+```c#
+internal class LifetimeEventsHostedService : IHostedService
+{
+    private readonly ILogger _logger;
+    private readonly IApplicationLifetime _appLifetime;
+
+    public LifetimeEventsHostedService(
+        ILogger<LifetimeEventsHostedService> logger, IApplicationLifetime appLifetime)
+    {
+        _logger = logger;
+        _appLifetime = appLifetime;
+    }
+
+    public Task StartAsync(CancellationToken cancellationToken)
+    {
+        _appLifetime.ApplicationStarted.Register(OnStarted);
+        _appLifetime.ApplicationStopping.Register(OnStopping);
+        _appLifetime.ApplicationStopped.Register(OnStopped);
+
+        return Task.CompletedTask;
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
+    }
+
+    private void OnStarted()
+    {
+        _logger.LogInformation("OnStarted has been called.");
+
+        // Perform post-startup activities here
+    }
+
+    private void OnStopping()
+    {
+        _logger.LogInformation("OnStopping has been called.");
+
+        // Perform on-stopping activities here
+    }
+
+    private void OnStopped()
+    {
+        _logger.LogInformation("OnStopped has been called.");
+
+        // Perform post-stopped activities here
+    }
+}
+```
+
+StopApplication 请求终止应用。 以下类在调用类的 Shutdown 方法时使用 StopApplication 正常关闭应用：
+
+```c#
+public class MyClass
+{
+    private readonly IApplicationLifetime _appLifetime;
+
+    public MyClass(IApplicationLifetime appLifetime)
+    {
+        _appLifetime = appLifetime;
+    }
+
+    public void Shutdown()
+    {
+        _appLifetime.StopApplication();
+    }
+}
 ```
 
 
