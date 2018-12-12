@@ -19,9 +19,10 @@ namespace Docs.WebServer
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-            //.UseKestrel(options => {
-                 
-            //})
+            .UseKestrel(options =>
+            { 
+
+            })
                 .UseStartup<Startup>();
     }
 }
