@@ -82,7 +82,7 @@ public void Configure(IApplicationBuilder app, IHostingEnvironment env)
     app.UseHttpsRedirection();
     app.UseStaticFiles();
     app.UseCookiePolicy();
-
+	//添加了身份验证中间件到请求管道
     app.UseAuthentication();
 
     app.UseMvc();
