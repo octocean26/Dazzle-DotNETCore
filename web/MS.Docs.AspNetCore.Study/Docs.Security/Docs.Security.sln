@@ -9,7 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "授权", "授权", "{9383AF
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "数据保护", "数据保护", "{7180F4F3-E313-4EAC-972A-5EB2912ECEFD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Docs.Identity.Sample", "Docs.Identity.Sample\Docs.Identity.Sample.csproj", "{3AC04187-9480-4BC9-AAB4-5BB9A6F29DE0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Docs.Identity.Sample", "Docs.Identity.Sample\Docs.Identity.Sample.csproj", "{3AC04187-9480-4BC9-AAB4-5BB9A6F29DE0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
