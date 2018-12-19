@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.168
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "应用启动", "应用启动", "{BDC0CE0C-167E-4BA2-BB6D-7EA5104ECC88}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "依赖关系注入（服务）", "依赖关系注入（服务）", "{17072789-24B4-499E-A248-913E8E3A3FE9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "路由", "路由", "{EC16FC66-7268-45C4-8CB2-A100275CD2C6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "环境", "环境", "{52F6840D-80E6-4514-B646-9EFF331E0A5A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "配置", "配置", "{F26A3D5E-24A1-4E5F-96CE-FACB2144A424}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "选项", "选项", "{7F120923-392F-4227-9BFC-8B64E76BBFD6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "日志记录", "日志记录", "{29226A54-F387-471D-9892-BB1FE8853D63}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "处理错误", "处理错误", "{F0417A4A-8957-468C-9FD0-C62BA534FC91}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "中间件", "中间件", "{B8A8C307-70C8-4137-8226-68AF70195275}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Host", "Host", "{0D52601D-AB0E-4270-AB85-60C4C5550C1D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "服务器", "服务器", "{B8329CC2-2020-49A3-A23C-F06860001157}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "启动HTTP请求", "启动HTTP请求", "{80905C17-6ACA-40D3-BC2C-D0577BA17405}"
+EndProject
+Global
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {59714776-E013-4115-87D5-A28429BEC610}
+	EndGlobalSection
+EndGlobal
