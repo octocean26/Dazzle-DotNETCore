@@ -1,5 +1,14 @@
 # ASP.NET Core Razor Pages
 
+Razor Pages实际上包含两部分：
+
+- 会生成PageModel类的Razor页面
+- 不会生成PageModel类的Razor视图（多用于MVC）
+
+关于Razor页面和Razor视图之间的区别和联系，请参阅本文中的“Razor页面和Razor视图”部分。
+
+本文侧重于Razor页面的讲解，除了PageModel相关的之外，Razor视图的使用基本和Razor页面相同。
+
 
 
 ## 创建Razor Web应用
@@ -107,6 +116,24 @@ _ViewStart.cshtml：在运行Pages下的所有Razor页面之前，都会先执�
 
 
 
+## Razor页面和Razor视图
+
+在添加新项时，可以选择“Razor页面”和“Razor视图”，对于MVC应用，大多数情况下选择的都是“Razor视图”，“Razor页面”更多的是用在非MVC应用中。但是这并不是绝对的，因为Razor页面和Razor视图可以混合使用。唯一不同的是，当创建Razor页面时，默认会生成一个PageModel类，用于在Razor页面中指定@model。
+
+右击Pages文件夹选择”添加“=> ”Razor页面“，将会看到下图所示对话框：
+
+![razor_09](assets/razor_09.png)
+
+默认情况下，“生成PageModel类”选项是勾选的，如果不勾选，将会生成Razor视图，与直接添加“Razor视图”的效果完全一样。
+
+当创建好一个Razor页面时，默认会生成一个与.cshtml文件名称保持一致的.cshtml.cs文件。虽然在解决方案视图中，查看这两个文件时，默认以折叠的方式显式，但实际上是完全独立的两个文件，可以将.cshtml.cs文件中的类看成是一个独立的实体，它的作用就是用来在.cshtml文件中指明@model，这一点和MVC中的ViewModel非常类似。
+
+对于一个ASP.NET Core Web应用，无论创建时选择的模板是“Web应用程序”还是“基于MVC”，都可以在应用中混合使用Razor页面和Razor视图，不过通常不建议这么做，因为这样会增加路由匹配的复杂性。尤其是页面较多的Web应用，推荐使用基于MVC的模板进行创建，对应的应该使用Razor视图进行页面的展示。对于页面较少功能单一的Web应用，可以基于“Web应用程序”的模板进行创建，使用该模板创建的项目，默认使用Razor页面进行展示，当然如前面所述，创建的时候，可以选择不生成PageModel类，这样跟Razor视图就没有什么区别了。
+
+注意：本文所述的Razor Pages都是基于生成PageModel类的Razor页面进行介绍的，如果是MVC中的Razor，统一称之为Razor视图。
+
+
+
 ## 添加实体数据模型和对应的Razor页面
 
 #### 添加实体数据模型
@@ -183,13 +210,219 @@ public void ConfigureServices(IServiceCollection services)
 
 由于是基于内存数据库进行数据存储，因此每次运行该项目时，上一次输入的内容都会丢失。
 
-#### Razor页面内容介绍
+#### 
+
+## Razor页面内容介绍
+
+大多数Web应用的功能无非就是增删改查，在Students文件夹下面存在以下文件：
+
+- Create.cshtml
+- Delete.cshtml
+- Edit.cshtml
+- Index.cshtml
+- Details.cshtml
+
+这里也基于这些基本功能对Razor的使用进行逐步讲解。
+
+### Index.cshtml
+
+Index.cshtml一般作为查询页面进行展示，该页面显示的是所有Student的列表。
+
+##### Pages/Students/Index.cshtml.cs：
+
+```c#
+namespace My.Razor.Study.Pages.Students
+{
+    public class IndexModel : PageModel
+    {
+        private readonly My.Razor.Study.Data.MyRazorContext _context;
+		//使用依赖关系注入将 MyRazorContext 添加到页
+        public IndexModel(My.Razor.Study.Data.MyRazorContext context)
+        {
+            _context = context;
+        }
+
+        public IList<StudentModel> StudentModel { get; set; }
+
+        public async Task OnGetAsync()
+        {
+            StudentModel = await _context.Students.ToListAsync();
+        }
+    }
+}
+```
+
+Razor页面派生自PageModel， 按照约定，PageModel 派生的类称为 <PageName>Model。 
+
+当使用https://localhost:5001/Students进行访问时，默认会访问Pages下的/Students/Index.cshtml文件，将会触发上述代码中的OnGetAsync()方法，该方法中对StudentModel进行赋值，方法执行完成之后，就会呈现页面。OnGetAsync 或 OnGet 通常用于初始化页面状态，类似于WebForm中的Page_Load方法。当初始化页面状态之后，就会呈现页面。
+
+##### Pages/Students/Index.cshtml：
+
+```html
+@page
+@model My.Razor.Study.Pages.Students.IndexModel
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-page="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.StudentModel[0].Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.StudentModel[0].StuNumber)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.StudentModel[0].BirthDate)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model.StudentModel) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.StuNumber)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.BirthDate)
+            </td>
+            <td>
+                <a asp-page="./Edit" asp-route-id="@item.Id">Edit</a> |
+                <a asp-page="./Details" asp-route-id="@item.Id">Details</a> |
+                <a asp-page="./Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+```
+
+###### @page指令
+
+@page**必须是**页面上的第一个Razor指令，它使文件具备可以处理请求的能力。
+
+###### @model指令
+
+@model 指令用于指定传递给 Razor 页面的模型类型，它可以使派生自PageModel的类用于Razor页面。
+
+###### @{}
+
+当 `@` 符号后跟 [Razor 保留关键字](https://docs.microsoft.com/zh-cn/aspnet/core/mvc/views/razor?view=aspnetcore-2.2#razor-reserved-keywords)时，它会转换为 Razor 特定标记，否则会转换为 C#代码，对于多个代码行组成的片段，可以使用大括号包裹起来。
+
+###### ViewData
+
+PageModel 基类具有 ViewData 字典属性，可用于添加要传递到某个视图的数据。 可以使用键/值模式将对象添加到 ViewData 字典。
+
+###### @Html.DisplayNameFor(model => model.StudentModel[0].Name)
+
+该方法使用HTML帮助程序检查 Lambda 表达式中引用的 Title 属性来确定显示名称。检查 Lambda 表达式（而非求值），这意味着当 model、model.StudentModel 或 model.StudentModel[0] 为 null 或为空时，不会存在任何访问冲突。 对 Lambda 表达式求值时（例如，使用 @Html.DisplayFor(modelItem => item.Title)），将求得该模型的属性值。
+
+###### `<a asp-page="./Edit" asp-route-id="@item.Id">Edit</a>`
+
+asp-page和asp-route-id是一个[标记辅助程序](https://docs.microsoft.com/zh-cn/aspnet/core/mvc/views/tag-helpers/intro)的常规用法，上述代码会生成如下形式的链接：
+
+`https://localhost:5001/Students/Edit?id=1`
+
+### Create.cshtml
+
+Create.cshtml用于创建单个Student信息。
+
+##### Pages/Students/Create.cshtml.cs：
+
+```c#
+namespace My.Razor.Study.Pages.Students
+{
+    public class CreateModel : PageModel
+    {
+        private readonly My.Razor.Study.Data.MyRazorContext _context;
+
+        public CreateModel(My.Razor.Study.Data.MyRazorContext context)
+        {
+            _context = context;
+        }
+
+        public IActionResult OnGet()
+        {
+            return Page();
+        }
+
+        [BindProperty]
+        public StudentModel StudentModel { get; set; }
+
+        public async Task<IActionResult> OnPostAsync()
+        {
+            if (!ModelState.IsValid)
+            {
+                return Page();
+            }
+
+            _context.Students.Add(StudentModel);
+            await _context.SaveChangesAsync();
+            
+            return RedirectToPage("./Index");
+        }
+    }
+}
+```
+
+OnGet方法用于初始化页面所需的任何状态，由于Create页面没有任何要初始化的状态，因此返回Page()，对应的方法返回的参数类型为IActionResult，Page()方法创建用于呈现 Create.cshtml 页的PageResult 对象。
+
+由于OnGet()方法中不存在任何初始化操作，因此也可以直接使用无返回参数的OnGet()方法，在方法体的内部，什么都不写也是可以的。
+
+```c#
+public void OnGet()
+{
+    //return Page();
+}
+```
+
+###### BindProperty
+
+StudentModel属性使用了[BindProperty] 特性来选择加入模型绑定。
+
+##### Pages/Students/Create.cshtml：
+
+### Edit.cshtml
+
+##### Pages/Students/Edit.cshtml：
+
+##### Pages/Students/Edit.cshtml.cs：
+
+### Delete.cshtml
+
+##### Pages/Students/Delete.cshtml：
+
+##### Pages/Students/Delete.cshtml.cs：
+
+### Details.cshtml
+
+##### Pages/Students/Details.cshtml：
+
+##### Pages/Students/Details.cshtml.cs：
 
 
 
 
 
-在Pages文件夹下创建“Student”文件夹，
+
+
+
+
+
+
+
 
 
 

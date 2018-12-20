@@ -11,9 +11,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WebAPI", "WebAPI", "{287C47
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "扩展补充", "扩展补充", "{32C59E71-BD5B-40C2-A54E-8C2979DDBF97}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "My.Razor.Study", "My.Razor.Study\My.Razor.Study.csproj", "{6F9A83BF-8915-4A5D-A4B9-84FCA1627331}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "My.Razor.Study", "My.Razor.Study\My.Razor.Study.csproj", "{6F9A83BF-8915-4A5D-A4B9-84FCA1627331}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Docs.RazorPagesMovie.Sample", "Docs.RazorPagesMovie.Sample\Docs.RazorPagesMovie.Sample.csproj", "{6B482AC3-741E-4172-9988-5E675E0260FE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Docs.RazorPagesMovie.Sample", "Docs.RazorPagesMovie.Sample\Docs.RazorPagesMovie.Sample.csproj", "{6B482AC3-741E-4172-9988-5E675E0260FE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

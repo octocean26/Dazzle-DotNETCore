@@ -19,7 +19,7 @@ namespace My.Razor.Study.Pages.Students
             _context = context;
         }
 
-        public IList<StudentModel> StudentModel { get;set; }
+        public IList<StudentModel> StudentModel { get; set; }
 
         public async Task OnGetAsync()
         {
