@@ -24,6 +24,20 @@ namespace My.Razor.Study.Pages.Students
         public async Task OnGetAsync()
         {
             StudentModel = await _context.Students.ToListAsync();
+
+            //获取Address的值
+            string _address = Address;
         }
+
+        public async Task<IActionResult> OnPostAsync()
+        {
+            string _address = Address;
+
+            return Page();
+        }
+
+        [BindProperty(SupportsGet =true)]
+        public string Address { get; set; }
+
     }
 }

@@ -365,6 +365,7 @@ namespace My.Razor.Study.Pages.Students
         {
             if (!ModelState.IsValid)
             {
+            	//如果模型验证不通过，直接显示Create页面
                 return Page();
             }
 
@@ -390,27 +391,266 @@ public void OnGet()
 
 ###### BindProperty
 
-StudentModel属性使用了[BindProperty] 特性来选择加入模型绑定。
+StudentModel属性使用了[BindProperty] 特性来选择加入模型绑定。当Create页面中的表单提交值时，ASP.NET Core运行时将提交的值绑定到CreateModel中的StudentModel模型。
+
+###### OnPostAsync()
+
+当页面提交表单数据时，运行OnPostAsync()方法，如果不存在模型错误，将保存数据，并且重定向到Index页面。
 
 ##### Pages/Students/Create.cshtml：
+
+```html
+@page
+@model My.Razor.Study.Pages.Students.CreateModel
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<h4>StudentModel</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="StudentModel.Name" class="control-label"></label>
+                <input asp-for="StudentModel.Name" class="form-control" />
+                <span asp-validation-for="StudentModel.Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="StudentModel.StuNumber" class="control-label"></label>
+                <input asp-for="StudentModel.StuNumber" class="form-control" />
+                <span asp-validation-for="StudentModel.StuNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="StudentModel.BirthDate" class="control-label"></label>
+                <input asp-for="StudentModel.BirthDate" class="form-control" />
+                <span asp-validation-for="StudentModel.BirthDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-page="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+```
+
+###### 表单标记帮助程序
+
+在ASP.NET Core中，`<form method="post">`表单是一个内置的表单标记帮助程序，虽然和常规的html元素<form>使用方式一样，但是它会自动生成一个防伪令牌。
+
+```c#
+<input name="__RequestVerificationToken" type="hidden" value="CfDJ8KdYDenjI8RIrWVk4TMozQW-u7y-ZI0FQ6CHloaspgtlCURSCWck6LK9OSOL-9Xyb-bqALqtIEpnXpPOu5Qw-yE5YdMetdgGHatTyvOyPggcAD8hevu9BG0pS_G7nA9aqFEpsKh4tNN_OLY_gGWNln4">
+```
+
+###### 验证标记帮助程序
+
+`<div asp-validation-summary` 和 `<span asp-validation-for`显示验证的错误信息。
+
+###### 标签标记帮助程序
+
+`<label asp-for="Movie.Title" class="control-label"></label>`用于生成标签描述和Title属性和for特性。
+
+###### 输入标记帮助程序
+
+`<input asp-for="Movie.Title" class="form-control" />` 生成 jQuery 验证所需的 HTML 属性。
 
 ### Edit.cshtml
 
 ##### Pages/Students/Edit.cshtml：
 
+```html
+@page "{id:int}"
+@model My.Razor.Study.Pages.Students.EditModel
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Edit</h1>
+
+<h4>StudentModel</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="StudentModel.Id" />
+            <div class="form-group">
+                <label asp-for="StudentModel.Name" class="control-label"></label>
+                <input asp-for="StudentModel.Name" class="form-control" />
+                <span asp-validation-for="StudentModel.Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="StudentModel.StuNumber" class="control-label"></label>
+                <input asp-for="StudentModel.StuNumber" class="form-control" />
+                <span asp-validation-for="StudentModel.StuNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="StudentModel.BirthDate" class="control-label"></label>
+                <input asp-for="StudentModel.BirthDate" class="form-control" />
+                <span asp-validation-for="StudentModel.BirthDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-page="./Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+```
+
+在Index.cshtml中，将会生成如下形式的url链接：
+
+```html
+<td>
+    <a href="/Students/Edit?id=1">Edit</a> |
+    <a href="/Students/Details?id=1">Details</a> |
+    <a href="/Students/Delete?id=1">Delete</a>
+</td>
+```
+
+它将以查询字符串的形式传递id参数，如果不想使用这种形式，而是将id作为URL路径的一部分进行生成，可以在对应的页面使用路由模板，例如上述中的Edit.cshtml代码在@page指令的后面指定了路由模板：
+
+```c#
+@page "{id:int}"
+```
+
+此时将会生成如下形式的URL：
+
+```html
+<td>
+    <a href="/Students/Edit/1">Edit</a> |
+    <a href="/Students/Details?id=1">Details</a> |
+    <a href="/Students/Delete?id=1">Delete</a>
+</td>
+```
+
+使用`@page "{id:int}"`可以限定请求的URL必须包含整数，如果没有传入id值或者值不是int类型的整数，都将无法触发后台的`OnGetAsync(int? id)`方法的执行，将返回404错误。如果id可选，可以使用`?`追加到路由约束：
+
+```c#
+@page "{id:int?}"
+```
+
+当使用了参数可选的路由模板时，如果请求的URL没有包含id值，或者包含了int类型的整数，都将触发后台`OnGetAsync(int? id)`方法的执行；如果请求的URL包含了不是int类型的值，将不会触发后台OnGet方法的执行。
+
 ##### Pages/Students/Edit.cshtml.cs：
 
-### Delete.cshtml
+```c#
+public class EditModel : PageModel
+{
+    private readonly My.Razor.Study.Data.MyRazorContext _context;
 
-##### Pages/Students/Delete.cshtml：
+    public EditModel(My.Razor.Study.Data.MyRazorContext context)
+    {
+        _context = context;
+    }
 
-##### Pages/Students/Delete.cshtml.cs：
+    [BindProperty]
+    public StudentModel StudentModel { get; set; }
 
-### Details.cshtml
+    public async Task<IActionResult> OnGetAsync(int? id)
+    {
+        if (id == null)
+        {
+        	//如果URL没有传id值，返回404
+            return NotFound();
+        }
 
-##### Pages/Students/Details.cshtml：
+        StudentModel = await _context.Students.FirstOrDefaultAsync(m => m.Id == id);
 
-##### Pages/Students/Details.cshtml.cs：
+        if (StudentModel == null)
+        {
+            return NotFound();
+        }
+        return Page();
+    }
+
+    public async Task<IActionResult> OnPostAsync()
+    {
+        if (!ModelState.IsValid)
+        {
+            return Page();
+        }
+
+        _context.Attach(StudentModel).State = EntityState.Modified;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!StudentModelExists(StudentModel.Id))
+            {
+                return NotFound();
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        return RedirectToPage("./Index");
+    }
+
+    private bool StudentModelExists(int id)
+    {
+        return _context.Students.Any(e => e.Id == id);
+    }
+}
+```
+
+当对Students/Edit页面进行HTTP GET请求时，例如：`https://localhost:5001/Students/Edit/1`，OnGetAsync方法会为StudentModel赋值，并返回Page()方法，Page()方法呈现Edit.cshtml对应的Razor页面。
+
+当对Edit页面进行Post提交时，Edit页面上的表单会绑定到StudentModel属性，因为该属性的[BindProperty]特性会启用模型绑定，在OnPostAsync方法中，首先验证模型绑定的状态是否存在错误，如果模型状态存在错误（例如BirthDate无法被转换为日期），则会将已提交的值再次发送给表单进行呈现，如果没有错误则执行保存操作。
+
+另外还有一点需要注意，在上述代码中：
+
+```c#
+ _context.Attach(StudentModel).State = EntityState.Modified;
+ try
+ {
+     await _context.SaveChangesAsync();
+ }
+ catch (DbUpdateConcurrencyException)
+ {
+     if (!StudentModelExists(StudentModel.Id))
+     {
+         return NotFound();
+     }
+     else
+     {
+         throw;
+     }
+ }
+```
+
+这段代码可以处理并发情况，即将要修改的数据如果被其他人进行了删除，那么在执行SaveChangesAsync时，会发生异常。
+
+### 页面其他标签的模型绑定
+
+
+
+
 
 
 
