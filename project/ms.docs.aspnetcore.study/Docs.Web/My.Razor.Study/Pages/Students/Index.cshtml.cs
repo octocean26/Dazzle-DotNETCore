@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using My.Razor.Study.Data;
 using My.Razor.Study.Models;
@@ -25,19 +26,50 @@ namespace My.Razor.Study.Pages.Students
         {
             StudentModel = await _context.Students.ToListAsync();
 
+            string [] gs = { "G1", "G2", "G3" };
+            GroupNames = new SelectList(gs);
+
+
             //获取Address的值
             string _address = Address;
+            string _qv = QueryValue;
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
             string _address = Address;
 
+            StudentModel = await _context.Students.ToListAsync();
+            string gn = GroupNameValue;
+            return Page();
+           
+
+
+        }
+
+        public async Task<IActionResult> OnPostDeleteAsync(string wy)
+        {
+            return Page();
+        }
+        public async Task<IActionResult> OnPostCreateAsync()
+        {
             return Page();
         }
 
-        [BindProperty(SupportsGet =true)]
+        [BindProperty]
         public string Address { get; set; }
+
+
+        public SelectList GroupNames { get; set; }
+        [BindProperty]
+        public string GroupNameValue { get; set; }
+
+
+        [BindProperty(SupportsGet = true)]
+        public string QueryValue { get; set; }
+
+
+
 
     }
 }

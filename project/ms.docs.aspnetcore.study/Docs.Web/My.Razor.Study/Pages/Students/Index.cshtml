@@ -49,9 +49,23 @@
 <div>
     <h3>页面其他标签的绑定</h3>
     <form  method="post">
+        <div>
+            <p>文本框模型绑定</p>
+            <input type="text" asp-for="Address" />
+        </div>
 
-        <input type="text" asp-for="Address" />
-
+        <div>
+            <p>下拉框模型绑定</p>
+            <div>
+                <select asp-for="GroupNameValue" asp-items="Model.GroupNames">
+                    <option value="">All</option>
+                </select>
+            </div>
+        </div>
+        <div>
+            <input type="submit" value="删除" asp-route-wy="01" asp-page-handler="Delete" />
+            <input type="submit" value="创建" asp-page-handler="Create" />
+        </div>
     </form>
     
 

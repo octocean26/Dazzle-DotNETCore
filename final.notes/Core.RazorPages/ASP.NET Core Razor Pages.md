@@ -118,7 +118,9 @@ _ViewStart.cshtml：在运行Pages下的所有Razor页面之前，都会先执�
 
 ## Razor页面和Razor视图
 
-在添加新项时，可以选择“Razor页面”和“Razor视图”，对于MVC应用，大多数情况下选择的都是“Razor视图”，“Razor页面”更多的是用在非MVC应用中。但是这并不是绝对的，因为Razor页面和Razor视图可以混合使用。唯一不同的是，当创建Razor页面时，默认会生成一个PageModel类，用于在Razor页面中指定@model。
+在添加新项时，可以选择“Razor页面”和“Razor视图”，对于MVC应用，大多数情况下选择的都是“Razor视图”，“Razor页面”更多的是用在非MVC应用中。但是这并不是绝对的，因为Razor页面和Razor视图可以混合使用。唯一不同的是，当创建Razor页面时，默认会生成一个PageModel类，用于在Razor页面中指定@model，并且Razor页面必须包含@page指令，@page指令将Razor页面转换为一个可以直接处理请求的操作，而无需通过控制器处理。 
+
+注意：@page 必须是Razor页面上的第一个 Razor 指令。
 
 右击Pages文件夹选择”添加“=> ”Razor页面“，将会看到下图所示对话框：
 
@@ -210,7 +212,11 @@ public void ConfigureServices(IServiceCollection services)
 
 由于是基于内存数据库进行数据存储，因此每次运行该项目时，上一次输入的内容都会丢失。
 
-#### 
+注意：
+
+默认情况下，运行时在“Pages”文件夹中查找Razor页面文件；如果URL未指定具体的页面，默认查找当前URL目录下的Index页面。
+
+
 
 ## Razor页面内容介绍
 
@@ -646,7 +652,154 @@ public class EditModel : PageModel
 
 这段代码可以处理并发情况，即将要修改的数据如果被其他人进行了删除，那么在执行SaveChangesAsync时，会发生异常。
 
-### 页面其他标签的模型绑定
+
+
+## Razor页面其他标签的模型绑定
+
+使用[BindProperty]特性实现表单元素（Post提交）或查询字符串（Get请求）与PageModel的属性之间的模型绑定，前提是表单元素的name或查询字符串中的键名要和PageModel的属性名称相同。
+
+默认情况下，Razor页面只绑定带有**非**GET谓词的属性。
+
+#### 文本框模型绑定
+
+C#代码：
+
+```c#
+[BindProperty]
+public string Address { get; set; }
+```
+
+HTML代码：
+
+```html
+<div>
+    <p>文本框模型绑定</p>
+    <input type="text" asp-for="Address" />
+</div>
+```
+
+生成之后的HTML代码：
+
+```html
+<input type="text" id="Address" name="Address" value="">
+```
+
+#### 下拉框模型绑定
+
+绑定下拉框元素时，需要定义两个属性，一个用于绑定下拉框的数据源，类型为SelectList，另一个用于绑定下拉框选择的值，类型常见为String，如下所示：
+
+C#代码：
+
+```c#
+//用于绑定下拉框，不需要使用BindProperty特性修饰
+public SelectList GroupNames { get; set; }
+
+[BindProperty]
+public string GroupNameValue { get; set; } //下拉框提交的值
+
+public async Task OnGetAsync()
+{
+    //在Get方法中为下拉框属性复制，通常绑定为一个List集合或数组
+    string [] gs = { "G1", "G2", "G3" };
+    GroupNames = new SelectList(gs);
+}
+```
+
+HTML代码：
+
+```html
+<div>
+    <p>下拉框模型绑定</p>
+    <div>
+        <select asp-for="GroupNameValue" asp-items="Model.GroupNames">
+            <option value="">All</option>
+        </select>
+    </div>
+</div>
+```
+
+注意上述代码中的asp-items用于绑定下拉框数据源对应的属性，类型为SelectList，而asp-for用于绑定选择的值。
+
+生成后的HTML代码如下：
+
+```html
+<select id="GroupNameValue" name="GroupNameValue">
+    <option value="">All</option>
+    <option>G1</option>
+    <option>G2</option>
+    <option>G3</option>
+</select>
+```
+
+#### 查询字符串形式的模型绑定
+
+C#代码：
+
+```c#
+[BindProperty(SupportsGet = true)]
+public string QueryValue { get; set; }
+```
+
+如果Get请求的URL中包含“?queryvalue=”部分，就会将值自动绑定到对应的QueryValue属性上。
+
+```
+https://localhost:5001/students?queryvalue=abc
+```
+
+注意： [BindProperty] 特性的 SupportsGet 属性设置为 true，如上述中的[BindProperty(SupportsGet = true)]，会强制要求只在GET请求上将属性进行模型绑定。
+
+说明：如果不想使用查询字符串的形式进行模型绑定，可以使用前文介绍的路由模板约束：
+
+```
+@page "{QueryValue?}"
+```
+
+
+
+## Razor页面多个Post处理程序
+
+大多数情况下，一个表单中包含一个提交按钮，默认会执行OnPostAsync()方法，如果一个表单中有多个提交按钮，或者一个页面中有多个表单，当执行提交操作时，为了正确的选择对应Post处理方法，需要借助asp-page-handler属性进行实现。
+
+```html
+<div>
+    <input type="submit" value="删除" asp-route-wy="01" asp-page-handler="Delete" />
+    <input type="submit" value="创建" asp-page-handler="Create" />
+</div>
+```
+
+上述代码中存在两个Post提交，不同的是指定的asp-page-handler属性值不同，按照惯例，根据方案 OnPost[handler]Async 基于 handler 参数的值来选择处理程序方法的名称，即上述中的“删除”按钮提交时，默认会调用OnPostDeleteAsync()方法，而“创建”按钮提交时，将会调用OnPostCreateAsync()方法。
+
+```c#
+public async Task<IActionResult> OnPostDeleteAsync(string wy)
+{
+    return Page();
+}
+public async Task<IActionResult> OnPostCreateAsync()
+{
+    return Page();
+}
+```
+
+Razor页面生成后的HTML代码如下：
+
+```html
+<div>
+	<input type="submit" value="删除" formaction="/Students?wy=01&amp;handler=Delete">
+    <input type="submit" value="创建" formaction="/Students?handler=Create">
+</div>
+```
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
