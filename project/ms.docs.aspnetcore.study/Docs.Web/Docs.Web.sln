@@ -15,7 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "My.Razor.Study", "My.Razor.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Docs.RazorPagesMovie.Sample", "Docs.RazorPagesMovie.Sample\Docs.RazorPagesMovie.Sample.csproj", "{6B482AC3-741E-4172-9988-5E675E0260FE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "My.MVC.Study", "My.MVC.Study\My.MVC.Study.csproj", "{9CA517E0-181F-45EA-8634-FAE9F97B2336}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "My.MVC.Study", "My.MVC.Study\My.MVC.Study.csproj", "{9CA517E0-181F-45EA-8634-FAE9F97B2336}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Docs.MvcMovie.Sample", "Docs.MvcMovie.Sample\Docs.MvcMovie.Sample.csproj", "{5B258571-D8CF-4F7A-A42C-0838AD94E514}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,6 +37,10 @@ Global
 		{9CA517E0-181F-45EA-8634-FAE9F97B2336}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9CA517E0-181F-45EA-8634-FAE9F97B2336}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9CA517E0-181F-45EA-8634-FAE9F97B2336}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B258571-D8CF-4F7A-A42C-0838AD94E514}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B258571-D8CF-4F7A-A42C-0838AD94E514}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B258571-D8CF-4F7A-A42C-0838AD94E514}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B258571-D8CF-4F7A-A42C-0838AD94E514}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -43,6 +49,7 @@ Global
 		{6F9A83BF-8915-4A5D-A4B9-84FCA1627331} = {135024DF-2D3F-4340-8ED3-12AD3F44269B}
 		{6B482AC3-741E-4172-9988-5E675E0260FE} = {135024DF-2D3F-4340-8ED3-12AD3F44269B}
 		{9CA517E0-181F-45EA-8634-FAE9F97B2336} = {8DA6BBFB-ACDD-4B70-A101-140EBB85092D}
+		{5B258571-D8CF-4F7A-A42C-0838AD94E514} = {8DA6BBFB-ACDD-4B70-A101-140EBB85092D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BA55B5A4-4BE4-486A-AC93-3C1E5D48271F}
