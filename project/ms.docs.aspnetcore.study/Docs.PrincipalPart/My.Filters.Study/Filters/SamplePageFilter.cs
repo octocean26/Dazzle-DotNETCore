@@ -16,10 +16,9 @@ namespace My.Filters.Study.Filters
             _logger = logger;
         }
 
-
-        public void OnPageHandlerExecuted(PageHandlerExecutedContext context)
+        public void OnPageHandlerSelected(PageHandlerSelectedContext context)
         {
-            _logger.LogDebug("全局过滤器方法：OnPageHandlerExecuted，被调用 【WY03】");
+            _logger.LogDebug("全局过滤器方法：OnPageHandlerSelected，被调用 【WY03】");
         }
 
         public void OnPageHandlerExecuting(PageHandlerExecutingContext context)
@@ -27,9 +26,10 @@ namespace My.Filters.Study.Filters
             _logger.LogDebug("全局过滤器方法：OnPageHandlerExecuting，被调用 【WY04】");
         }
 
-        public void OnPageHandlerSelected(PageHandlerSelectedContext context)
+        public void OnPageHandlerExecuted(PageHandlerExecutedContext context)
         {
-            _logger.LogDebug("全局过滤器方法：OnPageHandlerSelected，被调用 【WY05】");
+            _logger.LogDebug("全局过滤器方法：OnPageHandlerExecuted，被调用 【WY05】");
         }
+
     }
 }

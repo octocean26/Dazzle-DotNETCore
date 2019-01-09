@@ -22,12 +22,13 @@ namespace My.Filters.Study.Filters
         }
 
 
-        public async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
+        public async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context,
+            PageHandlerExecutionDelegate next)
         {
             _logger.LogDebug("全局过滤器方法：OnPageHandlerExecutionAsync ，被调用 【WY02】");
             await next.Invoke();
         }
 
-        
+
     }
 }

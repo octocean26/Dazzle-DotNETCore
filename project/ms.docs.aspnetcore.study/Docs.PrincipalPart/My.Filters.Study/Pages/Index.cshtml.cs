@@ -11,11 +11,13 @@ namespace My.Filters.Study.Pages
 {
     public class IndexModel : PageModel
     {
-
         private readonly ILogger _logger;
 
         public IndexModel(ILogger<IndexModel> logger)
         {
+            var r = Request;
+            var s = Response;
+            var h = HttpContext;
             _logger = logger;
         }
 
@@ -32,9 +34,7 @@ namespace My.Filters.Study.Pages
         {
             base.OnPageHandlerSelected(context);
             _logger.LogDebug("IndexModel/OnPageHandlerSelected...........");
-
         }
-
 
         public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
         {
@@ -48,5 +48,6 @@ namespace My.Filters.Study.Pages
             base.OnPageHandlerExecuted(context);
             _logger.LogDebug("IndexModel/OnPageHandlerExecuted...........");
         }
+        
     }
 }
