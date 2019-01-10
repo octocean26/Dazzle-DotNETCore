@@ -49,14 +49,20 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "中间件", "中间件", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Filters ( 筛选器 )", "Filters ( 筛选器 )", "{3F0509D7-9D16-4E63-98D5-51CA3B01692E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "My.RazorClassLib.Study", "My.RazorClassLib.Study\My.RazorClassLib.Study.csproj", "{29D08BD6-020D-4234-AA56-CA9556119754}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "My.RazorClassLib.Study", "My.RazorClassLib.Study\My.RazorClassLib.Study.csproj", "{29D08BD6-020D-4234-AA56-CA9556119754}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Razor类库", "Razor类库", "{E473FEE6-3540-4754-97DB-C3F28361682D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "My.RazorClassLib.Import.Sample", "My.RazorClassLib.Import.Sample\My.RazorClassLib.Import.Sample.csproj", "{8ED65E47-7305-4E08-ABEF-68C750115300}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "My.RazorClassLib.Import.Sample", "My.RazorClassLib.Import.Sample\My.RazorClassLib.Import.Sample.csproj", "{8ED65E47-7305-4E08-ABEF-68C750115300}"
 	ProjectSection(ProjectDependencies) = postProject
 		{29D08BD6-020D-4234-AA56-CA9556119754} = {29D08BD6-020D-4234-AA56-CA9556119754}
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Razor页面路由", "Razor页面路由", "{3C8015D3-3BA9-4451-8E2B-66E2D72C0449}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Razor页面路由请参见Docs.Web目录中的RazorPages", "Razor页面路由请参见Docs.Web目录中的RazorPages", "{32B4A4EA-C7A5-4F45-939B-F15200A91D22}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "My.RazorRoute.Study", "My.RazorRoute.Study\My.RazorRoute.Study.csproj", "{C217ED6D-844C-4BC6-8D40-FD8E593A3627}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -92,6 +98,10 @@ Global
 		{8ED65E47-7305-4E08-ABEF-68C750115300}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8ED65E47-7305-4E08-ABEF-68C750115300}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8ED65E47-7305-4E08-ABEF-68C750115300}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C217ED6D-844C-4BC6-8D40-FD8E593A3627}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C217ED6D-844C-4BC6-8D40-FD8E593A3627}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C217ED6D-844C-4BC6-8D40-FD8E593A3627}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C217ED6D-844C-4BC6-8D40-FD8E593A3627}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -121,6 +131,9 @@ Global
 		{29D08BD6-020D-4234-AA56-CA9556119754} = {E473FEE6-3540-4754-97DB-C3F28361682D}
 		{E473FEE6-3540-4754-97DB-C3F28361682D} = {22E8C9DB-0B5D-49EB-BC78-DD28F13EB5D1}
 		{8ED65E47-7305-4E08-ABEF-68C750115300} = {E473FEE6-3540-4754-97DB-C3F28361682D}
+		{3C8015D3-3BA9-4451-8E2B-66E2D72C0449} = {22E8C9DB-0B5D-49EB-BC78-DD28F13EB5D1}
+		{32B4A4EA-C7A5-4F45-939B-F15200A91D22} = {4ECA8300-DB8D-4AE8-9F17-238CE14B83AF}
+		{C217ED6D-844C-4BC6-8D40-FD8E593A3627} = {3C8015D3-3BA9-4451-8E2B-66E2D72C0449}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {99CCB8A3-AB08-42F1-934C-B684FA6433FB}
