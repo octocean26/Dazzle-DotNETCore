@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace My.RazorRoute.Study.Pages
 {
-    public class IndexModel : PageModel
+    public class Page_1 : PageModel
     {
         public string RouteDataGlobalTemplateValue { get; private set; }
 

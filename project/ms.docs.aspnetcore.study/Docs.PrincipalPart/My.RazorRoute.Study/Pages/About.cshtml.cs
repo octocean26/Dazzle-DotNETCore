@@ -7,11 +7,11 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace My.RazorRoute.Study.Pages
 {
-    public class IndexModel : PageModel
+    public class About : PageModel
     {
         public string RouteDataGlobalTemplateValue { get; private set; }
 
-        public string RouteDataOtherPagesTemplateValue { get; private set; }
+        public string RouteDataAboutTemplateValue { get; private set; }
 
         public void OnGet()
         {
@@ -20,10 +20,10 @@ namespace My.RazorRoute.Study.Pages
                 RouteDataGlobalTemplateValue = $"globalTemplate提供了路由数据：{RouteData.Values["globalTemplate"]}";
             }
 
-            if (RouteData.Values["otherPagesTemplate"] != null)
+            if (RouteData.Values["aboutTemplate"] != null)
             {
-                RouteDataOtherPagesTemplateValue =
-                     $"otherPagesTemplate：{RouteData.Values["otherPagesTemplate"]}"; 
+                RouteDataAboutTemplateValue =
+                     $"aboutTemplate：{RouteData.Values["aboutTemplate"]}"; 
             }
 
         }
