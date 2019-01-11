@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,13 +20,13 @@ namespace My.RazorRoute.Study
 
     public class Startup
     {
-        private readonly ILogger logger;
+        private readonly ILoggerFactory loggerFacotry;
 
         public IConfiguration Configuration { get; }
 
-        public Startup(ILogger<Startup> _logger, IConfiguration configuration)
+        public Startup(ILoggerFactory _loggerFactory, IConfiguration configuration)
         {
-            this.logger = _logger;
+            this.loggerFacotry = _loggerFactory;
             this.Configuration = configuration;
         }
 
@@ -37,92 +38,94 @@ namespace My.RazorRoute.Study
             services.AddMvc()
                 .AddRazorPagesOptions(options =>
                 {
-                    options.Conventions.Add(new GlobalTemplatePageRouteModelConvention());
-                    options.Conventions.Add(new GlobalHeaderPageApplicationModelConvention());
-                    options.Conventions.Add(new GlobalPageHandlerModelConvention());
-
-                    options.Conventions.AddFolderRouteModelConvention("/OtherPages", model =>
-                    {
-                        var selectorCount = model.Selectors.Count;
-                        for (var i = 0; i < selectorCount; i++)
-                        {
-                            var selector = model.Selectors[i];
-                            model.Selectors.Add(new SelectorModel
-                            {
-                                AttributeRouteModel = new AttributeRouteModel
-                                {
-                                    Order = 2,
-                                    Template = AttributeRouteModel.CombineTemplates(
-                                        selector.AttributeRouteModel.Template,
-                                        "{otherPagesTemplate?}"
-                                        )
-                                }
-                            });
-
-                        }
-
-                    });
-
-
-
-                    options.Conventions.AddPageRouteModelConvention("/About", model =>
-                    {
-                        var selectorCount = model.Selectors.Count;
-                        for (int i = 0; i < selectorCount; i++)
-                        {
-                            var selector = model.Selectors[i];
-                            model.Selectors.Add(new SelectorModel
-                            {
-                                AttributeRouteModel = new AttributeRouteModel
-                                {
-                                    Order = 2,
-                                    Template = AttributeRouteModel.CombineTemplates(
-                                          selector.AttributeRouteModel.Template,
-                                          "{aboutTemplate?}"
-                                          )
-                                }
-                            });
-
-                        }
-
-                    });
-
-
                     options.Conventions.Add(
-                        new PageRouteTransformerConvention(
-                            new SlugifyParameterTransformer()
-                            ));
+                        new GlobalTemplatePageRouteModelConvention(
+                            loggerFacotry.CreateLogger<GlobalTemplatePageRouteModelConvention>()
+                        ));
+                    //options.Conventions.Add(new GlobalHeaderPageApplicationModelConvention());
+                    //options.Conventions.Add(new GlobalPageHandlerModelConvention());
+
+                    //options.Conventions.AddFolderRouteModelConvention("/OtherPages", model =>
+                    //{
+                    //    var selectorCount = model.Selectors.Count;
+                    //    for (var i = 0; i < selectorCount; i++)
+                    //    {
+                    //        var selector = model.Selectors[i];
+                    //        model.Selectors.Add(new SelectorModel
+                    //        {
+                    //            AttributeRouteModel = new AttributeRouteModel
+                    //            {
+                    //                Order = 2,
+                    //                Template = AttributeRouteModel.CombineTemplates(
+                    //                    selector.AttributeRouteModel.Template,
+                    //                    "{otherPagesTemplate?}"
+                    //                    )
+                    //            }
+                    //        });
+
+                    //    }
+
+                    //});
 
 
-                    options.Conventions.AddPageRoute("/Contact", "ThecontactPage/{text?}");
+
+                    //options.Conventions.AddPageRouteModelConvention("/About", model =>
+                    //{
+                    //    var selectorCount = model.Selectors.Count;
+                    //    for (int i = 0; i < selectorCount; i++)
+                    //    {
+                    //        var selector = model.Selectors[i];
+                    //        model.Selectors.Add(new SelectorModel
+                    //        {
+                    //            AttributeRouteModel = new AttributeRouteModel
+                    //            {
+                    //                Order = 2,
+                    //                Template = AttributeRouteModel.CombineTemplates(
+                    //                      selector.AttributeRouteModel.Template,
+                    //                      "{aboutTemplate?}"
+                    //                      )
+                    //            }
+                    //        });
+
+                    //    }
+
+                    //});
 
 
-
-                    options.Conventions.AddFolderApplicationModelConvention("/OtherPages", model =>
-                    {
-
-                        model.Filters.Add(new AddHeaderAttribute(
-                            "OtherPagesHeader", new string[] { "OtherPages Header Value" }));
-                    });
+                    //options.Conventions.Add(
+                    //    new PageRouteTransformerConvention(
+                    //        new SlugifyParameterTransformer()
+                    //        ));
 
 
-                    options.Conventions.AddPageApplicationModelConvention("/About", model =>
-                    {
-                        model.Filters.Add(new AddHeaderAttribute("AboutHeader", new string[] { "About Header Value" }));
+                    //options.Conventions.AddPageRoute("/Contact", "ThecontactPage/{text?}");
+                    
 
-                    });
+                    //options.Conventions.AddFolderApplicationModelConvention("/OtherPages", model =>
+                    //{
 
-                    //此处的测试未通过
-                    options.Conventions.ConfigureFilter(model => {
-                        if(model.RelativePath.Contains("OtherPages/page2"))
-                        {
-                            return new AddHeaderAttribute("OtherPagesPage2Header"
-                                , new string[] { "OtherPages/Page2 Header Value" });
-                        }
-                        return new EmptyFilter();
-                    });
+                    //    model.Filters.Add(new AddHeaderAttribute(
+                    //        "OtherPagesHeader", new string[] { "OtherPages Header Value" }));
+                    //});
 
-                    options.Conventions.ConfigureFilter(new AddHeaderWithFactory());
+
+                    //options.Conventions.AddPageApplicationModelConvention("/About", model =>
+                    //{
+                    //    model.Filters.Add(new AddHeaderAttribute("AboutHeader", new string[] { "About Header Value" }));
+
+                    //});
+
+                    ////此处的测试未通过
+                    //options.Conventions.ConfigureFilter(model => {
+                    //    if(model.RelativePath.Contains("OtherPages/page2"))
+                    //    {
+                    //        return new AddHeaderAttribute("OtherPagesPage2Header"
+                    //            , new string[] { "OtherPages/Page2 Header Value" });
+                    //    }
+                    //    return new EmptyFilter();
+                    //});
+
+                    //options.Conventions.ConfigureFilter(new AddHeaderWithFactory());
 
 
                 })
@@ -132,6 +135,8 @@ namespace My.RazorRoute.Study
 
                 
         }
+ 
+
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
