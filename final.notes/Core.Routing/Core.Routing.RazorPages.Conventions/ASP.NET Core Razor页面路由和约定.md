@@ -357,47 +357,341 @@ dbug: My.RazorRoute.Study.Conventions.GlobalTemplatePageRouteModelConvention[0]
 
 此时可以得到路由模板中globalTemplate的值。
 
+### IPageApplicationModelConvention——应用模型约定
+
+可以创建实现了IPageApplicationModelConvention接口的实体类，并将其实例作为参数传递给PageConventionCollection的Add()方法。这些实例将在页面应用模型构造过程中应用。
+
+创建一个实现了IPageApplicationModelConvention接口的实体类：
+
+```c#
+public class GlobalHeaderPageApplicationModelConvention : IPageApplicationModelConvention
+{
+    public void Apply(PageApplicationModel model)
+    {
+        model.Filters.Add(new AddHeaderAttribute("GlobalHeader", 
+            new string[] { "Global Header Value" }));
+    }
+}
+```
+
+上述中的AddHeaderAttribute是一个基于ResultFilterAttribute特性类的自定义属性，ResultFilterAttribute是一个内置筛选器，[可以通过它进行扩展](https://docs.microsoft.com/zh-cn/aspnet/core/razor-pages/filter?view=aspnetcore-2.2#implement-a-filter-attribute)：
+
+```c#
+public class AddHeaderAttribute: ResultFilterAttribute
+{
+    private readonly string _name;
+    private readonly string[] _values;
+
+    public AddHeaderAttribute(string name,string [] values)
+    {
+        _name = name;
+        _values = values;
+    }
+
+    public override void OnResultExecuting(ResultExecutingContext context)
+    {
+        context.HttpContext.Response.Headers.Add(_name, _values);
+        base.OnResultExecuting(context);
+    }
+}
+```
+
+在Startup类的ConfigureServices方法中进行添加：
+
+```c#
+public void ConfigureServices(IServiceCollection services)
+{  
+    services.AddMvc()
+        .AddRazorPagesOptions(options =>
+        {       
+            options.Conventions.Add(
+            new GlobalHeaderPageApplicationModelConvention());
+        })
+		.SetCompatibilityVersion(CompatibilityVersion.Version_2_2);     
+}
+```
+
+运行项目，访问任意页面， 均可在响应的标头信息中，看到上述中添加的GlobalHeader值：
+
+![rc_03](assets/rc_03.png)
+
+实现IPageApplicationModelConvention接口的实例的Apply()方法，会在每个页面的应用模型构造过程中被调用。
+
+### IPageHandlerModelConvention——处理程序模型约定
+
+可以创建实现了IPageHandlerModelConvention接口的实体类，并将其实例作为参数传递给PageConventionCollection的Add()方法，这些实例将在页面处理程序模型构造过程中应用。
+
+创建实现了IPageHandlerModelConvention接口的实体类：
+
+```c#
+public class GlobalPageHandlerModelConvention
+    : IPageHandlerModelConvention
+{
+    public void Apply(PageHandlerModel model)
+    {
+        ...
+    }
+}
+```
+
+在Startup类的ConfigureServices()方法中进行添加：
+
+```c#
+services.AddMvc()
+    .AddRazorPagesOptions(options =>
+        {
+            options.Conventions.Add(new GlobalPageHandlerModelConvention());
+        });
+```
+
+实现了IPageHandlerModelConvention接口的Apply()方法，将在任意页面的处理程序模型构造过程中被调用。
+
+### PageRouteTransformerConvention——页面路由参数转换约定
+
+PageRouteTransformerConvention是一个实现了IPageConvention接口和IPageRouteModelConvention接口的类，它的定义如下：
+
+```c#
+public class PageRouteTransformerConvention : IPageRouteModelConvention, IPageConvention
+{
+    public PageRouteTransformerConvention(IOutboundParameterTransformer parameterTransformer);
+    public void Apply(PageRouteModel model);
+	protected virtual bool ShouldApply(PageRouteModel action);
+}
+```
+
+因此它的实例也可以作为参数，传递给PageConventionCollection的Add()方法。
+
+PageRouteTransformerConvention包含一个参数为IOutboundParameterTransformer的构造函数，IOutboundParameterTransformer接口用于参数值转换，可以自定义一个实现该接口的实体类，这样在调用PageRouteTransformerConvention类的构造函数时，就可以将实体类的实例作为参数进行传入。这个实体类被称为参数转换程序，它可以将输入的路由值更改为另一个值输出。
+
+PageRouteTransformerConvention仅将来自Razor中的Pages文件夹和文件名称自动生成的段对应的页面路由进行转换，例如，假如一个Razor页面在/Pages/My/Abc.cshtml下，那么PageRouteTransformerConvention仅对自动生成的段/My/Abc.cshtml进行转换，如果页面使用了@page指令，指定了路由模板，PageRouteTransformerConvention将不会转换@page指令设置的路由，同时也不会转换通过其他方法（例如AddPageRoute）添加的路由。一句话概括就是，PageRouteTransformerConvention只可以转换基于文件目录自动生成的页面路由中的段。
+
+上文中已经提到过，使用PageRouteTransformerConvention时，必须有实现IOutboundParameterTransformer接口的实体类，这样才能调用它的构造函数。
+
+首先定义一个实现了IOutboundParameterTransformer接口的实体类：
+
+```c#
+public class SlugifyParameterTransformer : IOutboundParameterTransformer
+{
+    public string TransformOutbound(object value)
+    {
+        if (value == null) { return null; }
+        string str= Regex.Replace(value.ToString(),"([a-z])([A-Z])", "$1-$2").ToLower();
+        return str;
+    }
+}
+```
+
+上述自定义的SlugifyParameterTransformer类即为一个转换程序，它用于将默认的段转换为另一个形式，例如，如果段为OtherPages，执行上述方法之后，将会返回other-pages，如下图所示：
+
+![rc_04](assets/rc_04.png)
+
+在Startup类的ConfigureServices()方法中进行调用：
+
+```c#
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddMvc()
+        .AddRazorPagesOptions(options =>
+            {
+                options.Conventions.Add(
+                    new PageRouteTransformerConvention(
+                        new SlugifyParameterTransformer()));
+            });
+}
+```
+
+运行程序，通过上图中的断点执行情况来看，自定义的转换程序会在自动生成页面路由的段时执行（不会在每个页面访问前运行），有多少个段就执行多少次，例如/Pages/OtherPages/Page_1.cshtml页面，自动生成的路由段有OtherPages和Page_1，因此针对这个页面会执行两次（具体可以加断点进行验证），一旦执行了转换程序，就不能直接使用/OtherPages/Page_1路由访问页面，而只能使用/Other-Pages/page_1进行访问。
+
+### Add()方法的参数如何选择与对比
+
+上文中分别讲述了可以为Add()方法传入的参数可选类型，下面对这些类型进行概括和比较：
+
+#### 触发时机
+
+IPageApplicationModelConvention、IPageHandlerModelConvention会在页面路由第一次被请求时执行，例如/About页面，当第一次访问该页面时，这两个方法接口对应的方法都会执行，如果再次访问就不会触发。
+
+IPageRouteModelConvention会在所有的页面路由模型生成时执行，访问具体的页面时不会被触发。
+
+PageRouteTransformerConvention会在自动生成的路由段时被执行，访问具体的页面不会被触发。
+
+#### Apply()方法参数和适用场景
+
+IPageRouteModelConvention和PageRouteTransformerConvention类的成员方法Apply()的参数都是PageRouteModel类型，PageRouteModel类可以对路由的模板和顺序值进行设置，因此如果是针对路由模板的操作，优先使用这两个类型的成员，其中PageRouteTransformerConvention主要用于路由值的转换，除此之外，优先使用IPageRouteModelConvention成员。
+
+IPageApplicationModelConvention的Apply()方法的参数是PageApplicationModel类型，PageApplicationModel类的Filters属性可以执行筛选操作。
+
+IPageHandlerModelConvention的Apply()方法的参数是PageHandlerModel类型，该类型可以获取处理的类型（GET、Post）、参数等信息，PageHandlerModel的Page属性也可以获取到PageApplicationModel类型对象，用法和IPageApplicationModelConvention.Apply()的参数PageApplicationModel用法类似。
 
 
 
+## AddFolderRouteModelConvention()和AddPageRouteModelConvention()
 
-### 路由模型约定
+除了Add()方法之外，PageConventionCollection还提供了AddFolderRouteModelConvention()和AddPageRouteModelConvention()方法。这两个方法都返回IPageRouteModelConvention，并且传入的委托都是PageRouteModel类型。
 
-### 应用模型约定
+### AddFolderRouteModelConvention()
 
-### 处理程序模型约定
+该方法的声明如下：
+
+```c#
+public Microsoft.AspNetCore.Mvc.ApplicationModels.IPageRouteModelConvention AddFolderRouteModelConvention (string folderPath, Action<Microsoft.AspNetCore.Mvc.ApplicationModels.PageRouteModel> action);
+```
+
+需要注意的是该方法返回的类型是IPageRouteModelConvention，它与上文介绍的Add()方法传入的参数是IPageRouteModelConvention类型的一样，因此调用AddFolderRouteModelConvention()方法，与直接为Add()方法传入IPageRouteModelConvention类型的参数的用法类似，只不过是一个需要显示的在Apply()方法中进行处理，而AddFolderRouteModelConvention()方法，只需要在第二个参数对应的委托中进行处理即可。
+
+另外需要注意的是，AddFolderRouteModelConvention()方法可以为指定文件夹下的所有页面调用PageRouteModel上的操作，而Add()方法（参数为IPageRouteModelConvention的版本）针对的是所有页面， 除此之外二者没有区别。
+
+下述代码使用AddFolderRouteModelConvention()方法为OtherPages文件夹下的所有页面的路由模板追加"`{otherPagesTemplate?}`"：
+
+```c#
+options.Conventions.AddFolderRouteModelConvention("/OtherPages", model =>
+{
+    var selectorCount = model.Selectors.Count;
+    for (var i = 0; i < selectorCount; i++)
+    {
+        var selector = model.Selectors[i];
+        model.Selectors.Add(new SelectorModel
+        {
+            AttributeRouteModel = new AttributeRouteModel
+            {
+                Order = 2,
+                Template = AttributeRouteModel.CombineTemplates(
+                    selector.AttributeRouteModel.Template, 
+                    "{otherPagesTemplate?}"),
+            }
+        });
+    }
+});
+```
+
+Page_1.cshtml.cs：
+
+```c#
+public class Page_1 : PageModel
+{
+    public string RouteDataGlobalTemplateValue { get; private set; }
+
+    public string RouteDataOtherPagesTemplateValue { get; private set; }
+
+    public void OnGet()
+    {
+        if(RouteData.Values["globalTemplate"]!=null)
+        {
+            RouteDataGlobalTemplateValue = $"globalTemplate提供了路由数据：{RouteData.Values["globalTemplate"]}";
+        }
+
+        if (RouteData.Values["otherPagesTemplate"] != null)
+        {
+            RouteDataOtherPagesTemplateValue =
+                 $"otherPagesTemplate：{RouteData.Values["otherPagesTemplate"]}"; 
+        }
+    }
+}
+```
+
+Page_1.cshtml：
+
+```html
+<body>
+    <h1>Page_1</h1>
+    <div>@Model.RouteDataGlobalTemplateValue</div>
+
+    <p>@Model.RouteDataOtherPagesTemplateValue</p>
+</body>
+```
+
+运行程序，如果只含有上述配置项时，访问/OtherPages/page_1/a，显示效果如下：
+
+![rc_05](assets/rc_05.png)
+
+如果同时启用本文前面的Add()方法，传入实现了IPageRouteModelConvention接口的实体：
+
+```c#
+options.Conventions.Add(
+    new GlobalTemplatePageRouteModelConvention(
+        loggerFacotry.CreateLogger<GlobalTemplatePageRouteModelConvention>()
+    ));
+```
+
+仍然访问/OtherPages/Page_1/a，此时显示效果如下：
+
+![rc_06](assets/rc_06.png)
+
+这是因为在GlobalTemplatePageRouteModelConvention实现IPageRouteModelConvention的Apply()方法时，将AttributeRouteModel的Order属性值设置为了1，因此它有更高的优先级匹配路由数据值。这正是Order属性的用处。
+
+若在同时启用了Add()和AddFolderRouteModelConvention()方法的情况下，同时显示这两个路由值，可以访问/OtherPages/Page_1/a/b，显示效果如下：
+
+![rc_07](assets/rc_07.png)
+
+目前对这种显示现象没有特别官方的说明。
+
+### AddPageRouteModelConvention()
+
+与AddFolderRouteModelConvention()方法都返回相同类型（IPageRouteModelConvention）的值，并且调用方法的方式和传入的委托参数的类型（PageRouteModel）都相同，唯一不同的是，AddFolderRouteModelConvention()方法中的PageRouteModel上的操作，针对的是指定名称的文件夹下的页面，而AddPageRouteModelConvention()针对的是指定名称的页面调用PageRouteModel上的操作。除此之外，其他的方法调用和PageRouteModel操作都一样。
+
+下述代码使用AddPageRouteModelConvention()方法将"{aboutTemplate?}"路由模板添加到About页面（About.cshtml未在OtherPages文件夹下）：
+
+```c#
+options.Conventions.AddPageRouteModelConvention("/About", model =>
+{
+    var selectorCount = model.Selectors.Count;
+    for (var i = 0; i < selectorCount; i++)
+    {
+        var selector = model.Selectors[i];
+        model.Selectors.Add(new SelectorModel
+        {
+            AttributeRouteModel = new AttributeRouteModel
+            {
+                Order = 2,
+                Template = AttributeRouteModel.CombineTemplates(
+                    selector.AttributeRouteModel.Template, 
+                    "{aboutTemplate?}"),
+            }
+        });
+    }
+});
+```
+
+它的显示效果和说明与调用AddFolderRouteModelConvention()类似，此处不再累述。
 
 
 
-## 页面路由操作约定
-
-AddFolderRouteModelConvention
+## AddFolderApplicationModelConvention()和AddPageApplicationModelConvention()
 
 
 
-### 文件夹路由模型约定
-
-### 页面路由模型约定
+## 使用AddPageRoute()方法配置页面路由
 
 
 
-## 参数转换器用于自定义页面路由
+## 使用ConfigureFilter()方法配置筛选器
 
-
-
-## 配置页面路由
-
-
-
-## 页面模型操作约定
-
-### 文件夹应用模型约定
-
-### 页面应用模型约定
-
-### 配置筛选器
+### 配置指定的筛选器
 
 ### 配置筛选器工厂
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
 
 
 
