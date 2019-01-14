@@ -38,10 +38,11 @@ namespace My.RazorRoute.Study
             services.AddMvc()
                 .AddRazorPagesOptions(options =>
                 {
-                    options.Conventions.Add(
-                        new GlobalTemplatePageRouteModelConvention(
-                            loggerFacotry.CreateLogger<GlobalTemplatePageRouteModelConvention>()
-                        ));
+                    //options.Conventions.Add(
+                    //    new GlobalTemplatePageRouteModelConvention(
+                    //        loggerFacotry.CreateLogger<GlobalTemplatePageRouteModelConvention>()
+                    //    ));
+
                     //options.Conventions.Add(new GlobalHeaderPageApplicationModelConvention());
                     //options.Conventions.Add(new GlobalPageHandlerModelConvention());
 
@@ -98,8 +99,8 @@ namespace My.RazorRoute.Study
                     //        ));
 
 
-                    //options.Conventions.AddPageRoute("/Contact", "ThecontactPage/{text?}");
-                    
+                    options.Conventions.AddPageRoute("/Contact", "ThecontactPage/{text?}");
+
 
                     //options.Conventions.AddFolderApplicationModelConvention("/OtherPages", model =>
                     //{

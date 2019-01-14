@@ -11,7 +11,9 @@ namespace My.RazorRoute.Study.Conventions
     {
         public void Apply(PageApplicationModel model)
         {
-            model.Filters.Add(new AddHeaderAttribute("GlobalHeader", new string[] { "Global Header Value" }));
+             
+            model.Filters.Add(new AddHeaderAttribute("GlobalHeader", 
+                new string[] { "Global Header Value" }));
         }
     }
 }

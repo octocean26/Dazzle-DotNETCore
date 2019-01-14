@@ -10,7 +10,7 @@ namespace My.RazorRoute.Study.Conventions
     {
         public void Apply(PageHandlerModel model)
         {
-             
+            
         }
     }
 }
