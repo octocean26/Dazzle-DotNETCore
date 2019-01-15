@@ -99,7 +99,7 @@ namespace My.RazorRoute.Study
                     //        ));
 
 
-                    options.Conventions.AddPageRoute("/Contact", "ThecontactPage/{text?}");
+                    //options.Conventions.AddPageRoute("/Contact", "ThecontactPage/{text?}");
 
 
                     //options.Conventions.AddFolderApplicationModelConvention("/OtherPages", model =>
@@ -116,9 +116,10 @@ namespace My.RazorRoute.Study
 
                     //});
 
-                    ////此处的测试未通过
-                    //options.Conventions.ConfigureFilter(model => {
-                    //    if(model.RelativePath.Contains("OtherPages/page2"))
+
+                    //options.Conventions.ConfigureFilter(model =>
+                    //{
+                    //    if (model.RelativePath.Contains("OtherPages/Page2"))
                     //    {
                     //        return new AddHeaderAttribute("OtherPagesPage2Header"
                     //            , new string[] { "OtherPages/Page2 Header Value" });
@@ -126,7 +127,8 @@ namespace My.RazorRoute.Study
                     //    return new EmptyFilter();
                     //});
 
-                    //options.Conventions.ConfigureFilter(new AddHeaderWithFactory());
+
+                    options.Conventions.ConfigureFilter(new AddHeaderWithFactory());
 
 
                 })

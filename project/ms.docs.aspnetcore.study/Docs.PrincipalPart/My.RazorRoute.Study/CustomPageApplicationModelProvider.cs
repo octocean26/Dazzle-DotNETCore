@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace My.RazorRoute.Study
 {
     public class CustomPageApplicationModelProvider
-        //: DefaultPageApplicationModelProvider 2.2暂不支持
+        //: DefaultPageApplicationModelProvider
     {
     }
 }

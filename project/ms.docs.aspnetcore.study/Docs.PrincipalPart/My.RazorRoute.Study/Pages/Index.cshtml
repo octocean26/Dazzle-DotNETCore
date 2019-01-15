@@ -1,4 +1,5 @@
 ﻿@page
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @model My.RazorRoute.Study.Pages.IndexModel
 @{
     Layout = null;
@@ -16,5 +17,8 @@
     <div>@Model.RouteDataGlobalTemplateValue</div>
 
     <p>@Model.RouteDataOtherPagesTemplateValue</p>
+
+    <a asp-page="Contact">Contact</a>
+
 </body>
 </html>

@@ -13,7 +13,7 @@ namespace My.RazorRoute.Study.Pages
 
         public string RouteDataTextTemplateValue { get; private set; }
 
-        public void OnGet()
+        public void OnGet(string text)
         {
             Message = "Your contact page.";
 
