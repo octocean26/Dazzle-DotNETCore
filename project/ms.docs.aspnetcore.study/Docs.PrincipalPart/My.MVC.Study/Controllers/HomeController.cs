@@ -11,6 +11,7 @@ namespace My.MVC.Study.Controllers
         [ViewData]
         public string Message { get; set; }
 
+         
         public IActionResult Index()
         {
             Message = "Hello，MVC";
