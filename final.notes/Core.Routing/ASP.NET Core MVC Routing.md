@@ -11,7 +11,7 @@
 - 路由参数/路由参数名称：即路由模板中的“controller”、“action”、“id”等，除了系统保留的路由参数名称，也可以自定义路由参数名称（如上述中的“id”）。
 - 路由名称：即路由模板中的“default”，通常作为方法的name参数进行传入，具体见本文介绍。
 - 路由集合/路由表：
-- 
+- 路由标记：路由模板中使用中括号（[，]）括起来的部分，一般为[action]、[area] 和 [controller]，实际匹配时，这些标记被替换为操作方法名称值、区域名称值和控制器名称值。路由标记的主要作用是替换，而路由参数的主要作用是定义参数，以便在操作方法中获取对应的参数的值。
 
 
 
@@ -60,7 +60,7 @@ routes.MapRoute("default", "{controller=Home}/{action=Index}/{id?}");
 
 
 
-## 多个路由
+## 添加多个路由
 
 通过添加对 MapRoute 的多次调用，可以在 UseMvc 内添加多个路由。 这样做可以定义多个约定，或添加专用于特定操作的传统路由，例如：
 
@@ -158,9 +158,204 @@ public class ProductsApiController : Controller
 
 第二个参数Name即为路由名称，这里的路由名称为”Products_List“，和上文介绍的路由名称一样，这里的路由名称也不影响路由的URL匹配行为，仅用于生成URL，路由名称必须在应用程序范围内唯一。
 
-### 
+
 
 ## 合并路由
+
+即在控制器上使用路由属性将各个操作上的属性路由进行合并，从而使属性路由减少重复。
+
+控制器上定义的所有路由模板，将会作为操作方法上的路由模板的前缀一同被映射使用（以/或~/开头的路由模板除外）
+
+在控制器上使用的路由属性，会使该控制器中的所有操作方法都使用属性路由。
+
+```c#
+[Route("products")]
+public class ProductsApiController : Controller
+{
+   [HttpGet]
+   public IActionResult ListProducts() { ... }
+
+   [HttpGet("{id}")] //可以匹配的url：/products/5
+   public ActionResult GetProduct(int id) { ... }
+}
+```
+
+**注意：操作方法上的以/或~/开头的路由模板，不会和应用于控制器上的路由模板合并，而是作为独立的路由模板被使用。**
+
+
+
+## 路由排序
+
+默认情况下，更具体特定的路由比一般的路由先执行，例如：blog/search/{topic} 这样的路由比像 blog/{*article} 这样的路由更具体更特定，因此它具有更高的优先级先运行。
+
+属性路由也可以使用框架提供的所有路由都具有的属性Order来配置顺序，路由按 Order 属性的升序进行处理。 默认顺序为 0。 使用 Order = -1 设置的路由比未设置顺序的路由先运行。 使用 Order = 1 设置的路由在默认路由排序后运行。
+
+注意：虽然可以通过设置Order属性改变路由的匹配顺序，但是通常不建议这么做，如果用于 URL 生成的默认顺序不起作用，使用路由名称作为替代项通常比应用 Order 属性更简单。
+
+
+
+## 路由模板中的标记替换（[controller]、[action]、[area]）
+
+路由模板中，使用中括号（[和]）括起来的部分被称为路由标记，常见的标记有[controller]、[action]、[area]，这些标记在路由映射时，分别被替换为路由的操作方法名称值、区域名称值和控制器名称值。
+
+路由标记常被应用在属性路由中，标记替换发生在属性路由生成的最后一步。
+
+控制器属性路由中使用标记替换：
+
+```c#
+[Route("[controller]/[action]")]
+public class ProductsController : Controller
+{
+    [HttpGet] // 匹配： '/Products/List'
+    public IActionResult List() {
+        // ...
+    }
+
+    [HttpGet("{id}")] // 匹配： '/Products/Edit/{id}'
+    public IActionResult Edit(int id) {
+        // ...
+    }
+}
+```
+
+操作方法的属性路由中使用标记替换：
+
+```c#
+public class ProductsController : Controller
+{
+    [HttpGet("[controller]/[action]")] // Matches '/Products/List'
+    public IActionResult List() {
+        // ...
+    }
+
+    [HttpGet("[controller]/[action]/{id}")] // Matches '/Products/Edit/{id}'
+    public IActionResult Edit(int id) {
+        // ...
+    }
+}
+```
+
+**属性路由还可以与继承结合使用，尤其是与标记替换结合使用尤为强大。**
+
+```c#
+[Route("api/[controller]")]
+public abstract class MyBaseController : Controller { ... }
+
+public class ProductsController : MyBaseController
+{
+   [HttpGet] // Matches '/api/Products'
+   public IActionResult List() { ... }
+
+   [HttpPut("{id}")] // Matches '/api/Products/{id}'
+   public IActionResult Edit(int id) { ... }
+}
+```
+
+### 路由名称中的标记替换
+
+标记替换也适用于属性路由定义的路由名称。
+
+```c#
+[Route("[controller]/[action]", Name="[controller]_[action]")]
+```
+
+上述代码为每项操作生成一个唯一的路由名称。
+
+**注意：若要匹配文本标记替换分隔符 [ 或 ]，可通过重复该字符（[[ 或 ]]）对其进行转义。**
+
+### 使用参数转换程序自定义属性路由标记替换
+
+属性路由支持使用参数转换程序自定义标记替换方式。
+
+参数转换程序是一个实现了IOutboundParameterTransformer接口的类，用于转换参数值。
+
+```c#
+public class SlugifyParameterTransformer : IOutboundParameterTransformer
+{
+    public string TransformOutbound(object value)
+    {
+        if (value == null) return null;
+
+        return Regex.Replace(value.ToString(), "([a-z])([A-Z])", "$1-$2").ToLower();
+    }
+}
+```
+
+上述代码中的转换程序可以将“MyTest“路由值转换为”my-test“。
+
+如果想要将参数转换程序应用到属性路由中，需要使用RouteTokenTransformerConvention（应用程序模型约定），RouteTokenTransformerConvention可以将参数转换程序应用到程序中的所有属性路由上。它在 ConfigureServices 中注册为选项：
+
+```c#
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddMvc(options => {
+    	//添加路由转换程序
+        options.Conventions.Add(new RouteTokenTransformerConvention(new SlugifyParameterTransformer()));
+    }).SetCompatibilityVersion(CompatibilityVersion.Version_2_2); ;
+}
+```
+
+控制器示例：
+
+```c#
+public class SubscriptionManagementController : Controller
+{
+    [HttpGet("[controller]/[action]")] // 匹配： '/subscription-management/list-all'
+    public IActionResult ListAll() { ... }
+}
+```
+
+**注意：参数转换程序只能作用于属性路由，默认路由不受影响。**例如，下述操作方法没有使用属性路由，即使配置的转换程序，依然只能使用默认路由进行匹配：
+
+```c#
+//[Route("[action]")] 
+public IActionResult MyTest() //属性路由被注释，只能匹配：/SubscriptionManagement/mytest
+{
+    return View();
+}
+```
+
+
+
+## 作用于同一个操作方法或控制器上的多个路由
+
+可以在同一个操作方法或控制器上定义多个路由。例如：
+
+```c#
+[Route("[controller]")]
+public class ProductsController : Controller
+{
+   [Route("")]     // Matches 'Products'
+   [Route("Index")] // Matches 'Products/Index'
+   public IActionResult Index()
+}
+```
+
+在控制器上放置多个路由属性意味着，每个路由属性将与操作方法上的每个路由属性合并。
+
+```c#
+[Route("Store")]
+[Route("[controller]")]
+public class ProductsController : Controller
+{
+   [HttpPost("Buy")]     // Matches 'Products/Buy' and 'Store/Buy'
+   [HttpPost("Checkout")] // Matches 'Products/Checkout' and 'Store/Checkout'
+   public IActionResult Buy()
+}
+[Route("api/[controller]")]
+public class ProductsController : Controller
+{
+   [HttpPut("Buy")]      // Matches PUT 'api/Products/Buy'
+   [HttpPost("Checkout")] // Matches POST 'api/Products/Checkout'
+   public IActionResult Buy()
+}
+```
+
+
+
+
+
+
 
 
 
