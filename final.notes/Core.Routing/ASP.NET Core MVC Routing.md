@@ -435,11 +435,123 @@ public class NamespaceRoutingConvention : IControllerModelConvention
 
 
 
+## 混合路由：属性路由与传统路由
+
+MVC 应用程序可以混合使用传统路由与属性路由。 
+
+传统路由：通常用于为浏览器处理HTML页面的控制器；
+
+属性路由：通常用于处理REST API的控制器；
+
+控制器操作方法既支持传统路由，也支持属性路由。但是不能同时存在，一旦指定了属性路由，那么传统路由将不再支持访问。
+
+属性路由比传统路由具有更高的优先级。
 
 
 
+## Url生成
+
+MVC应用程序可以使用控制器的Url属性，生成指向操作方法的URL链接。它
+
+```c#
+public IUrlHelper Url { get; set; }
+```
+
+IUrlHelper 接口用于生成 URL，在控制器、视图和视图组件中，可通过 Url 属性得到IUrlHelper 的实例。
+
+```c#
+using Microsoft.AspNetCore.Mvc;
+
+public class UrlGenerationController : Controller
+{
+    [HttpGet("")]
+    public IActionResult Source()
+    {
+        var url = Url.Action("Destination"); // Generates /custom/url/to/destination
+        return Content($"Go check out {url}, it's really great.");
+    }
+
+    [HttpGet("custom/url/to/destination")]
+    public IActionResult Destination() {
+        return View();
+    }
+}
+```
+
+### 根据操作名称生成URL
+
+Url.Action()的所有相关重载方法，都是通过指定控制器名称和操作名称来生成链接的。
+
+```c#
+public class TestController : Controller
+{
+    public IActionResult Index()
+    {
+        // Generates /Products/Buy/17?color=red
+        var url = Url.Action("Buy", "Products", new { id = 17, color = "red" });
+        return Content(url);
+    }
+}
+```
+
+若要创建绝对 URL，请使用采用 protocol 的重载：
+
+```c#
+Url.Action("Buy", "Products", new { id = 17 }, protocol: Request.Scheme);
+```
+
+### 根据路由生成URL
+
+使用Url.RouteUrl()方法可以根据路由生成URL。最常见的用法是指定一个路由名称，以使用特定路由来生成 URL，通常不指定控制器或操作名称。
+
+```c#
+public class UrlGenerationController : Controller
+{
+    [HttpGet("")]
+    public IActionResult Source()
+    {
+        var url = Url.RouteUrl("Destination_Route"); // Generates /custom/url/to/destination
+        return Content($"See {url}, it's really great.");
+    }
+
+    [HttpGet("custom/url/to/destination", Name = "Destination_Route")]
+    public IActionResult Destination() {
+        return View();
+    }
+}
+```
+
+### 在HTML中生成URL
+
+IHtmlHelper 提供了 Html.BeginForm() 和 Html.ActionLink()方法，可分别生成 <form> 和 <a> 元素。这些方法使用 Url.Action())方法来生成 URL，并且采用相似的参数。 
+
+对应的HtmlHelper 的Url.RouteUrl()为Html.BeginRouteForm()和 Html.RouteLink()，两者具有相似的功能。
+
+### 在操作结果中生成URL
+
+控制器中最常见的用法是将 URL 生成为操作结果的一部分。
+
+ControllerBase 和 Controller 基类为操作结果提供简便的方法来引用另一项操作。 一种典型用法是在接受用户输入后进行重定向。
+
+```c#
+public IActionResult Edit(int id, Customer customer)
+{
+    if (ModelState.IsValid)
+    {
+        // Update DB with new details.
+        return RedirectToAction("Index");
+    }
+    return View(customer);
+}
+```
 
 
+
+## IActionConstraint
+
+
+
+https://docs.microsoft.com/zh-cn/aspnet/core/mvc/controllers/routing?view=aspnetcore-2.2#implementing-iactionconstraint
 
 
 
