@@ -316,6 +316,10 @@ public IActionResult Http([FromQuery] int p1 = 0)
 
 
 
+## 控制器中的依赖关系注入
+
+https://docs.microsoft.com/zh-cn/aspnet/core/mvc/controllers/dependency-injection?view=aspnetcore-2.2
+
 
 
 
