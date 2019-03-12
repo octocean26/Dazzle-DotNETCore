@@ -20,5 +20,10 @@ namespace My.MVC.Study.Controllers
         {
             return View();
         }
+        [MyCusRoute]
+        public IActionResult MyRoute()
+        {
+            return View();
+        }
     }
 }

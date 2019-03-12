@@ -353,6 +353,88 @@ public class ProductsController : Controller
 
 
 
+## 自定义路由属性
+
+### 实现IRouteTemplateProvider接口自定义路由属性
+
+框架提供的所有路由属性，如[Route(...)]、[HttpGet(...)] 等，都实现了IRouteTemplateProvider接口。当应用启动时，MVC 会查找控制器类和操作方法上的属性，并使用可实现 IRouteTemplateProvider接口的属性生成一组初始路由。
+
+同样，可实现IRouteTemplateProvider接口来自定义自己的路由属性。
+
+```c#
+public class MyCusRouteAttribute : Attribute, IRouteTemplateProvider
+{
+    //自定义路由模板
+    public string Template => "smallz/[controller]";
+
+    //路由顺序
+    public int? Order{get;set;}
+
+    //路由名称
+    public string Name { get; set; }
+}
+```
+
+每个实现IRouteTemplateProvider接口的路由，都包含自定义路由模板、顺序和名称属性。
+
+应用自定义路由属性：
+
+```c#
+[MyCusRoute]
+public IActionResult MyRoute()
+{
+    return View();
+}
+```
+
+上述的操作方法（控制器名为Home）使用了自定义路由属性MyCusRoute，当使用url为/smallz/Home进行访问时，就可以匹配到该操作上。
+
+### 使用应用程序模型自定义属性路由
+
+> 应用程序模型是一个在启动时创建的对象模型，MVC 可使用其中的所有元数据来路由和执行操作。 应用程序模型包含从路由属性收集（通过 IRouteTemplateProvider）的所有数据。 可通过编写约定在启动时修改应用程序模型，以便自定义路由的行为方式。 
+
+```c#
+public class NamespaceRoutingConvention : IControllerModelConvention
+{
+    private readonly string _baseNamespace;
+
+    public NamespaceRoutingConvention(string baseNamespace)
+    {
+        _baseNamespace = baseNamespace;
+    }
+
+    public void Apply(ControllerModel controller)
+    {
+        var hasRouteAttributes = controller.Selectors.Any(selector => selector.AttributeRouteModel != null);
+
+        if (hasRouteAttributes)
+        {
+            return;
+        }
+
+        var namespc = controller.ControllerType.Namespace;
+        if (namespc == null)
+        {
+            return;
+        }
+        var template = new StringBuilder();
+        template.Append(namespc, _baseNamespace.Length + 1, namespc.Length - _baseNamespace.Length - 1);
+        template.Replace('.', '/');
+        template.Append("/[controller]");
+
+        foreach (var selector in controller.Selectors)
+        {
+            selector.AttributeRouteModel = new AttributeRouteModel()
+            {
+                Template = template.ToString()
+            };
+        }
+    }
+}
+```
+
+
+
 
 
 
