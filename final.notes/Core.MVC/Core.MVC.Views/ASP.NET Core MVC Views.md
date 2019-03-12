@@ -529,3 +529,8 @@ Pages/ArticlesRP/_ArticleSectionRP.cshtml 是示例中引用的第二个分部�
 
 ## 分部视图和视图组件的区别
 
+
+
+## 视图中的依赖关系注入
+
+https://docs.microsoft.com/zh-cn/aspnet/core/mvc/views/dependency-injection?view=aspnetcore-2.2
