@@ -533,4 +533,6 @@ Pages/ArticlesRP/_ArticleSectionRP.cshtml 是示例中引用的第二个分部�
 
 ## 视图中的依赖关系注入
 
-https://docs.microsoft.com/zh-cn/aspnet/core/mvc/views/dependency-injection?view=aspnetcore-2.2
+ASP.NET Core支持将依赖关系注入到视图，但是实际应用中，应避免直接使用注入到视图的服务，而应该通过控制器传入。
+
+详细请参考：https://docs.microsoft.com/zh-cn/aspnet/core/mvc/views/dependency-injection?view=aspnetcore-2.2
