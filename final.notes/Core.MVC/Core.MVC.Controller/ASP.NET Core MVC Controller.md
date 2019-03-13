@@ -318,7 +318,140 @@ public IActionResult Http([FromQuery] int p1 = 0)
 
 ## 控制器中的依赖关系注入
 
-https://docs.microsoft.com/zh-cn/aspnet/core/mvc/controllers/dependency-injection?view=aspnetcore-2.2
+为了说明控制器中的依赖关系注入情况，首先定义一个简单的接口和对应的类：
+
+```c#
+interface IDateTime
+{
+    DateTime Now { get; }
+}
+```
+
+实现该接口的类：
+
+```c#
+public class SystemDateTime : IDateTime
+{
+    public DateTime Now => DateTime.Now;
+}
+```
+
+### 构造函数注入
+
+服务（通常使用接口来定义，如上述中的IDateTime）作为构造函数参数添加，并且运行时从服务容器中解析服务。
+
+可以通过下述方法将服务添加到服务容器中：
+
+```c#
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddSingleton<IDateTime, SystemDateTime>();
+
+    services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+}
+```
+
+在控制器的构造函数中使用：
+
+```c#
+public class HomeController : Controller
+{
+    private readonly IDateTime _dateTime;
+
+    public HomeController(IDateTime dateTime)
+    {
+        _dateTime = dateTime;
+    }
+
+    public IActionResult Index()
+    {
+        var serverTime = _dateTime.Now;
+        return View();
+    }
+}
+```
+
+### FromServices 的操作注入
+
+FromServicesAttribute 允许将服务直接注入到操作方法，而无需使用构造函数注入：
+
+```c#
+public IActionResult About([FromServices] IDateTime dateTime)
+{
+    ViewData["Message"] = $"Current server time: {dateTime.Now}";
+
+    return View();
+}
+```
+
+### 从控制器访问设置
+
+控制器有时需要访问应用的配置设置，一般使用选项（IOptions）管理配置，通常情况下，不直接将 IConfiguration 注入到控制器。
+
+定义一个表示选项的类：
+
+```c#
+public class SampleWebSettings
+{
+    public string Title { get; set; }
+    public int Updates { get; set; }
+}
+```
+
+将该类添加服务集合中：
+
+```c#
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddSingleton<IDateTime, SystemDateTime>();
+    services.Configure<SampleWebSettings>(Configuration);
+    
+    services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+}
+```
+
+将应用配置为从 JSON 格式文件中读取设置：
+
+```c#
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        CreateWebHostBuilder(args).Build().Run();
+    }
+
+    public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
+        WebHost.CreateDefaultBuilder(args)
+        .ConfigureAppConfiguration((hostingContext, config) =>
+        {
+            config.AddJsonFile("samplewebsettings.json", 
+                                optional: false,        // File is not optional.
+                                reloadOnChange: false);
+        })
+        .UseStartup<Startup>();
+}
+```
+
+在控制器中，从服务容器请求IOptions<SampleWebSettings> 设置：
+
+```c#
+public class SettingsController : Controller
+{
+    private readonly SampleWebSettings _settings;
+
+    public SettingsController(IOptions<SampleWebSettings> settingsOptions)
+    {
+        _settings = settingsOptions.Value;
+    }
+
+    public IActionResult Index()
+    {
+        ViewData["Title"] = _settings.Title;
+        ViewData["Updates"] = _settings.Updates;
+        return View();
+    }
+}
+```
 
 
 

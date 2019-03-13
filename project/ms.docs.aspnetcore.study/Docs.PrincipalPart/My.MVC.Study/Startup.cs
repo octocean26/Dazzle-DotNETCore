@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.Extensions.DependencyInjection;
+using My.MVC.Study.DI;
 
 namespace My.MVC.Study
 {
@@ -17,9 +18,9 @@ namespace My.MVC.Study
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc(options => {
-                options.Conventions.Add(new RouteTokenTransformerConvention(new SlugifyParameterTransformer()));
-            }).SetCompatibilityVersion(CompatibilityVersion.Version_2_2); ;
+            services.AddSingleton<IDateTime, SystemDateTime>();
+
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2); ;
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
