@@ -62,7 +62,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Razor页面路由", "Razor�
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Razor页面路由请参见Docs.Web目录中的RazorPages", "Razor页面路由请参见Docs.Web目录中的RazorPages", "{32B4A4EA-C7A5-4F45-939B-F15200A91D22}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "My.RazorRoute.Study", "My.RazorRoute.Study\My.RazorRoute.Study.csproj", "{C217ED6D-844C-4BC6-8D40-FD8E593A3627}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "My.RazorRoute.Study", "My.RazorRoute.Study\My.RazorRoute.Study.csproj", "{C217ED6D-844C-4BC6-8D40-FD8E593A3627}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "会话状态", "会话状态", "{D5B06432-AE03-4DAE-B931-E1541D9BE81D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "My.SessionCookie.Study", "My.SessionCookie.Study\My.SessionCookie.Study.csproj", "{508426CE-AFB0-42F3-AADD-686C684FEC25}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -102,6 +106,10 @@ Global
 		{C217ED6D-844C-4BC6-8D40-FD8E593A3627}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C217ED6D-844C-4BC6-8D40-FD8E593A3627}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C217ED6D-844C-4BC6-8D40-FD8E593A3627}.Release|Any CPU.Build.0 = Release|Any CPU
+		{508426CE-AFB0-42F3-AADD-686C684FEC25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{508426CE-AFB0-42F3-AADD-686C684FEC25}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{508426CE-AFB0-42F3-AADD-686C684FEC25}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{508426CE-AFB0-42F3-AADD-686C684FEC25}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -134,6 +142,8 @@ Global
 		{3C8015D3-3BA9-4451-8E2B-66E2D72C0449} = {22E8C9DB-0B5D-49EB-BC78-DD28F13EB5D1}
 		{32B4A4EA-C7A5-4F45-939B-F15200A91D22} = {4ECA8300-DB8D-4AE8-9F17-238CE14B83AF}
 		{C217ED6D-844C-4BC6-8D40-FD8E593A3627} = {3C8015D3-3BA9-4451-8E2B-66E2D72C0449}
+		{D5B06432-AE03-4DAE-B931-E1541D9BE81D} = {C0284FBA-F7EC-4548-A940-28E7C73CFA8B}
+		{508426CE-AFB0-42F3-AADD-686C684FEC25} = {D5B06432-AE03-4DAE-B931-E1541D9BE81D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {99CCB8A3-AB08-42F1-934C-B684FA6433FB}
