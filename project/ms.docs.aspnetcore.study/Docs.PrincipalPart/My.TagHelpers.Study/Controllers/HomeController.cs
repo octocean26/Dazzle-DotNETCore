@@ -10,6 +10,16 @@ namespace My.TagHelpers.Study.Controllers
     {
         public IActionResult Index()
         {
+            return RedirectToAction("Tag");
+        }
+
+        public IActionResult Tag()
+        {
+            return View();
+        }
+
+        public IActionResult Test()
+        {
             return View();
         }
     }

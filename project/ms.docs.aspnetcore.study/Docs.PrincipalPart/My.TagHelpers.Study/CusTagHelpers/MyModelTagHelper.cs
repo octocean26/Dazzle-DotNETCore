@@ -10,15 +10,15 @@ namespace My.TagHelpers.Study.CusTagHelpers
     //[HtmlTargetElement("myModel")]
     public class MyModelTagHelper:TagHelper
     {
-        public WebsiteContext Info { get; set; }
+        public WebsiteContext MyInfo { get; set; }
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
             output.TagName = "section";
             output.Content.SetHtmlContent($@"
 <ul>
-    <li>Version：{Info.Version}</li>
-    <li>Approved：{Info.Approved}</li>
-    <li>CopyrightYear：{Info.CopyrightYear}</li>
+    <li>Version：{MyInfo.Version}</li>
+    <li>Approved：{MyInfo.Approved}</li>
+    <li>CopyrightYear：{MyInfo.CopyrightYear}</li>
 </ul>");
             output.TagMode = TagMode.StartTagAndEndTag;
 

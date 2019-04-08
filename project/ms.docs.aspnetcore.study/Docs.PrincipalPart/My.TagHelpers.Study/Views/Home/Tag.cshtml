@@ -1,0 +1,51 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>内置标记帮助程序</title>
+</head>
+<body>
+
+
+    <h2>a标记的使用</h2>
+    <a asp-controller="Speaker" asp-action="Index"> All Speakers</a>
+    <br />
+    <a asp-controller="Speaker">只使用asp-controller示例</a>
+    <br />
+    <a asp-controller="Speaker" asp-action="Evaluations">asp-action的使用</a>
+    <a asp-action="Test">只使用asp-action的示例</a>
+    <br />
+    <a asp-controller="Speaker" asp-action="Detail" asp-route-id="2">asp-route-{value}的使用</a>
+    <a asp-controller="Speaker" asp-action="Detail2" asp-route-speakerid="2">asp-route-{value}的使用子自定义参数</a>
+    <br />
+    <a asp-route="speakerevals">asp-route的使用</a>
+    <br />
+
+    @{
+        var parms = new Dictionary<string, string>
+    {
+       { "speakerId", "11" },
+            { "currentYear", "true" }
+    };
+    }
+    <a asp-route="speakervalscurrent" asp-all-route-data="parms">asp-all-route-data的使用</a>
+
+    <br />
+    <a asp-controller="Speaker" asp-action="Evaluations" asp-fragment="wy">asp-fragment锚点的使用</a>
+    <br />
+    <a asp-protocol="https" asp-controller="Home" asp-action="Index">asp-protocol的使用</a>
+    <br />
+    <a asp-protocol="https"
+       asp-host="microsoft.com"
+       asp-controller="Home"
+       asp-action="Test">asp-host的使用</a>
+
+    <hr />
+</body>
+</html>
