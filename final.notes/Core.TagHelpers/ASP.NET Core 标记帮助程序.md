@@ -706,11 +706,186 @@ public IActionResult Evaluations()
 
 #### asp-all-route-data
 
-asp-all-route-data属性支持创建键值对字典，键是参数名称，值时参数值。
+asp-all-route-data属性支持创建键值对字典，键是参数名称，值时参数值，并将其以查询字符串的形式进行展示。
+
+```html
+@{
+    var parms = new Dictionary<string, string>
+    {
+        { "speakerId", "11" },
+        { "currentYear", "true" }
+    };
+}
+<a asp-route="speakervalscurrent" asp-all-route-data="parms">asp-all-route-data的使用</a>
+```
+
+生成的HTML片段：
+
+```html
+<a href="/Speaker/EvaluationsCurrent?speakerId=11&amp;currentYear=true">
+asp-all-route-data的使用
+</a>
+```
+
+如果想要控制器正确的解析传入的参数，对应的操作方法定义如下：
+
+```c#
+[Route("/Speaker/EvaluationsCurrent", Name = "speakervalscurrent")]
+public IActionResult Evaluations(int speakerId, bool currentYear)
+{
+    return View();
+}
+```
+
+注意：实际开发中，应该以控制器定义的操作方法或路由的配置情况，去指定标记帮助程序的属性值，因为只有在满足指定的属性值对应的操作方法或路由真实存在时，才能够被正确的解析。
+
+#### asp-fragment
+
+asp-fragment用于指定目标Url的锚点项。
+
+```html
+<a asp-controller="Speaker" asp-action="Evaluations" asp-fragment="wy">
+asp-fragment锚点的使用</a>
+```
+
+生成的HTML内容如下：
+
+```html
+<a href="/Speaker/Evaluations#wy">asp-fragment锚点的使用</a>
+```
+
+#### asp-area
+
+asp-area属性用于设置路由的区域名称。一旦设置了asp-area属性值，那么在为asp-controller、asp-action、asp-page指定值时，都是基于area下的文件进行指定的。
+
+注意：asp-area同时适用于Razor视图和Razor Pages页面，其中Razor Pages应用如果要支持区域，需要 将RazorPagesOptions.AllowAreas 属性设置为 true。代码如下：
+
+```c#
+services.AddMvc()
+        .AddRazorPagesOptions(options => options.AllowAreas = true);
+```
+
+应用该属性的Razor Pages代码：
+
+```html
+<a asp-area="Sessions"
+   asp-page="/Index">View Sessions</a>
+```
+
+同样，如果需要在Razor视图中（MVC应用）支持区域，需要对路由模板添加对该区域（如果存在该区域）的引用。在Startup.Configure()方法中进行配置：
+
+```c#
+app.UseMvc(routes =>
+{
+    // need route and attribute on controller: [Area("Blogs")]
+    routes.MapRoute(name: "mvcAreaRoute",
+                    template: "{area:exists}/{controller=Home}/{action=Index}");
+
+    // default route for non-areas
+    routes.MapRoute(
+        name: "default",
+        template: "{controller=Home}/{action=Index}/{id?}");
+});
+```
+
+Razor视图中的代码：
+
+```html
+<a asp-area="Blogs"
+   asp-controller="Home"
+   asp-action="AboutBlog">About Blog</a>
+```
+
+综上所述，一旦需要使用区域，就必须在Startup中进行相关的配置和设定。
+
+#### asp-protocol
+
+asp-protocol属性用于指定生成的URL的协议，比如https。
+
+```html
+<a asp-protocol="https" asp-controller="Home" asp-action="Index">asp-protocol的使用</a>
+```
+
+生成的HTML：
+
+```html
+<a href="https://localhost:1799/">asp-protocol的使用</a>
+```
+
+#### asp-host
+
+asp-host用于指定生成的URL的主机名。
+
+```html
+<a asp-protocol="https"
+       asp-host="microsoft.com"
+       asp-controller="Home"
+       asp-action="Test">asp-host的使用</a>
+```
+
+生成的HTML：
+
+```html
+<a href="https://microsoft.com/Home/Test">asp-host的使用</a>
+```
+
+注意：虽然可以使用asp-host指定主机名，但是仍然要确保asp-action指定的操作方法必须在当前环境真实存在，否则不能得到想要的结果。
+
+#### asp-page
+
+asp-page只适用于Razor Pages应用，不适用于Razor视图的MVC应用，Razor Pages页面一般都位于Pages文件夹下，因此在指定asp-page值时，都以正斜杠（”/"）作为前缀，表示从Pages文件夹下开始查找。
+
+```html
+<a asp-page="/Attendee">All Attendees</a>
+```
+
+可以在指定asp-page属性的同时，指定asp-route-{value}属性，用于传递路由参数。
+
+```html
+<a asp-page="/Attendee"
+   asp-route-attendeeid="10">View Attendee</a>
+```
+
+生成的HTML结果：
+
+```html
+<a href="/Attendee?attendeeid=10">View Attendee</a>
+```
+
+#### asp-page-handler
+
+asp-page-handler只能用于Razor Pages应用，用于指定特定的Page页面处理程序。常用于多个按钮对同一个页面进行后端程序处理时，需要以该属性来确定不同的处理程序类型。
+
+例如，在Razor Pages页面中，存在下述方法（`On<Verb>`类型的方法，此处是OnGet）：
+
+```c#
+public void OnGetProfile(int attendeeId)
+{
+ 	...
+}
+```
+
+若要使链接能够触发上述方法，Razor页面代码如下：
+
+```html
+<a asp-page="/Attendee"
+   asp-page-handler="Profile"
+   asp-route-attendeeid="12">Attendee Profile</a>
+```
+
+注意：asp-page-handler属性设置的是处理程序类型，它的值要和`On<Verb>`类型的方法名一致（不包含`On<Verb>`前缀，如果方法是异步的，也不包括Async后缀）。
+
+生成的HTML：
+
+```html
+<a href="/Attendee?attendeeid=12&handler=Profile">Attendee Profile</a>
+```
 
 
 
 ### `<cache>`
+
+
 
 ### `<distributed-cache>`
 
