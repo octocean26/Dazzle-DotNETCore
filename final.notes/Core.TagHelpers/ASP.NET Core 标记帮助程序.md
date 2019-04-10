@@ -12,6 +12,8 @@
 
 注意：能够使用HTML帮助程序的，不一定可以使用标记帮助程序替换，因为，并非每个 HTML 帮助程序都有对应的标记帮助程序。
 
+> 在很多情况下，HTML 帮助程序为特定标记帮助程序提供了一种替代方法，但标记帮助程序不会替代 HTML 帮助程序，且并非每个 HTML 帮助程序都有对应的标记帮助程序，认识到这点也很重要。
+
 
 
 ## 标记帮助程序作用域
@@ -497,6 +499,7 @@ var childContent = output.Content.IsModified ? output.Content.GetContent() :
 
 - 创建标记帮助程序的类，推荐类名以TagHelper结尾。
 - 在未使用HtmlTargetElement特性指定标记目标名称的情况下，约定使用不包含后缀“TagHelper”的类名的小写形式作为标记的目标名称。如果类名由多个首字母大写的单词组成，那么使用短横线分割各个单词的形式，作为标记的目标名称。例如：MyEmailTagHelper，就使用`<my-email>`作为标记的目标名称。同时，该规则也同样适用于标记帮助程序中的属性。
+- 所有的标记帮助程序（包括内置的标记帮助程序）的属性，均解析的是C#代码。
 
 
 
@@ -885,17 +888,309 @@ public void OnGetProfile(int attendeeId)
 
 ### `<cache>`
 
+缓存标记帮助程序通过将其内容缓存到内部 ASP.NET Core 缓存提供程序中，极大地提高了 ASP.NET Core 应用的性能。
+
+cache标记帮助程序的简单应用如下：
+
+```html
+<cache>缓存时间：@DateTime.Now</cache>
+```
+
+对页面的第一次请求将会显示正确的时间，其他请求将对标记内的所有内容都将被缓存，直到缓存过期（默认20分钟）或因内存压力而逐出。
+
+#### enabled
+
+enabled属性用于指定`<cache>`标记包含的内容是否缓存。默认为true，如果设置为false，将不会缓存标记内的内容。
+
+```html
+<cache enabled="false">
+    缓存无效: @DateTime.Now
+</cache>
+```
+
+#### expires-on
+
+expires-on属性用于为缓存项设置一个绝对到期日期。
+
+```html
+<p>
+    <cache enabled="true" expires-on="@new DateTime(2019,4,10,13,13,0)">
+        缓存到期时间：@(new DateTime(2019, 4, 10, 13, 13, 0)) ， 缓存时间: @DateTime.Now
+    </cache>
+</p>
+```
+
+一旦设置了expires-on属性值，缓存项只在指定的绝对日期之前缓存内容。
+
+#### expires-after
+
+expires-after属性用于指定每次缓存的时长，默认为20分钟。
+
+```html
+<p>
+    <cache expires-after="@TimeSpan.FromSeconds(10)">
+        每次缓存时长：10秒，@DateTime.Now
+    </cache>
+</p>
+```
+
+上述代码中，每次日期时间都会缓存10秒，即，频繁的刷新页面时，每隔10秒才能得到正确的时间值。
+
+#### expires-sliding
+
+expires-sliding属性用于设置缓存项在多长时间未被访问时自动被逐出。
+
+```html
+<cache expires-sliding="@TimeSpan.FromSeconds(5)">
+    缓存逐出时长的使用，@DateTime.Now
+</cache>
+```
+
+#### vary-by-header
+
+vary-by-header属性可以设置在指定的标头值发生改变时，触发缓存的刷新。该属性值接受由逗号分隔的标头值列表对应的名称。
+
+```html
+<cache vary-by-header="User-Agent,content-encoding">
+    vary-by-header示例：  @DateTime.Now
+</cache>
+```
+
+关于标头值列表，可以通过浏览器F12中的Network下的Headers进行查看，上述代码指定了标头值属性为User-Agent，该属性在不同的浏览器中值不相同，一旦更换了浏览器，上述代码中的缓存项就会被刷新。
+
+#### vary-by-query
+
+vary-by-query属性可以根据查询字符串参数值的变化触发缓存的刷新，该属性接受查询字符串中的参数以逗号隔开的形式的字符串。
+
+```html
+<cache vary-by-query="wy,smallz">
+    vary-by-query示例：@DateTime.Now
+</cache>
+```
+
+当第一次使用`http://localhost:1799/Tag?wy=2`进行访问时，得到正确的时间。在不改变wy参数的值的情况下，刷新页面并不能触发时间的刷新，如果将wy的值改为其他值，就可以刷新时间了。
+
+#### vary-by-route
+
+vary-by-route和vary-by-query类似，只不过是基于路由参数的变化触发缓存的刷新。该属性值支持由逗号隔开的多个路由参数的字符串。
+
+在控制器中，定义一个包含路由参数的控制器操作方法：
+
+```c#
+[Route("Tag/{wy?}/{smallz?}")]
+public IActionResult Tag()
+{
+    return View();
+}
+```
+
+Razor页面使用：
+
+```html
+<cache vary-by-route="wy,smallz">
+    vary-by-route示例：@DateTime.Now
+</cache>
+```
+
+#### vary-by-cookie
+
+vary-by-cookie属性可以根据指定的Cookie值发生变化时触发缓存的刷新，该属性值支持由逗号隔开的多个Cookie名称的字符串。
+
+```html
+<cache vary-by-cookie=".AspNetCore.Identity.Application,HairColor">
+    Current Time Inside Cache Tag Helper: @DateTime.Now
+</cache>
+```
+
+上述代码中，.AspNetCore.Identity.Application是Cookie的名称，该Cookie用于身份验证，一旦标识发生更改就会刷新缓存。
+
+#### vary-by-user
+
+vary-by-user属性接受的是Boolean类型的值，要么为tue，要么为false，默认为true。用于指定当已登录用户（或上下文主体）发生更改时是否应重置缓存。 当前用户也称为请求上下文主体，可通过引用 @User.Identity.Name 在 Razor 视图中查看。
+
+```c#
+<cache vary-by-user="true">
+    vary-by-user示例：@DateTime.Now
+</cache>
+```
+
+> 通过登录和注销周期，使用此属性将内容维护在缓存中。 当值设置为 true 时，身份验证周期会使已经过身份验证的用户的缓存失效。 缓存无效是因为用户进行身份验证时生成了一个新的唯一 cookie 值。 如果 cookie 不存在或已过期，则会维持缓存以呈现匿名状态。 如果用户未经过身份验证，则会维持缓存。
+
+#### vary-by
+
+vary-by用于指定的值发生改变时触发缓存的刷新。通常会将要追踪的值作为Model的属性进行关联，最终分配给vary-by属性。
+
+例如，Razor页面需要根据控制器返回的结算结果刷新缓存，在控制器方法中：
+
+```c#
+public IActionResult Index(string myParam1, string myParam2, string myParam3)
+{
+    int num1;
+    int num2;
+    int.TryParse(myParam1, out num1);
+    int.TryParse(myParam2, out num2);
+    return View(viewName, num1 + num2);
+}
+```
+
+Razor视图：
+
+```html
+<cache vary-by="@Model">
+       vary-by示例：@DateTime.Now
+</cache>
+```
+
+上述代码，只要后台计算的和值发生了改变，就会刷新缓存的内容。
+
+#### priority
+
+priority属性用于设置缓存被逐出时的优先等级。在内存压力下，会首先逐出Low缓存项。该属性值来自于CacheItemPriority，分别为High, Low, NeverRemove, Normal。
+
+注意：priority属性并不能保证特定级别的缓存保留，即使值设置为CacheItemPriority.NeverRemove，也不能保证缓存项将始终保留。 
+
+```html
+<cache priority="@Microsoft.Extensions.Caching.Memory.CacheItemPriority.High">
+    Current Time Inside Cache Tag Helper: @DateTime.Now
+</cache>
+```
+
 
 
 ### `<distributed-cache>`
 
+分布式缓存标记帮助程序这里不做过多的介绍，请求请参阅：https://docs.microsoft.com/zh-cn/aspnet/core/mvc/views/tag-helpers/built-in/distributed-cache-tag-helper
+
+
+
 ### `<environment>`
+
+环境标记帮助程序根据当前宿主环境，有条件的显示其包含的内容。
+
+#### names
+
+names属性用于指定环境名称，只有在指定的名称下的环境，才显示该标记包含的内容。值可以是单个宿主环境名称或由逗号隔开的多个环境名称的字符串。
+
+系统会将设置的环境名称值和IHostingEnvironment.EnvironmentName 返回的当前值进行比较（不区分大小写）。
+
+```html
+<environment names="Staging,Production">
+    <strong>HostingEnvironment.EnvironmentName is Staging or Production</strong>
+</environment>
+```
+
+上述代码如果宿主环境是Staging或Production，就显示标记中的内容。
+
+#### include
+
+include属性表现出和names属性相似的行为。include属性值中列出的环境**必须包括**应用程序的托管环境(IHostingEnvironment.EnvironmentName) 才能呈现 `<environment> `标记的内容。
+
+```html
+<environment include="Staging,Production">
+    <strong>HostingEnvironment.EnvironmentName is Staging or Production</strong>
+</environment>
+```
+
+#### exclude
+
+exclude与include相反，当exclude属性值中列中的环境**不包括**托管环境时，才呈现 `<environment> `标记的内容。
+
+
 
 ### `<form>`
 
+表单标记帮助程序可以为MVC控制器操作或命名路由生成对应的HTML元素`<form>`标签的action属性值。同时，ASP.NET Core中的表单标记程序还会为最终的表单生成隐藏的请求验证令牌（Token），可以在HTTP Post操作方法中与[ValidateAntiForgeryToken] 属性配合使用，防止跨站点请求伪造。
+
+表单标记帮助程序的常用属性有：
+
+- asp-controller：用于生成action（此处的action指的是HTML元素`<form>`的action属性）值的控制器名称。
+- asp-action：用于生成action值的控制器操作方法名。
+- asp-route：通过命名路由生成action的值。
+- asp-route-{Parameter Name}：其中的参数名称会添加到路由生成的URL中。
+- 其他
+
+```html
+<form asp-controller="Home" asp-action="Save" asp-route-wy="sdf" method="post">
+    <input type="submit" value="Save" />
+</form>
+```
+
+上述代码生成的HTML内容如下：
+
+```html
+<form method="post" action="/Home/Save?wy=sdf">
+        <input type="submit" value="Save">
+    <input name="__RequestVerificationToken" type="hidden" value="CfDJ8Obm5Kf2GbNHqG2AFpMzfTfvMUyfMEwujfOOCkjVefVRrgPauENhyA-QRNGGCXNolpj9AynlT5-jx5ispJm8mtTHmxNcDqV9GdvZTVB6idRKv9tfOw7-rDnUROzMJX_7BPGdvaq9Zq4b6kJ7EdUP22c">
+</form>
+```
+
+也可以通过asp-route属性指定命名路由，为action生成标记。
+
+注：可以代替表单标记帮助程序的HTML帮助程序项为Html.BeginForm和Html.BeginRouteForm，它的参数提供了类似asp-route-{Parameter Name}属性的功能。
+
+
+
+### 表单操作标记帮助程序（`<button>`或 `<input type="image">`）
+
+这里的表单操作标记帮助程序指的是，最终在HTML标签元素上生成formaction属性的标记，formaction属性可以控制表单提交数据的目标URL，并且HTML的formaction 属性能够覆盖 `<form> `元素的 action 属性。
+
+表单操作标记帮助程序主要有`<button>`和`<input type="image">`标记。
+
+注意：`<input type="button">`不属于表单标记帮助程序。例如：`<input type="button" value="ceshi" asp-action="Index" asp-controller="Home"/>`，生成的最终HTML内容为：`<input type="button" value="ceshi" asp-action="Index" asp-controller="Home">`，这里指定的asp-action没有转化为最终要生成的formaction属性。
+
+用于控制HTML的formaction属性值的标记帮助程序属性有：
+
+- asp-controller：控制器的名称。
+- asp-action：操作方法的名称。
+- asp-area：区域名称。
+- asp-page：Razor Page 的名称。
+- asp-page-handler：Razor Page 处理程序的名称。
+- asp-route：路由的名称。
+- asp-route-{value}：单个 URL 路由值。 例如 asp-route-id="1234"。
+- asp-all-route-data：所有路由值。
+- asp-fragment：URL 片段。
+
+示例一，提交到控制器：
+
+```html
+<button asp-controller="Home" asp-action="Test">Click Me</button>
+<input type="image" src="" alt="Or Click Me" asp-controller="Home" asp-action="Test" />
+```
+
+示例一生成的HTML：
+
+```html
+<button formaction="/Home/Test">Click Me</button>
+<input type="image" src="" alt="Or Click Me" formaction="/Home/Test">
+```
+
+示例二，提交到路由：
+
+```c#
+[Route("/Home/Test2",Name ="Custom")]
+public string Test2(){
+    return "Test2";
+}
+<button asp-route="Custom">Click Me</button>
+<input type="image" src="" alt="Or Click me" asp-route="Custom" />
+```
+
+示例二生成的HTML：
+
+```html
+<button formaction="/Home/Test2">Click Me</button>
+<input type="image" src="" alt="Or Click me" formaction="/Home/Test2">
+```
+
+
+
 ### `<img>`
 
+
+
 ### `<input>`
+
+[todo:]
 
 ### `<label>`
 
@@ -941,9 +1236,11 @@ public void OnGetProfile(int attendeeId)
 
 
 
-## ASP.NET Core 表单中的标记帮助程序
 
 
+
+
+## 标记帮助程序组件
 
 
 
