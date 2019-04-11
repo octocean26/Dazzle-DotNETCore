@@ -505,6 +505,8 @@ var childContent = output.Content.IsModified ? output.Content.GetContent() :
 
 ## ASP.NET Core中内置的标记帮助程序
 
+首先需要说明的是，标记帮助程序实质上是一个C#自定义的程序类，它可以以标签的形式使用，也可以作为标签属性被使用，不同标记帮助程序可以应用的HTML标签各不相同。由于内置的标记帮助程序和HTML元素标签大多数相同，因此应该首先采用HTML元素标签作为呈现方式。
+
 ### `<a>`
 
 该标记最终会生成一个超链接标签（`<a href="..."></a>`）。
@@ -1190,19 +1192,421 @@ public string Test2(){
 
 ### `<input>`
 
-[todo:]
+输入标记帮助程序用于生成HTML中的`<input>`标签。
+
+HTML中的<input>标签通常有id、name、type等属性。
+
+#### HTML元素的id和name属性生成规则
+
+其中id和name属性值可以通过输入标记帮助程序的asp-for属性进行指定，最终将生成指定表达式名称的id和name属性值，asp-for属性通常指定的是Model属性，Model属性可以是其它类的引用，这样asp-for解析的就是子属性，子属性生成的结果是由下划线隔开的字符串。见下文示例。
+
+#### HTML元素的type属性生成规则
+
+而type属性，由asp-for指定的Model数据类型和应用于Model属性的数据注解特性来生成type属性值。如果直接指定了type属性值，将以指定的值为主。
+
+下面是常见的Model数据类型生成的HTML的type属性类型：
+
+| .NET 类型                 | input类型             |
+| ------------------------- | --------------------- |
+| Bool                      | type="checkbox"       |
+| String                    | type="text"           |
+| DateTime                  | type="datetime-local" |
+| Byte、Int、Single、Double | type="number"         |
+
+下表是常见的数据注解特性生成的HTML的type属性类型：
+
+| 特性                          | input类型       |
+| ----------------------------- | --------------- |
+| [EmailAddress]                | type="email"    |
+| [Url]                         | type="url"      |
+| [HiddenInput]                 | type="hidden"   |
+| [Phone]                       | type="tel"      |
+| [DataType(DataType.Password)] | type="password" |
+| [DataType(DataType.Date)]     | type="date"     |
+| [DataType(DataType.Time)]     | type="time"     |
+
+除了id、name、type属性外，指定的Model属性的数据注解特性还会生成HTML验证相关的属性。
+
+假如存在下述数据模型：
+
+```c#
+public class TagViewModel
+{
+    [Required]
+    [EmailAddress]
+    [Display(Name ="Email Address")]
+    public string Email{ get; set; }
+
+    [Required]
+    [DataType(DataType.Password)]
+    public string Password{ get; set; }
+    
+    //其它类的引用
+    public AddressViewModel Address{ get; set; }
+}
+
+public class AddressViewModel
+{
+    public string AddressLine{ get; set; }
+}
+```
+
+在Razor页面中，使用上述模型和输入标记帮助程序：
+
+```html
+<form asp-controller="Home" asp-action="Save" method="post">
+    Email:<input asp-for="Email"/>
+    Password:<input asp-for="Password" />
+    Address:<input asp-for="Address.AddressLine"/>
+    <button type="submit">Register</button>
+</form>
+```
+
+运行程序生成的HTML内容如下：
+
+```html
+<form method="post" action="/Home/Save">
+            Email:<input type="email" data-val="true" data-val-email="The Email Address field is not a valid e-mail address." data-val-required="The Email Address field is required." id="Email" name="Email" value="">
+            Password:<input type="password" data-val="true" data-val-required="The Password field is required." id="Password" name="Password">
+            Address:<input type="text" id="Address_AddressLine" name="Address.AddressLine" value="">
+            <button type="submit">Register</button>
+        <input name="__RequestVerificationToken" type="hidden" value="CfDJ8Obm5Kf2GbNHqG2AFpMzfTcLQTClOXt1ranBrrZSnPNhEQKgR-P8Hn63CRVS9FC8O892xzfBLSKOBmYLuVEB9Wl0Y5j6uhcf3rtN79QrCFJv1nW9IZCipThaPbdlvKbiOONXZS2Dhf45dn9hvt9v4yk">
+</form>
+```
+
+通过生成的HTML内容可以看到，除了id和name属性之外，其他的大多数属性都是根据模型属性的注解特性生成的。其中data-val-{par}属性是一种非介入式的HTML5属性（均以data-开头），属性中的{par}对应模型属性的注解特性验证规则名称，如`data-val-required`、`data-val-email`、`data-val-maxlength` 等。
+
+> 如果在属性中提供错误消息，则该错误消息会作为 data-val-rule 属性的值显示。 还有表单 data-val-ruleName-argumentName="argumentValue" 的属性，这些属性提供有关规则的其他详细信息，例如，data-val-maxlength-max="1024"。
+
+另外一点需要注意的是Address引用的是子属性，解析后的id和name属性值并不相同，id值为Address_AddressLine，而name值为Address.AddressLine。
+
+#### 替代输入标记帮助程序的HTML帮助程序项
+
+可以替代输入标记帮助程序的HTML帮助程序项有Html.TextBox、Html.TextBoxFor、Html.Editor和Html.EditorFor。它们与标记帮助程序的主要区别有以下几点：
+
+- 输入标记帮助程序会自动设置 type 属性；而 Html.TextBox 和 Html.TextBoxFor 不会。
+- Html.Editor 和 Html.EditorFor 可以处理集合、复杂对象和模板；而输入标记帮助程序不会。 
+- 输入标记帮助程序、Html.EditorFor 和 Html.TextBoxFor 是强类型（使用 lambda 表达式）；而 Html.TextBox 和 Html.Editor 不是（使用表达式名称）。
+
+##### HTML帮助程序的HtmlAttributes
+
+> @Html.Editor() 和 @Html.EditorFor() 在执行其默认模板时使用名为 htmlAttributes 的特殊 ViewDataDictionary 条目。 此行为可选择使用 additionalViewData 参数增强。 键“htmlAttributes”区分大小写。 键“htmlAttributes”的处理方式与传递到输入帮助程序的 htmlAttributes 对象（例如 @Html.TextBox()）的处理方式类似。
+
+```c#
+@Html.EditorFor(model => model.YourProperty, 
+  new { htmlAttributes = new { @class="myCssClass", style="Width:100px" } })
+```
+
+#### asp-for属性指定复杂表达式
+
+asp-for属性值是模型表达式，一般是lambda表达式的右边部分。例如，asp-for="wy"在生成的代码中会变成m=>m.wy，所以asp-for属性值不需要指定Model前缀。如果需要使用Model前缀才能应用属性值，需要使用“@”字符作为内联表达式的开头。
+
+```c#
+@{ 
+    var wy = "smallz";
+}
+<input asp-for="@wy"/>
+```
+
+生成的HTML：
+
+```html
+<input type="text" id="wy" name="wy" value="smallz">
+```
+
+对于集合的显示，假如在TagViewModel中存在List<string>集合属性Colors，下面会产生相同的输出结果：
+
+```html
+@model TagViewModel
+
+@Html.EditorFor(m=>m.Colors[1])
+<input asp-for="@Model.Colors[1]"/>
+<input asp-for="Colors[1]"/>
+```
+
+上述三种形式生成的HTML如下：
+
+```html
+<input class="text-box single-line" id="Colors_1_" name="Colors[1]" type="text" value="Blue">
+<input type="text" id="Colors_1_" name="Colors[1]" value="Blue">
+<input type="text" id="Colors_1_" name="Colors[1]" value="Blue">
+```
+
+可以看到，生成的结果都一样。
+
+
 
 ### `<label>`
+
+label标记帮助程序主要用来生成HTML的label标签描述和for属性。
+
+它最大的特点是：可以根据模型属性的Display特性，生成对应的描述信息。
+
+```c#
+[Required]
+[EmailAddress]
+[Display(Name ="Email Address")]
+public string Email{ get; set; }
+```
+
+上述属性使用了Display特性，并且名称指定为“Email Address”，在Razor页面中，使用下述代码：
+
+```php+HTML
+<label asp-for="Email"></label>
+<input asp-for="Email" />
+```
+
+生成的HTML：
+
+```html
+<label for="Email">Email Address</label>
+<input type="email" data-val="true" data-val-email="The Email Address field is not a valid e-mail address." data-val-required="The Email Address field is required." id="Email" name="Email" value="wy@163.com">
+```
+
+HTML 帮助程序替代项：Html.LabelFor。
 
 ### `<partial>`
 
 ### `<select>`
 
+select标记帮助程序主要用于生成HTML的`<select>`和`<option>`元素。
+
+为了使用select标记帮助程序，通常需要为ViewModel类定义两个属性，一个为多个SelectListItem组成的集合，例如`List<SelectListItem>`，另一个属性为该select标签选择的值。
+
+对上文中的TagViewModel进行扩展，添加下述两个属性：
+
+```c#
+public class TagViewModel
+{
+	...
+	
+    public string Country{ get; set; }
+    public List<SelectListItem> Countries{ get; set; }
+}
+```
+
+在控制器中，为上述两个属性赋值：
+
+```c#
+public IActionResult Tag()
+{
+    TagViewModel tagmodel = new TagViewModel
+    {
+         ...
+         
+         Countries=new List<SelectListItem>{
+         new SelectListItem{ Value="1", Text="One"},
+         new SelectListItem{ Value="2", Text="Two"},
+         new SelectListItem{ Value="3", Text="Three"}
+         },
+         Country="3"
+    };
+    return View(tagmodel);
+}
+```
+
+在Razor页面中使用该标记帮助程序：
+
+```html
+<select asp-for="Country" asp-items="Model.Countries"></select>
+```
+
+这里需要注意的是，asp-for指定的模型属性是最终能够得到选择项的值的属性，而asp-items指定的是option元素生成所依赖的SelectListItem类型的集合对应的模型属性。另外，asp-for 属性值是特殊情况，它不要求提供 Model 前缀，但其他标记帮助程序属性需要该前缀（例如 asp-items）。
+
+最终生成的HTML如下：
+
+```html
+<select id="Country" name="Country"><option value="1">One</option>
+<option value="2">Two</option>
+<option selected="selected" value="3">Three</option>
+</select>
+```
+
+由于asp-for指定的Country在控制器中被赋值为3，因此option第3项是选中状态。
+
+注意：选择标记帮助程序应与ViewModel结合使用，而不是将 ViewBag 或 ViewData 与选择标记帮助程序配合使用，因为视图模型在提供 MVC 元数据方面更可靠且通常更不容易出现问题。
+
+注：具有 HTML 帮助程序替代项 Html.DropDownListFor 和 Html.ListBoxFor。
+
+#### 下拉框的枚举绑定
+
+可以直接为下拉框绑定枚举类型对应的成员。
+
+假如存在下述枚举类型：
+
+```c#
+public enum CountryEnum
+{
+    [Display(Name ="th1")]
+    One,
+    [Display(Name = "th2")]
+    Two,
+    Three
+}
+```
+
+为了使下拉框能够绑定选择的值，需要为ViewModel指定一个枚举类型的属性，虽然也可以指定为string类型，但是推荐定义该枚举类型的属性：
+
+```c#
+public class TagViewModel
+{
+	...
+	public CountryEnum EnumCountry { get; set; }
+}
+```
+
+如果需要下拉框默认选择某一项，需要在控制器中为上述的枚举属性赋值：
+
+```c#
+public IActionResult Tag()
+{
+    TagViewModel tagmodel = new TagViewModel
+    {
+        ...
+        //默认选择值为CountryEnum.Two
+        EnumCountry=CountryEnum.Two
+    };
+    return View(tagmodel);
+}
+```
+
+在Razor页面绑定该枚举类型下的所有项：
+
+```html
+<select asp-for="EnumCountry" asp-items="Html.GetEnumSelectList<CountryEnum>()"></select>
+```
+
+上述代码中的asp-for指定的是最终提交的值要绑定的属性，asp-items使用了HTML帮助程序提供的方法。枚举定义时，各个枚举项使用了Display特性，可以用来设置最终展示的内容。
+
+上述生成的HTML如下：
+
+```c#
+<select data-val="true" data-val-required="The EnumCountry field is required." id="EnumCountry" name="EnumCountry">
+	<option value="0">th1</option>
+	<option selected="selected" value="1">th2</option>
+	<option value="2">Three</option>
+</select>
+```
+
+#### 选项组
+
+对下拉框的选项进行分组，通常生成的是HTML的`<optgroup>`元素。
+
+关于选项组的使用并不会牵扯到标记帮助程序，只是在实例化每个SelectListItem对象时，需要为Group属性指定SelectListGroup类型的值。
+
+```c#
+public class CountryViewModelGroup
+{
+    public CountryViewModelGroup()
+    {
+        var NorthAmericaGroup = new SelectListGroup { Name = "North America" };
+        var EuropeGroup = new SelectListGroup { Name = "Europe" };
+
+        Countries = new List<SelectListItem>
+        {
+            new SelectListItem
+            {
+                Value = "MEX",
+                Text = "Mexico",
+                Group = NorthAmericaGroup
+            },
+            new SelectListItem
+            {
+                Value = "CAN",
+                Text = "Canada",
+                Group = NorthAmericaGroup
+            },
+            new SelectListItem
+            {
+                Value = "FR",
+                Text = "France",
+                Group = EuropeGroup
+            },
+            new SelectListItem
+            {
+                Value = "ES",
+                Text = "Spain",
+                Group = EuropeGroup
+            }
+      };
+    }
+
+    public string Country { get; set; }
+    public List<SelectListItem> Countries { get; }
+}
+```
+
+#### 下拉框的多项选择
+
+如果 asp-for 属性中指定的属性为 IEnumerable，选择标记帮助程序会自动生成 multiple = "multiple" 属性。
+
+```c#
+public IEnumerable<string> CountryCodes { get; set; }
+public List<SelectListItem> Countries { get; } = new List<SelectListItem>
+{
+	new SelectListItem { Value = "MX", Text = "Mexico" },
+	new SelectListItem { Value = "CA", Text = "Canada" },
+	new SelectListItem { Value = "US", Text = "USA"    }
+};
+```
+
+Razor页面：
+
+```html
+<select asp-for="CountryCodes" asp-items="Model.Countries"></select> 
+```
+
+生成的HTML：
+
+```html
+<select id="CountryCodes"
+    multiple="multiple"
+    name="CountryCodes">
+    <option value="MX">Mexico</option>
+	<option value="CA">Canada</option>
+	<option value="US">USA</option>
+</select>
+```
+
+
+
 ### `<textarea>`
 
-### 验证消息（`<span>`）
+文本区域标记帮助程序类似于输入标记帮助程序，模型属性的注解特性会影响最终生成的元素属性值。
 
-### 验证摘要（`<span>`）
+```c#
+[MinLength(5)]
+[MaxLength(1024)]
+public string Description{ get; set; }
+```
+
+Razor页面使用该属性：
+
+```html
+<textarea asp-for="Description"></textarea>
+```
+
+生成的HTML：
+
+```html
+<textarea data-val="true" data-val-maxlength="The field Description must be a string or array type with a maximum length of '1024'." data-val-maxlength-max="1024" data-val-minlength="The field Description must be a string or array type with a minimum length of '5'." data-val-minlength-min="5" id="Description" maxlength="1024" name="Description"></textarea>
+```
+
+可以替换文本区域标记程序的HTML帮助程序项为：Html.TextAreaFor。
+
+### 验证标记帮助程序
+
+跟上文介绍的标记不同，这类标记帮助程序最终以HTML元素的属性形式被应用。提供了两个属性：验证消息标记帮助程序（asp-validation-for）和验证摘要标记帮助程序（asp-validation-summary）。
+
+关于这两个标记的使用，这里不做详细介绍。
+
+#### 验证消息标记帮助程序
+
+参阅：https://docs.microsoft.com/zh-cn/aspnet/core/mvc/views/working-with-forms?view=aspnetcore-2.2#the-validation-message-tag-helper
+
+#### 验证摘要标记帮助程序
+
+参阅：https://docs.microsoft.com/zh-cn/aspnet/core/mvc/views/working-with-forms?view=aspnetcore-2.2#the-validation-summary-tag-helper
 
 
 

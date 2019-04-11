@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using My.TagHelpers.Study.Models;
 
 namespace My.TagHelpers.Study.Controllers
 {
@@ -15,8 +17,27 @@ namespace My.TagHelpers.Study.Controllers
         [Route("Tag/{wy?}/{smallz?}")]
         public IActionResult Tag()
         {
-            ViewBag.Wy = "wy";
-            return View();
+
+
+            TagViewModel tagmodel = new TagViewModel
+            {
+                Address = new AddressViewModel{ AddressLine="beijing"},
+                Colors = new List<string> { "Red", "Blue", "Yellow" },
+                Email = "wy@163.com",
+                Password = "WW",
+                 Countries=new List<SelectListItem>{
+                 new SelectListItem{ Value="1", Text="One"},
+                 new SelectListItem{ Value="2", Text="Two"},
+                 new SelectListItem{ Value="3", Text="Three"}
+                 },
+                 Country="3",
+                EnumCountry=CountryEnum.Two
+            };
+
+
+
+
+            return View(tagmodel);
         }
 
         public IActionResult Test()

@@ -16,7 +16,7 @@
 
     <form asp-controller="Home" asp-action="Save" asp-route-wy="sdf" method="post">
         <input type="submit" value="Save" />
-        <input type="button" value="ceshi" asp-action="Index" asp-controller="Home"/>
+        <input type="button" value="ceshi" asp-action="Index" asp-controller="Home" />
     </form>
 
     <div>
@@ -37,11 +37,50 @@
 
     <div>
         <p>输入标记帮助程序</p>
+        <form asp-controller="Home" asp-action="Save" method="post">
+            Email:<input asp-for="Email" />
+            Password:<input asp-for="Password" />
+            Address:<input asp-for="Address.AddressLine" />
+            <button type="submit">Register</button>
+        </form>
+    </div>
+
+    <div>
+        <p>文本标记帮助程序</p>
+        <textarea asp-for="Description"></textarea>
+    </div>
+
+    <div>
+        <p>表达式名称</p>
+        @{
+            var wy = "smallz";
+        }
+        <input asp-for="@wy" />
+        @Html.EditorFor(m => m.Colors[1])
+
+        <input asp-for="@Model.Colors[1]" />
+        <input asp-for="Colors[1]" />
+    </div>
+
+
+    <div>
+        <p>label标记帮助程序</p>
+
+        <label asp-for="Email"></label>
         <input asp-for="Email" />
     </div>
 
 
+    <div>
+        <p>Select标记帮助程序</p>
+        <select asp-for="Country" asp-items="Model.Countries"></select>
+    </div>
 
+
+    <div>
+        <p>下拉框绑定枚举</p>
+        <select asp-for="EnumCountry" asp-items="Html.GetEnumSelectList<CountryEnum>()"></select>
+    </div>
 
     <hr />
     <h2>cache标记帮助程序</h2>
