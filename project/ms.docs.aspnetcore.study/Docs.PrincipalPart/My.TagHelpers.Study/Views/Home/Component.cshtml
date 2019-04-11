@@ -1,0 +1,21 @@
+﻿
+@using Microsoft.AspNetCore.Mvc.Razor.TagHelpers;
+@using My.TagHelpers.Study.Component;
+@inject ITagHelperComponentManager manager;
+
+@{
+    manager.Components.Add(new AddressTagHelperComponent("<h1>ww</h1>"));
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>ASP.NET Core标记帮助程序组件</title>
+</head>
+<body>
+    <address printable><h3>sd</h3></address>
+
+</body>
+</html>

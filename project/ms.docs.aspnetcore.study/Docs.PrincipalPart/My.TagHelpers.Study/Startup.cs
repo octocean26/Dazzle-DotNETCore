@@ -5,7 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.Extensions.DependencyInjection;
+using My.TagHelpers.Study.Component;
 
 namespace My.TagHelpers.Study
 {
@@ -16,6 +18,9 @@ namespace My.TagHelpers.Study
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(Microsoft.AspNetCore.Mvc.CompatibilityVersion.Version_2_2);
+
+            services.AddTransient<ITagHelperComponent, AddressScriptTagHelperComponent>();
+            services.AddTransient<ITagHelperComponent, AddressStyleTagHelperComponent>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

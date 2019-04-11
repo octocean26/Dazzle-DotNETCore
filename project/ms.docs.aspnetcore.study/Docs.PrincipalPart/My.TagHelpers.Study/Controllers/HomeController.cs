@@ -12,7 +12,7 @@ namespace My.TagHelpers.Study.Controllers
     {
         public IActionResult Index()
         {
-            return RedirectToAction("Tag");
+            return RedirectToAction("Component");
         }
         [Route("Tag/{wy?}/{smallz?}")]
         public IActionResult Tag()
@@ -38,6 +38,12 @@ namespace My.TagHelpers.Study.Controllers
 
 
             return View(tagmodel);
+        }
+
+
+
+        public IActionResult Component(){
+            return View();
         }
 
         public IActionResult Test()
