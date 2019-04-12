@@ -19,8 +19,8 @@ namespace My.TagHelpers.Study
         {
             services.AddMvc().SetCompatibilityVersion(Microsoft.AspNetCore.Mvc.CompatibilityVersion.Version_2_2);
 
-            services.AddTransient<ITagHelperComponent, AddressScriptTagHelperComponent>();
-            services.AddTransient<ITagHelperComponent, AddressStyleTagHelperComponent>();
+            services.AddTransient<ITagHelperComponent, WyScriptTagHelperComponent>();
+            services.AddTransient<ITagHelperComponent, WyStyleTagHelperComponent>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

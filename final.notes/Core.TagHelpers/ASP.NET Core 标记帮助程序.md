@@ -81,6 +81,8 @@ Microsoft.AspNetCore.Mvc.TagHelpers 是ASP.NET Core 内置的标记帮助程序�
 
 *提示：可以使用标记帮助程序的元素及属性使用独特的字体进行显示，可以通过该特性查看哪些元素能够被解析。*
 
+**==特别注意：使用上述指令时，一定不要在末尾处添加分号（";"），否则将无法解析指令==**
+
 
 
 ## 创建标记帮助程序
@@ -1646,7 +1648,166 @@ Razor页面使用该属性：
 
 ## 标记帮助程序组件
 
+标记帮助程序组件最主要的功能就是，对于应用了标记帮助程序的Razor页面，最终呈现的HTML元素，可以通过组件有条件地修改或添加标记帮助程序的服务器端代码。例如创建了一个标记帮助程序为MyTag，如果想要Razor页面中使用的每个<y-tag>标记，最终生成的HTML元素中，根据条件的不同而包含其他内容，就需要借助标记帮助程序组件进行实现。
 
+ASP.NET Core包含两个内置标记帮助程序组件元素：head和body，这两个组件分别作用于head元素和body元素。注意：这里说的内置并不是真实存在的组件，而是在定义组件时，TagHelperContext的TagName只能获取到head和body，仍然需要创建组件才能影响这两个元素的行为。具体见下文描述。
+
+### 注入到HTML的head元素中的组件的使用
+
+如果想要每个页面的head元素中包含指定的内容，如<link>或<script>，就可以使用组件进行实现。
+
+扩展标记包含的内容的类需要派生自TagHelperComponent类，TagHelperComponent类的定义如下：
+
+```c#
+public abstract class TagHelperComponent : Microsoft.AspNetCore.Razor.TagHelpers.ITagHelperComponent
+{
+	protected TagHelperComponent();
+	public virtual int Order { get; }
+
+	public virtual void Init(TagHelperContext context);
+	public virtual void Process(TagHelperContext context, TagHelperOutput output);
+	public virtual Task ProcessAsync(TagHelperContext context, TagHelperOutput output);
+}
+```
+
+创建一个WyStyleTagHelperComponent类，继承TagHelperComponent类，并重写其中的Order和ProcessAsync方法：
+
+```c#
+public class WyStyleTagHelperComponent : TagHelperComponent
+{
+    private readonly string _style = @"<link ref=""stylesheet"" href=""/css/address.css""";
+    public override int Order => 1;
+
+    public override Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
+    {
+        if (string.Equals(context.TagName, "head", StringComparison.OrdinalIgnoreCase))
+        {
+            output.PostContent.AppendHtml(_style);
+        }
+        return Task.CompletedTask;
+    }
+}
+```
+
+注：关于该组件的调用，请参阅下文中的”注册组件“部分。
+
+### 注入到HTML的body元素中的组件的使用
+
+和基于head元素的组件使用类似，通过body标记帮助程序组件可以将<script>或其他元素添加每个<body>元素中。这种类型的也需要继承TagHelperComponent类。
+
+如下所示：
+
+```c#
+public class WyScriptTagHelperComponent : TagHelperComponent
+{
+    public override int Order => 2;
+
+    public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
+    {
+        if (string.Equals(context.TagName, "body", StringComparison.OrdinalIgnoreCase))
+        {
+            var script = await File.ReadAllTextAsync("Views/wy.html");
+            output.PostContent.AppendHtml(script);
+        }
+    }
+}
+```
+
+这里需要注意的是context.TagName默认只能获取到head和body值，这就是上文说的内置的两个标记帮助程序组件（实际并不是真正的组件）。
+
+上述代码读取了Views/wy.html文件的内容，其内容如下：
+
+```js
+<script>
+    console.log('Hello ?')
+</script>
+```
+
+注：关于该组件的调用，请参阅下文中的”注册组件“部分。
+
+### 创建基于其他标记帮助程序的组件
+
+上文介绍的两个组件只能基于head和body，因为重写的ProcessAsync方法在执行时，如果添加断点进行追踪，可以看到context.TagName的值只能是head或body。如果想要基于其他标记名称扩展相应的内容，就需要创建基于其他标记帮助程序的组件。
+
+首先，创建派生自TagHelperComponentTagHelper类的子类，用于定义可供支持的标记帮助程序。TagHelperComponentTagHelper类的定义如下：
+
+```c#
+public abstract class TagHelperComponentTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
+```
+
+可以看到TagHelperComponentTagHelper类派生自TagHelper，而TagHelper又实现了ITagHelperComponent接口，而上文中的TagHelperComponent也实现了ITagHelperComponent接口，因此TagHelperComponentTagHelper实质上就是标记帮助程序，它和TagHelperComponent一样，都是ITagHelperComponent接口的衍生类。
+
+创建派生自TagHelperComponentTagHelper类的标记帮助程序类如下：
+
+```c#
+[HtmlTargetElement("address")]
+[EditorBrowsable(EditorBrowsableState.Never)]
+public class AddressTagHelperComponentTagHelper : TagHelperComponentTagHelper
+{
+    public AddressTagHelperComponentTagHelper(
+        ITagHelperComponentManager componentManager,
+        ILoggerFactory loggerFactory) : base(componentManager, loggerFactory)
+    {
+    }
+}
+```
+
+上述代码中，指定标记名称为address，将 [EditorBrowsable(EditorBrowsableState.Never)] 属性应用于该类的作用是，禁止在 IntelliSense 中显示该类型的提示信息。该特性可选，如果不想在代码智能提示中显示定义的内容，都可以使用该特性。
+
+接着，创建派生自TagHelperComponent类的子类，用于扩展标记包含的内容。
+
+```c#
+public class AddressTagHelperComponent : TagHelperComponent
+{
+    private readonly string _markup;
+
+    public override int Order { get; }
+
+    public AddressTagHelperComponent(string markup = "", int order = 1)
+    {
+        _markup = markup;
+        Order = order;
+    }
+
+    public override async Task ProcessAsync(TagHelperContext context,
+                                            TagHelperOutput output)
+    {
+        if (string.Equals(context.TagName, "address",
+                StringComparison.OrdinalIgnoreCase) &&
+            output.Attributes.ContainsName("printable"))
+        {
+            TagHelperContent childContent = await output.GetChildContentAsync();
+            string content = childContent.GetContent();
+            output.Content.SetHtmlContent(
+                $"<div>{content}<br>{_markup}</div>");
+        }
+    }
+}
+```
+
+需要注意的是，重写的ProcessAsync方法中，通过context.TagName获取的值需要和address比较，若要使其成立，必须要将自定义的address标记帮助程序使用@addTagHelper指令添加到Razor页面中。具体的使用见下文中的“注册组件”部分。
+
+上述代码中，只有标签为address并且包含printable属性，if判断才会成立。
+
+### 注册组件
+
+定义好了组件之后，只有注册后才能够使用，有以下三种方式：
+
+- 通过服务容器注册
+- 通过Razor文件注册
+- 通过页面模型或控制器注册
+
+
+
+
+
+
+
+
+
+
+
+标记帮助程序组件是作用在标记帮助程序上的。
 
 
 

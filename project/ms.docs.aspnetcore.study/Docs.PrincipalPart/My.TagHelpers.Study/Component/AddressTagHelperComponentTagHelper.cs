@@ -13,8 +13,9 @@ namespace My.TagHelpers.Study.Component
     [EditorBrowsable(EditorBrowsableState.Never)]
     public class AddressTagHelperComponentTagHelper : TagHelperComponentTagHelper
     {
-        public AddressTagHelperComponentTagHelper(ITagHelperComponentManager manager, ILoggerFactory loggerFactory) 
-        : base(manager, loggerFactory)
+        public AddressTagHelperComponentTagHelper(
+            ITagHelperComponentManager componentManager,
+            ILoggerFactory loggerFactory) : base(componentManager, loggerFactory)
         {
         }
     }

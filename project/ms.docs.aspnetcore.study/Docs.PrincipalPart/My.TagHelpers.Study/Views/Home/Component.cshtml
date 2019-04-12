@@ -1,10 +1,14 @@
-﻿
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@addTagHelper *,My.TagHelpers.Study
+
 @using Microsoft.AspNetCore.Mvc.Razor.TagHelpers;
 @using My.TagHelpers.Study.Component;
+
+
 @inject ITagHelperComponentManager manager;
 
 @{
-    manager.Components.Add(new AddressTagHelperComponent("<h1>ww</h1>"));
+    manager.Components.Add(new AddressTagHelperComponent("<h1>ccccccccc</h1>", 1));
 }
 
 <!DOCTYPE html>
@@ -15,7 +19,12 @@
     <title>ASP.NET Core标记帮助程序组件</title>
 </head>
 <body>
-    <address printable><h3>sd</h3></address>
+    <address printable>
+        One Microsoft Way<br />
+        Redmond, WA 98052-6399<br />
+        <abbr title="Phone">P:</abbr>
+        425.555.0100
+    </address>
 
 </body>
 </html>
