@@ -1190,7 +1190,31 @@ public string Test2(){
 
 ### `<img>`
 
+图像标记帮助程序为静态图像文件提供缓存破坏行为。触发破坏行为的是一组附加到图像资源URL的哈希值，它是一个唯一的字符串，会提示客户端（和某些代理）从主机 Web 服务器重新加载图像，而不是从客户端的缓存重新加载。
 
+#### src
+
+src属性指向图像文件对应的服务器上的物理静态文件。如果 src 是一个远程 URI，则不会生成缓存破坏查询字符串参数。
+
+#### asp-append-version
+
+如果asp-append-version值设为true，则会调用图像标记帮助程序，前提是也指定了src值。
+
+```html
+<img src="~/images/asplogo.png" asp-append-version="true">
+```
+
+如果目录 /wwwroot/images/ 中存在静态文件，则生成的 html 与下面类似（哈希有所不同）：
+
+```html
+<img src="/images/asplogo.png?v=Kl_dqr9NVtnMdsM2MUg4qthUnWZm5T1fCEimBPWDNgM">
+```
+
+分配给参数 v 的值是磁盘上的 asplogo.png 文件的哈希值。 如果 Web 服务器无法获取对静态文件的读取访问权限，则不会向呈现在标记中的 src 属性添加 v 参数。
+
+#### 哈希缓存行为
+
+> 图像标记帮助程序使用本地 Web 服务器上的缓存提供程序来存储给定文件的已计算 Sha512 哈希。 如果多次请求文件，则不重新计算哈希值。 当计算该文件的 Sha512 哈希时，附加到该文件的文件观察程序会让 Cache 失效。 当磁盘上的的文件发生更改时，将会计算和缓存新的哈希。
 
 ### `<input>`
 
@@ -1368,6 +1392,62 @@ public string Email{ get; set; }
 HTML 帮助程序替代项：Html.LabelFor。
 
 ### `<partial>`
+
+Partial 标记帮助程序用于在 Razor 页面和 MVC 应用中呈现分部视图。
+
+用于呈现分部视图的 HTML 帮助程序选项包括：
+
+- @await Html.PartialAsync
+- @await Html.RenderPartialAsync
+- @Html.Partial
+- @Html.RenderPartial
+
+#### name
+
+name属性指定要呈现的分部视图的名称或路径。 提供分部视图名称时，会启动视图发现进程。 提供显式路径时，将绕过该进程。
+
+以下标记使用显式路径，指示要从共享文件夹加载 _ProductPartial.cshtml。 使用 for 属性，将模型传递给分部视图进行绑定。
+
+```html
+<partial name="Shared/_ProductPartial.cshtml" for="Product" />
+```
+
+#### for
+
+for属性指定要绑定的视图模型对应的模型表达式，模型表达推断@Model. 语法。 例如，可使用 for="Product" 而非 for="@Model.Product"。 通过使用 @ 符号定义内联表达式来替代此默认推理行为。
+
+以下标记加载 _ProductPartial.cshtml：
+
+```html
+<partial name="_ProductPartial" for="Product" />
+```
+
+for属性在PageModel中，关联的是一个PageModel属性，而在MVC中，关联的是ViewModel的一个属性。
+
+#### model
+
+model 属性分配模型实例，以传递到分部视图。 注意：model 属性不能与 for 属性一起使用。
+
+```html
+<partial name="_ProductPartial"
+         model='new Product { Number = 1, Name = "Test product", Description = "This is a test" }' />
+```
+
+#### view-data
+
+view-data 属性分配 ViewDataDictionary，以传递到分部视图。 以下标记使整个 ViewData 集合可访问分部视图：
+
+```html
+@{
+    ViewData["IsNumberReadOnly"] = true;
+}
+
+<partial name="_ProductViewDataPartial"
+         for="Product"
+         view-data="ViewData" />
+```
+
+view-data主要用于向分部视图传递数据。
 
 ### `<select>`
 
@@ -1614,38 +1694,6 @@ Razor页面使用该属性：
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ## 标记帮助程序组件
 
 标记帮助程序组件最主要的功能就是，对于应用了标记帮助程序的Razor页面，最终呈现的HTML元素，可以通过组件有条件地修改或添加标记帮助程序的服务器端代码。例如创建了一个标记帮助程序为MyTag，如果想要Razor页面中使用的每个<y-tag>标记，最终生成的HTML元素中，根据条件的不同而包含其他内容，就需要借助标记帮助程序组件进行实现。
@@ -1797,31 +1845,114 @@ public class AddressTagHelperComponent : TagHelperComponent
 - 通过Razor文件注册
 - 通过页面模型或控制器注册
 
+#### 通过服务容器注册
 
+在Startup.ConfigureServices()方法中，通过服务容器注册上述中的中WyScriptTagHelperComponent和WyStyleTagHelperComponent类：
 
+```c#
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
+    services.AddTransient<ITagHelperComponent, WyScriptTagHelperComponent>();
+    services.AddTransient<ITagHelperComponent, WyStyleTagHelperComponent>();
+}
+```
 
+注册完成之后，直接运行程序，会发现所有的页面的`<head>`标签下都包含下述内容：
 
+```html
+<link ref="stylesheet" href="/css/address.css" <="" head="">
+```
 
+并且在`<body>`标签的末尾，都包含上述指定的js内容：
 
+```html
+<script>
+    console.log('Hello ?')
+</script>
+```
 
+#### 通过Razor文件注册
 
+如果未向 DI 注册标记帮助程序组件，则可以从 Razor Pages 页或 MVC 视图注册。 此项技术用于控制注入的标记和 Razor 文件中的组件执行顺序。向Razor文件注册，需要使用ITagHelperComponentManager，ITagHelperComponentManager用于添加标记帮助程序组件或从应用中删除这些组件。
 
-标记帮助程序组件是作用在标记帮助程序上的。
+```html
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@addTagHelper *,My.TagHelpers.Study
 
+@using Microsoft.AspNetCore.Mvc.Razor.TagHelpers;
+@using My.TagHelpers.Study.Component;
 
+@inject ITagHelperComponentManager manager;
 
+@{
+    manager.Components.Add(new AddressTagHelperComponent("<h1>ccccccccc</h1>", 1));
+}
 
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>ASP.NET Core标记帮助程序组件</title>
+</head>
+<body>
+    <address printable>
+        One Microsoft Way<br />
+        Redmond, WA 98052-6399<br />
+        <abbr title="Phone">P:</abbr>
+        425.555.0100
+    </address>
+</body>
+</html>
+```
 
+#### 通过PageModel或控制器注册
 
+对于Razor Pages应用可以通过PageModel进行注册，而对于MVC应用，一般可以通过控制器进行注册。无论哪种应用，都是基于ITagHelperComponentManager实现组件的添加的。PageModel注册示例见[官方介绍](<https://docs.microsoft.com/zh-cn/aspnet/core/mvc/views/tag-helpers/th-components?view=aspnetcore-2.2#registration-via-page-model-or-controller>)。
 
+这里以向控制器注册的方式进行介绍：
 
+```c#
+public class HomeController : Controller
+{
+    private readonly ITagHelperComponentManager _tagHelperComponentManager;
 
+    public HomeController(ITagHelperComponentManager tagHelperComponentManager)
+    {
+        _tagHelperComponentManager = tagHelperComponentManager;
+    }
+    public IActionResult Component2()
+    {
+        _tagHelperComponentManager.Components.
+           Add(new AddressTagHelperComponent("<h1>AAAAAAAAA</h1>", 1));
+        return View();
+    }
+}
+```
 
+对应的视图页面需要使用@addTagHelper指令添加对应的标记：
 
+```html
+@addTagHelper *,My.TagHelpers.Study
 
+@{
+    Layout = null;
+}
 
+<!DOCTYPE html>
 
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Component2</title>
+</head>
+<body>
+    <address printable>
+        .net core
+    </address>
+</body>
+</html>
+```
 
-
-
+运行程序访问该视图，可以看到替换后的结果。
