@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.168
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.156
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs.Web", "Docs.Web", "{44A6CE2D-6381-49C8-B232-55FDC4D02025}"
 EndProject
@@ -70,7 +70,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "My.SessionCookie.Study", "M
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "标记帮助程序", "标记帮助程序", "{CFA04C79-79EF-4D09-8FE2-1F1ECCCA8BAF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "My.TagHelpers.Study", "My.TagHelpers.Study\My.TagHelpers.Study.csproj", "{2E5D922E-9B41-4B22-A568-3F5C0C40A2A2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "My.TagHelpers.Study", "My.TagHelpers.Study\My.TagHelpers.Study.csproj", "{2E5D922E-9B41-4B22-A568-3F5C0C40A2A2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Layout ( 布局 )", "Layout ( 布局 )", "{77BF9F4D-4BB1-44D9-B601-F39D66695472}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "My.Layout.Study", "My.Layout.Study\My.Layout.Study.csproj", "{20C40D56-77B0-425B-8701-00B9067B75E3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -118,6 +122,10 @@ Global
 		{2E5D922E-9B41-4B22-A568-3F5C0C40A2A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2E5D922E-9B41-4B22-A568-3F5C0C40A2A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2E5D922E-9B41-4B22-A568-3F5C0C40A2A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20C40D56-77B0-425B-8701-00B9067B75E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20C40D56-77B0-425B-8701-00B9067B75E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20C40D56-77B0-425B-8701-00B9067B75E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20C40D56-77B0-425B-8701-00B9067B75E3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -154,6 +162,8 @@ Global
 		{508426CE-AFB0-42F3-AADD-686C684FEC25} = {D5B06432-AE03-4DAE-B931-E1541D9BE81D}
 		{CFA04C79-79EF-4D09-8FE2-1F1ECCCA8BAF} = {C0284FBA-F7EC-4548-A940-28E7C73CFA8B}
 		{2E5D922E-9B41-4B22-A568-3F5C0C40A2A2} = {CFA04C79-79EF-4D09-8FE2-1F1ECCCA8BAF}
+		{77BF9F4D-4BB1-44D9-B601-F39D66695472} = {C0284FBA-F7EC-4548-A940-28E7C73CFA8B}
+		{20C40D56-77B0-425B-8701-00B9067B75E3} = {77BF9F4D-4BB1-44D9-B601-F39D66695472}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {99CCB8A3-AB08-42F1-934C-B684FA6433FB}
