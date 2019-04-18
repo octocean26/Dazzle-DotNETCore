@@ -13,18 +13,8 @@ namespace My.ModelValidation.Study.Controllers
         {
             return View();
         }
-
-
-
         public IActionResult Save(StudentViewModel student)
         {
-
-            //if(!ModelState.IsValid){
-            //    student.Birthday  = 123456;
-            //    ModelState.Clear();
-            //    TryValidateModel(student);
-            //}
-
             if (!ModelState.IsValid)
             {
                 return View("Index", student);
@@ -35,7 +25,7 @@ namespace My.ModelValidation.Study.Controllers
 
 
         [AcceptVerbs("Get", "Post")]
-        public IActionResult VerifyData(string StudentName,int Age,DateTime Birthday)
+        public IActionResult VerifyData([Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired,FromQuery] string StudentName, int Age, DateTime Birthday)
         {
 
             if (!StudentName.Equals("smallz"))

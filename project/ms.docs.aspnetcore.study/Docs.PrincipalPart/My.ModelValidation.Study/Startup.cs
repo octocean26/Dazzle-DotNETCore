@@ -25,9 +25,9 @@ namespace My.ModelValidation.Study
             .SetCompatibilityVersion(Microsoft.AspNetCore.Mvc.CompatibilityVersion.Version_2_2);
 
             //如果在定义中间件的同时使用了实现接口的形式去扩展验证，最终以接口形式为主
-            services.AddSingleton
-    <IValidationAttributeAdapterProvider,
-     CustomValidationAttributeAdapterProvider>();
+                    services.AddSingleton
+            <IValidationAttributeAdapterProvider,
+            CustomValidationAttributeAdapterProvider > ();
 
         }
 
