@@ -521,6 +521,243 @@ Pages/ArticlesRP/_ArticleSectionRP.cshtml 是示例中引用的第二个分部�
 
 ## 视图组件
 
+和分部视图相比，视图组件的功能更加强大，它可以包含业务逻辑和参数，常用于动态导航菜单、登录面板、购物车、最近状态等应用场景。
+
+完整的视图组件包括一个组件类和对应的组件视图。
+
+### 创建视图组件
+
+本示例模拟的是EF读取数据并处理，最终通过视图组件展示数据。首先准备如下几个类（注意每个类的命名空间）。
+
+Student.cs，用于展示数据的实体：
+
+```c#
+namespace My.ViewComponents.Study.Models
+{
+    public class Student
+    {
+        public int Id { get; set; }
+        public string StudentName { get; set; }
+
+        public string StudentAddress { get; set; }
+    }
+}
+```
+
+StudentDbContext.cs，用于操作数据的DbContext：
+
+```c#
+namespace My.ViewComponents.Study.Models
+{
+    public class StudentDbContext : DbContext
+    {
+        public StudentDbContext(DbContextOptions<StudentDbContext> options)
+        : base(options)
+        {
+        }
+
+        public DbSet<Student> Students { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            for (int i =1; i <= 5; i++)
+            {
+                modelBuilder.Entity<Student>().HasData(new Student
+                {
+                    Id = i,
+                    StudentAddress = "Address" + i,
+                    StudentName = "Stu" + i
+                });
+            }
+        }
+    }
+}
+```
+
+Startup.ConfigureServices()添加EF处理程序：
+
+```c#
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddDbContext<StudentDbContext>(options => options.UseInMemoryDatabase("db"));
+    services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+}
+```
+
+#### 创建组件类
+
+创建视图组件类的常见方法有以下几种：
+
+- 创建派生自ViewComponent的类
+- 创建使用[ViewComponent]特性修饰的类，或继承应用了[ViewComponent]特性的类
+- 创建类名以ViewComponent后缀结尾的类
+
+注意：与控制器一样，视图组件必须是公共、非嵌套和非抽象的类。 视图组件名称是删除了“ViewComponent”后缀的类名。 也可以使用 ViewComponentAttribute.Name 属性显式指定它（例如：`[ViewComponent(Name ="MyStudent")]`）。
+
+**特别注意：视图组件类不参与控制器生命周期，这意味着不能在视图组件中使用筛选器。**
+
+创建组件类的推荐做法是：
+
+创建一个类名以“ViewComponent”结尾的类，并且派生自ViewComponent类。
+
+例如：
+
+```c#
+namespace My.ViewComponents.Study.ViewComponents
+{
+    [ViewComponent(Name = "MyStudent")]
+    public class StudentViewComponent : ViewComponent
+    {
+        private readonly StudentDbContext dbContext;
+
+        public StudentViewComponent(StudentDbContext _dbContext)
+        {
+            dbContext = _dbContext;
+        }
+
+        public async Task<IViewComponentResult> InvokeAsync(int StudentNo, string StudentAddress)
+        {
+            var item = await GetItemsAsync(StudentNo, StudentAddress);
+            return View(item);
+        }
+
+        private Task<List<Student>> GetItemsAsync(int StudentNo, string StudentAddress)
+        {
+            return dbContext.Students.Where(x => x.Id >= StudentNo).ToListAsync();
+        }
+    }
+}
+```
+
+视图组件类中，用来呈现组件视图的方法包含异步和同步两个版本：
+
+- 以异步方式返回 Task<IViewComponentResult> 的 InvokeAsync 方法。
+- 以同步方式返回 IViewComponentResult 的Invoke 方法。
+
+这两个方法的参数，都直接来自视图组件的调用方法，而不是来自模型绑定（比如HTTP路由或form表单等），视图组件从不直接处理请求（不可直接作为 HTTP 终结点进行访问）。
+
+视图组件通过ViewComponent类的View()方法来初始化模型并将其传递到组件视图。
+
+视图组件类完全支持构造函数依赖关系注入，视图组件依赖关系注入，通常由展示视图组件的控制器视图对应的控制器引入：
+
+```c#
+namespace My.ViewComponents.Study.Controllers
+{
+    public class HomeController : Controller
+    {
+        private readonly StudentDbContext dbContext;
+        public HomeController(StudentDbContext _dbContext){
+            dbContext = _dbContext;
+            dbContext.Database.EnsureCreated();
+        }
+        public IActionResult Index()
+        {
+            return View();
+        }
+    }
+}
+```
+
+示例中的视图组件在上述HomeController的Index()操作方法对应的视图中被调用。
+
+#### 创建组件呈现的视图
+
+为组件创建视图时，需要遵守一定的约定，尤其是组件视图所在的目录直接影响到是否能够搜索到组件视图。
+
+有两种目录形式创建组件视图。
+
+形式一，在Views/{Controller Name}目录下创建，完整目录格式如下：
+
+```
+/Views/{Controller Name}/Components/{ViewComponent Name}/{View Name}
+```
+
+形式二，在Views（或Pages）/Shared目录下创建，完整目录格式如下：
+
+```
+/Views/Shared/Components/{ViewComponent Name}/{View Name}
+或
+/Pages/Shared/Components/{ViewComponent Name}/{View Name}
+```
+
+上述两种形式中的参数代表含义：
+
+- {Controller Name}：表示控制器名称。
+- {ViewComponent Name}：表示组件类名，不包含ViewComponent后缀的或使用 ViewComponentAttribute.Name 属性指定的值（例如：`[ViewComponent(Name ="MyStudent")]`中的MyStudent）。
+- {View Name}：表示组件视图名，默认为Default.cshtml，也可以指定其他视图名称，一旦指定了其他名称，调用View()方法时，就需要显示的指定组件视图名。通常建议使用默认名称Default.cshtml作为组件视图文件名。
+
+一般情况下，如果组件是独立于所有控制器的，采用形式二定义组件视图页面；如果组件高度依赖于某一个控制器，或者只在该控制器下的视图才显示组件，就采用形式一定义组件的视图页面。
+
+系统在搜索组件视图时，优先搜索控制器下的组件视图（形式一），然后才搜索Views/Shared目录下的组件视图（形式二）。
+
+组件视图Views\Shared\Components\MyStudent\Default.cshtml中的代码如下：
+
+```c#
+@using My.ViewComponents.Study.Models
+
+@model List<Student>
+<h2>组件内容</h2>
+<ul>
+@foreach(var item in Model){
+    <li>@item.StudentName</li>
+}
+</ul>
+```
+
+要想展示该组件视图，需要在Index视图中进行显示的调用，Views\Home\Index.cshtml：
+
+```c#
+
+@{
+    ViewData["Title"] = "ASP.NET Core 视图组件";
+    Layout = "../Shared/_Layout.cshtml";
+}
+
+<h1>视图组件</h1>
+
+<div>
+    @await Component.InvokeAsync("MyStudent", new { StudentNo = 3, StudentAddress = "" })
+</div>
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### 视图组件搜索规则
+
+
+
+
+
+### 视图组件默认约定和注意事项
+
+- 视图组件名称是不包含“ViewComponent”后缀的类名，虽然可以通过ViewComponentAttribute.Name 属性显示的指定（例如：`[ViewComponent(Name ="MyStudent")]`），但通常不建议这么做。
+
+- 组件视图对应的目录一定要满足指定的目录格式。如：
+
+  ```
+  /Views/{Controller Name}/Components/{View Component Name}/{View Name}
+  或
+  /Views/Shared/Components/{View Component Name}/{View Name}
+  或
+  /Pages/Shared/Components/{View Component Name}/{View Name}
+  ```
+
+- 
+
+
+
+
+
 
 
 
