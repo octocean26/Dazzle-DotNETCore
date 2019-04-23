@@ -596,9 +596,11 @@ public void ConfigureServices(IServiceCollection services)
 
 **特别注意：视图组件类不参与控制器生命周期，这意味着不能在视图组件中使用筛选器。**
 
-创建组件类的推荐做法是：
+创建组件类的推荐做法有两种：
 
-创建一个类名以“ViewComponent”结尾的类，并且派生自ViewComponent类。
+推荐一：在项目中创建ViewComponents文件夹，然后创建没有ViewComponent后缀的类，该类派生自ViewComponent类，然后在MVC视图中，使用nameof的形式指定视图组件名称。
+
+推荐二：创建一个类名以“ViewComponent”结尾的类，并且派生自ViewComponent类，这种方式创建的组件，不能使用nameof指定组件名。
 
 例如：
 
@@ -637,6 +639,23 @@ namespace My.ViewComponents.Study.ViewComponents
 这两个方法的参数，都直接来自视图组件的调用方法，而不是来自模型绑定（比如HTTP路由或form表单等），视图组件从不直接处理请求（不可直接作为 HTTP 终结点进行访问）。
 
 视图组件通过ViewComponent类的View()方法来初始化模型并将其传递到组件视图。
+
+View()方法包括指定组件视图名称的重载版本，通过该版本可以指定用于呈现组件的视图名称，而不是默认的Default.cshtml（具体描述将下文）。
+
+```c#
+public async Task<IViewComponentResult> InvokeAsync(
+    int maxPriority, bool isDone)
+{
+    string MyView = "Default";
+    // If asking for all completed tasks, render with the "PVC" view.
+    if (maxPriority > 3 && isDone == true)
+    {
+        MyView = "PVC";
+    }
+    var items = await GetItemsAsync(maxPriority, isDone);
+    return View(MyView, items);
+}
+```
 
 视图组件类完全支持构造函数依赖关系注入，视图组件依赖关系注入，通常由展示视图组件的控制器视图对应的控制器引入：
 
@@ -704,6 +723,10 @@ namespace My.ViewComponents.Study.Controllers
 </ul>
 ```
 
+#### 调用组件视图
+
+**方式一：使用Component.InvokeAsync()调用组件视图。**
+
 要想展示该组件视图，需要在Index视图中进行显示的调用，Views\Home\Index.cshtml：
 
 ```c#
@@ -720,27 +743,99 @@ namespace My.ViewComponents.Study.Controllers
 </div>
 ```
 
+上述代码中的：
 
+```c#
+@await Component.InvokeAsync("MyStudent", new { StudentNo = 3, StudentAddress = "" })
+```
 
+该方法需要指定视图组件名称，和该组件类的InvokeAsync()方法的参数值。虽然InvokeAsync是异步的，但是仍然可以调用同步版本的MyStudent.Invoke()方法，两者并没有直接联系，Component.InvokeAsync()是异步呈现组件视图，而MyStudent.InvokeAsync()是异步处理数据。
 
+**方式二：使用标记帮助程序调用组件视图**
 
+标记帮助程序采用 Pascal 大小写格式的类和方法参数将转换为各自相应的短横线格式。 要调用视图组件的标记帮助程序使用`<vc></vc>`元素。按如下方式指定视图组件：
 
+```
+<vc:{view-component-name}
+  parameter1="parameter1 value"
+  parameter2="parameter2 value">
+</vc:[view-component-name]>
+```
 
+例如：
 
+```c#
+<vc:my-student student-no="2" student-address="wy"></vc:my-student>
+```
 
+上述代码对应的就是调用视图组件MyStudent中的InvokeAsync()方法，并为方法传入StudentNo和StudentAddress两个参数。
 
+要将视图组件用作标记帮助程序，还需要使用@addTagHelper 指令注册包含视图组件的程序集。 
 
+```c#
+@addTagHelper *, My.ViewComponents.Study
+```
 
+完整代码如下：
 
-#### 视图组件搜索规则
+```c#
+@addTagHelper *, My.ViewComponents.Study
+@{
+    ViewData["Title"] = "ASP.NET Core 视图组件";
+    Layout = "../Shared/_Layout.cshtml";
+}
 
+<h1>视图组件</h1>
 
+<div>
+    @await Component.InvokeAsync("MyStudent", new { StudentNo = 3, StudentAddress = "" })
+</div>
+<div>
+    <vc:my-student student-no="2" student-address="wy"></vc:my-student>
+</div>
+```
+
+**方式三：从控制器的操作方法中直接调用组件视图**
+
+上面的两个方式都是通过MVC视图调用的组件视图，也是最常见的调用方式。除此之外，还支持直接从控制器操作方法调用组件视图。尽管视图组件不定义控制器等终结点，但你可以轻松实现返回 ViewComponentResult 内容的控制器操作。
+
+HomeController.Stu()：
+
+```c#
+public IActionResult Stu(){
+    return ViewComponent("MyStudent", new { StudentNo = 4, StudentAddress = "" });
+}
+```
+
+Views\Shared\Components\MyStudent\Stu.cshtml：
+
+```c#
+@using My.ViewComponents.Study.Models
+
+@model List<Student>
+<h2>组件内容——Stu</h2>
+<ul>
+@foreach(var item in Model){
+    <li>@item.StudentName</li>
+}
+</ul>
+```
+
+上述中，需要注意的是控制器操作方法名称（Stu）要和最终呈现组件的视图名称相同（Stu.cshtml）。
+
+无论采用哪种形式呈现组件视图，都是一个原则：
+
+==组件视图由组件类的InvokeAsync()方法决定，而InvokeAsync()方法的调用由MVC控制器的操作方法或视图决定。==
+
+备注：应用视图组件时，处理流程为：控制器->操作方法->MVC视图->组件类->组件视图。
 
 
 
 ### 视图组件默认约定和注意事项
 
-- 视图组件名称是不包含“ViewComponent”后缀的类名，虽然可以通过ViewComponentAttribute.Name 属性显示的指定（例如：`[ViewComponent(Name ="MyStudent")]`），但通常不建议这么做。
+- 视图组件名称是不包含“ViewComponent”后缀的类名，虽然可以通过ViewComponentAttribute.Name 属性显示的指定（例如：`[ViewComponent(Name ="MyStudent")]`）。
+
+- 视图组件类中Invoke()方法，包含同步和异步两个版本，只需要根据自己的情况实现其中的一个即可。呈现组件视图时，只能使用`Component.InvokeAsync()`方法。
 
 - 组件视图对应的目录一定要满足指定的目录格式。如：
 
@@ -752,19 +847,23 @@ namespace My.ViewComponents.Study.Controllers
   /Pages/Shared/Components/{View Component Name}/{View Name}
   ```
 
-- 
+  注意：一定要包含在上述目录中的Components文件夹内，Components文件夹必不可少，并且名称不能改变。由于Components目录下是视图组件名称对应的目录，因此为了组件视图能够被准确的搜索到，排除不必要的干扰，通常不建议为组件类使用[ViewComponent]特性，因为一旦该特性的Name属性值发生了改变，就意味着旧的目录结构会失效，组件视图将不会呈现。有时为了防止错误，一般会定义没有“ViewComponent”后缀的视图组件类，然后在MVC视图中，使用nameof()来指定视图组件名称，这样可以避免使用硬编码字符串的形式导致的编译错误，如下：
 
+  ```c#
+  @await Component.InvokeAsync(nameof(PriorityList), new { maxPriority = 4, isDone = true })
+  ```
 
+- 最终呈现的组件视图的名称由组件类的InvokeAsync()中调用的View()方法决定，如果View()方法没有指定组件视图名称，默认将呈现Default.cshtml组件视图，如果指定了组件名称（例如：`return View(“MyView”, items);`），将呈现指定名称的组件视图（如MyView.cshtml）。指定名称的组件视图同样要满足上述中的目录格式。
 
-
-
-
-
-
+- 如果需要获取属性或类对应的名称字符串时，推荐使用nameof，而不是硬编码指定的字符串（写死的字符串）。
 
 
 
 ## 分部视图和视图组件的区别
+
+视图组件可以包含业务逻辑代码，而分部视图只用于静态资源呈现。
+
+
 
 
 

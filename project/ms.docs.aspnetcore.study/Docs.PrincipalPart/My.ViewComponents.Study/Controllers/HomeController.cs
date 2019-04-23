@@ -18,5 +18,9 @@ namespace My.ViewComponents.Study.Controllers
         {
             return View();
         }
+
+        public IActionResult Stu(){
+            return ViewComponent("MyStudent", new { StudentNo = 4, StudentAddress = "" });
+        }
     }
 }
