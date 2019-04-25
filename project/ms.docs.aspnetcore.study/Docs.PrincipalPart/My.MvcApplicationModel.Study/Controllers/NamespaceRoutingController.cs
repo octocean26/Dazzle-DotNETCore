@@ -8,7 +8,7 @@ namespace My.MvcApplicationModel.Study.Controllers
 {
     public class NamespaceRoutingController : Controller
     {
-        //访问路由：http://localhost:3249/my/mvcapplicationmodel/study/controllers/NamespaceRouting/Index
+        //访问路由：/my/mvcapplicationmodel/study/controllers/NamespaceRouting/Index
         public string Index()
         {
             return "Namespace";
