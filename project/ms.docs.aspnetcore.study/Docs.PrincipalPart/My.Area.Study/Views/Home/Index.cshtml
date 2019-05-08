@@ -1,4 +1,4 @@
-﻿
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
     Layout = null;
 }
@@ -11,6 +11,27 @@
     <title>Index</title>
 </head>
 <body>
-没有使用Area的页面
+    <div>
+        <a asp-area="" asp-controller="Home" asp-action="Index">
+            /Home/Index
+        </a>
+    </div>
+
+    <div>
+        方式一：
+        <a asp-area="Wy" asp-controller="Home" asp-action="Test">Wy/Home/Test</a>
+    </div>
+
+    <div>
+        方式二：
+        @Html.ActionLink("SmallZ/Home/Test", "Test", "Home", new { area = "Wy" })
+    </div>
+
+    <div>
+        方式三：
+        <a href='@Url.Action("Test", "Home", new { area = "Wy" })'>
+            SmallZ/Home/Test
+        </a>
+    </div>
 </body>
 </html>

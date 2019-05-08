@@ -25,19 +25,21 @@ namespace My.Area.Study
             {
                 app.UseDeveloperExceptionPage();
             }
+             
+
             app.UseMvc(routes =>
             {
                 routes.MapAreaRoute(
-                    name: "SmallZRoute",
-                    areaName: "Wy",
-                    template: "smallz/{controller=Home}/{action=Index}/{id?}"
+                    name: "WyAreaRoute",
+                    areaName: "Wy", //必须是真实存在的Area名称
+                    template: "MyWy/{controller=Home}/{action=Index}/{id?}"
                 );
 
                 //        routes.MapRoute("blog_route", "Manage/{controller}/{action}/{id?}",
                 //defaults: new { area = "Wy" }, constraints: new { area = "Wy" });
 
                 //routes.MapRoute(
-                //    name:"WyAreas",
+                //    name: "WyAreas",
                 //    template: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
                 //);
 
@@ -47,13 +49,7 @@ namespace My.Area.Study
 
             });
 
-            //app.UseMvc(routes =>
-            //{
-            //    routes.MapRoute(
-            //      name: "areas",
-            //      template: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
-            //    );
-            //});
+            
 
 
         }
