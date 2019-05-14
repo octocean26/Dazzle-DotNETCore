@@ -1,25 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace My.ApplicationParts.Study
 {
     public class EntityTypes
     {
-        public static IReadOnlyList<TypeInfo> Types = new List<TypeInfo>(){
-            typeof(Sproket).GetTypeInfo(),
-            typeof(Widget).GetTypeInfo()
+        public static IReadOnlyList<TypeInfo> MyTypes = new List<TypeInfo>(){
+            typeof(Student).GetTypeInfo(),
+            typeof(Teacher).GetTypeInfo()
         };
 
+        //模拟两个类型
+        public class Student { }
 
-        public class Sproket{ }
-        public class Widget{ }
+        public class Teacher { }
     }
-
-
-
-
 }

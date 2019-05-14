@@ -7,8 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace My.ApplicationParts.Study
 {
-[GenericControllerNameConvention]
-    public class GenericController<T>:Controller
+    [WyControllerNameConvention]
+    public class WyController<T>:Controller
     {
         public IActionResult Index(){
             return Content(typeof(T).Name);

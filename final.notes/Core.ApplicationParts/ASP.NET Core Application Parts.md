@@ -27,6 +27,8 @@ public class ApplicationPartManager
 
 其中ApplicationPart类、IApplicationFeatureProvider接口，以及PopulateFeature()方法，都会在本文被介绍。
 
+**说明**：本文内容在实际开发中并不常用，属于高级应用。
+
 
 
 ## 应用程序部件介绍 —— ApplicationPart
@@ -129,3 +131,191 @@ services.AddMvc()
 **注意：**ApplicationPartManager.FeatureProviders 集合中的功能提供程序的顺序可能很重要，因为靠后的提供程序可以对前面的提供程序所执行的操作作出反应。
 
 可以通过实现`IApplicationFeatureProvider<T>`接口来定义自己的功能提供程序，并将其添加到ApplicationPartManager.FeatureProviders集合中。
+
+### 示例：使用功能提供程序让MVC支持泛型控制器
+
+默认情况下，ASP.NET Core MVC 会忽略泛型控制器（例如，SomeController<T>）。
+
+ 此示例通过派生自内置的控制器功能提供程序，在默认提供程序后面运行，并为指定的类型集合添加泛型控制器实例，这里的类型集合在EntityTypes.MyTypes中指定，EntityTypes类的代码如下：
+
+```c#
+public class EntityTypes
+{
+    public static IReadOnlyList<TypeInfo> MyTypes = new List<TypeInfo>(){
+        typeof(Student).GetTypeInfo(),
+        typeof(Teacher).GetTypeInfo()
+    };
+
+    //模拟两个类型
+    public class Student { }
+
+    public class Teacher { }
+}
+```
+
+自定义功能提供程序，派生自内置的控制器功能提供程序，它将在默认提供程序之后运行：
+
+```c#
+public class WyControllerFeatureProvider : IApplicationFeatureProvider<ControllerFeature>
+{
+    public void PopulateFeature(
+        IEnumerable<Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPart> parts,
+        ControllerFeature feature)
+    {
+        foreach (var entityType in EntityTypes.MyTypes)
+        {
+            var typeName = entityType.Name + "Controller";
+            if (!feature.Controllers.Any(t => t.Name == typeName))
+            {
+                var s = typeof(WyController<>); //可以添加断点跟踪该值
+				//最重要的部分
+                var controllerType = typeof(WyController<>)
+                .MakeGenericType(entityType.AsType()).GetTypeInfo();
+
+                feature.Controllers.Add(controllerType);
+            }
+        }
+    }
+}
+```
+
+将该功能提供程序添加到ApplicationPartManager.FeatureProviders集合中：
+
+```c#
+services.AddMvc()
+.ConfigureApplicationPartManager(apm =>
+{
+   apm.FeatureProviders.Add(new WyControllerFeatureProvider());
+    
+}).SetCompatibilityVersion(Microsoft.AspNetCore.Mvc.CompatibilityVersion.Version_2_2);
+```
+
+默认情况下，用于路由的泛型控制器名称的格式为WyController`1[Student]，而不是Student，为了使控制器使用的泛型类型对应，创建下述特性用于修改控制器名称：
+
+```c#
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
+public class WyControllerNameConvention : Attribute, IControllerModelConvention
+{
+    public void Apply(ControllerModel controller)
+    {
+        if (controller.ControllerType.GetGenericTypeDefinition() != typeof(WyController<>))
+        {
+            return;
+        }
+
+        var entityType = controller.ControllerType.GetGenericArguments()[0];
+        controller.ControllerName = entityType.Name;
+    }
+}
+```
+
+创建泛型控制器，使用上述定义的特性即可：
+
+```c#
+[WyControllerNameConvention]
+public class WyController<T> : Controller
+{
+    public IActionResult Index()
+    {
+        return Content(typeof(T).Name);
+    }
+}
+```
+
+直接运行程序，当请求匹配的路由时，例如使用以下Url访问，可以得到正确的响应：
+
+```
+http://localhost:5000/student
+```
+
+### ApplicationPartManager.PopulateFeature()
+
+可以通过调用ApplicationPartManager的PopulateFeature()方法，来填充相应的功能提供程序的实例。
+
+以下代码通过依赖关系注入请求 ApplicationPartManager，并用它来填充相应功能的实例：
+
+```c#
+public class FeaturesController : Controller
+{
+    private readonly ApplicationPartManager _partManager;
+
+    public FeaturesController(ApplicationPartManager partManager)
+    {
+        _partManager = partManager;
+    }
+
+    public IActionResult Index()
+    {
+        var viewModel = new FeaturesViewModel();
+
+        var controllerFeature = new ControllerFeature();
+        _partManager.PopulateFeature(controllerFeature);
+        viewModel.Controllers = controllerFeature.Controllers.ToList();
+
+        var metaDataReferenceFeature = new MetadataReferenceFeature();
+        _partManager.PopulateFeature(metaDataReferenceFeature);
+        viewModel.MetadataReferences = metaDataReferenceFeature.MetadataReferences.ToList();
+
+        var tagHelperFeature = new TagHelperFeature();
+        _partManager.PopulateFeature(tagHelperFeature);
+        viewModel.TagHelpers = tagHelperFeature.TagHelpers.ToList();
+
+        var viewComponentFeature = new ViewComponentFeature();
+        _partManager.PopulateFeature(viewComponentFeature);
+        viewModel.ViewComponents = viewComponentFeature.ViewComponents.ToList();
+
+        return View(viewModel);
+    }
+}
+```
+
+FeaturesViewModel.cs：
+
+```c#
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis;
+
+using TypeInfo = System.Reflection.TypeInfo;
+
+namespace My.ApplicationParts.Study.ViewModels
+{
+    public class FeaturesViewModel
+    {
+        public List<TypeInfo> Controllers { get; set; }
+
+        public List<MetadataReference> MetadataReferences { get; set; }
+
+        public List<TypeInfo> TagHelpers { get; set; }
+
+        public List<TypeInfo> ViewComponents { get; set; }
+    }
+}
+```
+
+\Views\Features\Index.cshtml：
+
+```c#
+@{
+    ViewData["Title"] = "Home Page";
+}
+@namespace My.ApplicationParts.Study
+@using ViewModels
+
+@model FeaturesViewModel
+
+<h1>Features</h1>
+
+<b>Controllers:</b>
+<div class="pre-scrollable" style="max-height:100px">
+    <ul>
+        @foreach (var item in Model.Controllers)
+        {
+            <li>@item.Name</li>
+        }
+    </ul>
+</div>
+...
+```
+
+
+

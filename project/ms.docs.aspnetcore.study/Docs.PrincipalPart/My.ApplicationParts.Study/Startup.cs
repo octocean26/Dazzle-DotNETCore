@@ -30,16 +30,16 @@ namespace My.ApplicationParts.Study
             services.AddMvc()
             .ConfigureApplicationPartManager(apm =>
             {
-                var aps = apm.ApplicationParts;
+                //var aps = apm.ApplicationParts;
 
-                var dependentLibrary = apm.ApplicationParts.FirstOrDefault(part => part.Name == "SmallZ");
-                if (dependentLibrary != null)
-                {
-                    apm.ApplicationParts.Remove(dependentLibrary);
-                }
+                //var dependentLibrary = apm.ApplicationParts.FirstOrDefault(part => part.Name == "SmallZ");
+                //if (dependentLibrary != null)
+                //{
+                //    apm.ApplicationParts.Remove(dependentLibrary);
+                //}
 
 
-                    apm.FeatureProviders.Add(new GenericControllerFeatureProvider());
+               apm.FeatureProviders.Add(new WyControllerFeatureProvider());
 
             })
 

@@ -8,11 +8,11 @@ using Microsoft.AspNetCore.Mvc.ApplicationModels;
 namespace My.ApplicationParts.Study
 {
     [AttributeUsage(AttributeTargets.Class,AllowMultiple =false,Inherited =true)]
-    public class GenericControllerNameConvention : Attribute, IControllerModelConvention
+    public class WyControllerNameConvention : Attribute, IControllerModelConvention
     {
         public void Apply(ControllerModel controller)
         {
-             if(controller.ControllerType.GetGenericTypeDefinition()!=typeof(GenericController<>))
+             if(controller.ControllerType.GetGenericTypeDefinition()!=typeof(WyController<>))
              {
                 return;
              }
