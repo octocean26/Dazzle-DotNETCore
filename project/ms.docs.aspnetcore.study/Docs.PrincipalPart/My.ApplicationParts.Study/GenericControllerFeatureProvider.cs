@@ -14,6 +14,7 @@ namespace My.ApplicationParts.Study
         
         public void PopulateFeature(IEnumerable<Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPart> parts, ControllerFeature feature)
         {
+            
             foreach (var entityType in EntityTypes.Types)
             {
                 var typeName = entityType.Name + "Controller";

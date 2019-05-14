@@ -101,10 +101,15 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Application Parts ( 应用部件 )", "Application Parts ( 应用部件 )", "{7990E07F-997C-4219-AC3C-3E61E910A59B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "My.ApplicationParts.Study", "My.ApplicationParts.Study\My.ApplicationParts.Study.csproj", "{3F112452-A52A-4227-AABA-E0F05A9A5D07}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B3EB2FDB-830C-446A-BB19-37EC76273461} = {B3EB2FDB-830C-446A-BB19-37EC76273461}
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "My.ApplicationPart.Wy.Study", "My.ApplicationPart.Wy.Study\My.ApplicationPart.Wy.Study.csproj", "{E163E3EB-4C2A-4E78-8273-147D39B6C279}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "My.ApplicationPart.Wy.Study", "My.ApplicationPart.Wy.Study\My.ApplicationPart.Wy.Study.csproj", "{E163E3EB-4C2A-4E78-8273-147D39B6C279}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "My.ApplicationPart.SmallZ.Study", "My.ApplicationPart.SmallZ.Study\My.ApplicationPart.SmallZ.Study.csproj", "{1611DFC6-AEA7-43BA-8516-7308AB85EDE5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "My.ApplicationPart.SmallZ.Study", "My.ApplicationPart.SmallZ.Study\My.ApplicationPart.SmallZ.Study.csproj", "{1611DFC6-AEA7-43BA-8516-7308AB85EDE5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "My.ApplicationPart.Test.Study", "My.ApplicationPart.Test.Study\My.ApplicationPart.Test.Study.csproj", "{B3EB2FDB-830C-446A-BB19-37EC76273461}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -192,6 +197,10 @@ Global
 		{1611DFC6-AEA7-43BA-8516-7308AB85EDE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1611DFC6-AEA7-43BA-8516-7308AB85EDE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1611DFC6-AEA7-43BA-8516-7308AB85EDE5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3EB2FDB-830C-446A-BB19-37EC76273461}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3EB2FDB-830C-446A-BB19-37EC76273461}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3EB2FDB-830C-446A-BB19-37EC76273461}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3EB2FDB-830C-446A-BB19-37EC76273461}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -245,6 +254,7 @@ Global
 		{3F112452-A52A-4227-AABA-E0F05A9A5D07} = {7990E07F-997C-4219-AC3C-3E61E910A59B}
 		{E163E3EB-4C2A-4E78-8273-147D39B6C279} = {7990E07F-997C-4219-AC3C-3E61E910A59B}
 		{1611DFC6-AEA7-43BA-8516-7308AB85EDE5} = {7990E07F-997C-4219-AC3C-3E61E910A59B}
+		{B3EB2FDB-830C-446A-BB19-37EC76273461} = {7990E07F-997C-4219-AC3C-3E61E910A59B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {99CCB8A3-AB08-42F1-934C-B684FA6433FB}

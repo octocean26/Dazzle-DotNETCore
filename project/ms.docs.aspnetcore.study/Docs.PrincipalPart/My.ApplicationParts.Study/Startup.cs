@@ -17,27 +17,33 @@ namespace My.ApplicationParts.Study
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            var assembly = typeof(Startup).GetTypeInfo().Assembly;
-            var part = new AssemblyPart(assembly);
+            //var assembly = typeof(Startup).GetTypeInfo();
+            //var part = new AssemblyPart(assembly);
+
+
+
+
+            //var testAssembly = Assembly.Load("My.ApplicationPart.Test.Study");
+
 
 
             services.AddMvc()
-            .AddApplicationPart(assembly)
-            .ConfigureApplicationPartManager(apm => {
-                apm.ApplicationParts.Add(part);
+            .ConfigureApplicationPartManager(apm =>
+            {
+                var aps = apm.ApplicationParts;
 
-               var dependentLibrary =apm.ApplicationParts.FirstOrDefault(part2 => part2.Name == "SmallZ");
-               if(dependentLibrary!=null)
-               {
+                var dependentLibrary = apm.ApplicationParts.FirstOrDefault(part => part.Name == "SmallZ");
+                if (dependentLibrary != null)
+                {
                     apm.ApplicationParts.Remove(dependentLibrary);
-               }
+                }
 
 
-                apm.FeatureProviders.Add(new GenericControllerFeatureProvider());
-               
+                    apm.FeatureProviders.Add(new GenericControllerFeatureProvider());
+
             })
 
-            
+
             .SetCompatibilityVersion(Microsoft.AspNetCore.Mvc.CompatibilityVersion.Version_2_2);
 
         }
