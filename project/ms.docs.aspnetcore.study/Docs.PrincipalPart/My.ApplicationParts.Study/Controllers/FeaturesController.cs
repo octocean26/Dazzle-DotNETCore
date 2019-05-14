@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
@@ -13,7 +9,7 @@ using My.ApplicationParts.Study.ViewModels;
 
 namespace My.ApplicationParts.Study.Controllers
 {
-    public class FeaturesController:Controller
+    public class FeaturesController : Controller
     {
         private readonly ApplicationPartManager _partManager;
 
@@ -22,7 +18,8 @@ namespace My.ApplicationParts.Study.Controllers
             _partManager = partManager;
         }
 
-        public IActionResult Index(){
+        public IActionResult Index()
+        {
             var viewModel = new FeaturesViewModel();
 
             var controllerFeature = new ControllerFeature();
@@ -37,16 +34,11 @@ namespace My.ApplicationParts.Study.Controllers
             _partManager.PopulateFeature(tagHelperFeature);
             viewModel.TagHelpers = tagHelperFeature.TagHelpers.ToList();
 
-
             var viewComponentFeature = new ViewComponentFeature();
             _partManager.PopulateFeature(viewComponentFeature);
             viewModel.ViewComponents = viewComponentFeature.ViewComponents.ToList();
 
-
             return View(viewModel);
-
         }
-        
-
     }
 }
