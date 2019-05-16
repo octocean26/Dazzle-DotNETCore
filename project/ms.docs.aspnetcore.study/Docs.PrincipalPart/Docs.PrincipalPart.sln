@@ -109,7 +109,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "My.ApplicationPart.Wy.Study
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "My.ApplicationPart.SmallZ.Study", "My.ApplicationPart.SmallZ.Study\My.ApplicationPart.SmallZ.Study.csproj", "{1611DFC6-AEA7-43BA-8516-7308AB85EDE5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "My.ApplicationPart.Test.Study", "My.ApplicationPart.Test.Study\My.ApplicationPart.Test.Study.csproj", "{B3EB2FDB-830C-446A-BB19-37EC76273461}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "My.ApplicationPart.Test.Study", "My.ApplicationPart.Test.Study\My.ApplicationPart.Test.Study.csproj", "{B3EB2FDB-830C-446A-BB19-37EC76273461}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Model Binding ( 模型绑定 )", "Model Binding ( 模型绑定 )", "{055EC62D-7988-45FC-BB92-72C25B0D87D1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "My.CustomModelBinding.Study", "My.CustomModelBinding.Study\My.CustomModelBinding.Study.csproj", "{DA0FA7C7-00F2-4ED0-922A-691BF139A480}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -201,6 +205,10 @@ Global
 		{B3EB2FDB-830C-446A-BB19-37EC76273461}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B3EB2FDB-830C-446A-BB19-37EC76273461}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B3EB2FDB-830C-446A-BB19-37EC76273461}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA0FA7C7-00F2-4ED0-922A-691BF139A480}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA0FA7C7-00F2-4ED0-922A-691BF139A480}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA0FA7C7-00F2-4ED0-922A-691BF139A480}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA0FA7C7-00F2-4ED0-922A-691BF139A480}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -255,6 +263,8 @@ Global
 		{E163E3EB-4C2A-4E78-8273-147D39B6C279} = {7990E07F-997C-4219-AC3C-3E61E910A59B}
 		{1611DFC6-AEA7-43BA-8516-7308AB85EDE5} = {7990E07F-997C-4219-AC3C-3E61E910A59B}
 		{B3EB2FDB-830C-446A-BB19-37EC76273461} = {7990E07F-997C-4219-AC3C-3E61E910A59B}
+		{055EC62D-7988-45FC-BB92-72C25B0D87D1} = {C0284FBA-F7EC-4548-A940-28E7C73CFA8B}
+		{DA0FA7C7-00F2-4ED0-922A-691BF139A480} = {055EC62D-7988-45FC-BB92-72C25B0D87D1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {99CCB8A3-AB08-42F1-934C-B684FA6433FB}
