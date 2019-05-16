@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace My.CustomModelBinding.Study.Data
 {
@@ -14,6 +8,6 @@ namespace My.CustomModelBinding.Study.Data
         {
         }
 
-        public DbSet<Student> Students {get;set;}
+        public DbSet<Student> Students { get; set; }
     }
 }

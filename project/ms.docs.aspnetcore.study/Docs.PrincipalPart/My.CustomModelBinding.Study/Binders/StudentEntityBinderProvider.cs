@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using My.CustomModelBinding.Study.Data;
@@ -11,16 +7,15 @@ namespace My.CustomModelBinding.Study.Binders
 {
     public class StudentEntityBinderProvider : IModelBinderProvider
     {
-
-    
         public IModelBinder GetBinder(ModelBinderProviderContext context)
         {
-            if(context==null){
+            if (context == null)
+            {
                 throw new ArgumentNullException(nameof(context));
-
             }
             //判断当前实例表示的模型类型是否为Student
-            if (context.Metadata.ModelType==typeof(Student)){
+            if (context.Metadata.ModelType == typeof(Student))
+            {
                 return new BinderTypeModelBinder(typeof(StudentEntityBinder));
             }
 
