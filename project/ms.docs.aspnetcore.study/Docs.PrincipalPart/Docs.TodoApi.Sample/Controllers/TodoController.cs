@@ -64,9 +64,9 @@ namespace Docs.TodoApi.Sample.Controllers
 
         #region PUT
         [HttpPut]
-        public async Task<IActionResult> PutTodoItem(long id,TodoItem item)
+        public async Task<IActionResult> PutTodoItem(long id, TodoItem item)
         {
-            if(id!=item.Id)
+            if (id != item.Id)
             {
                 return BadRequest();
             }
@@ -81,10 +81,10 @@ namespace Docs.TodoApi.Sample.Controllers
 
         #region DELETE
         [HttpDelete("{id}")]
-        public async Task<IActionResult > DeleteTodoItem(long id)
+        public async Task<IActionResult> DeleteTodoItem(long id)
         {
             var todoItem = await _context.TodoItems.FindAsync(id);
-            if(todoItem==null)
+            if (todoItem == null)
             {
                 return NotFound();
             }
@@ -94,6 +94,17 @@ namespace Docs.TodoApi.Sample.Controllers
             return NoContent();
         }
         #endregion
+
+        [HttpGet("Search")]
+        public IActionResult Search(string namelike)
+        {
+            if (_context.TodoItems.Any(a => a.Name == namelike))
+            {
+                return Ok();
+            }
+            return NotFound(namelike);
+        }
+
 
     }
 }
