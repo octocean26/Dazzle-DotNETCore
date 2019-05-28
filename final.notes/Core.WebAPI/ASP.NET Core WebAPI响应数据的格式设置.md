@@ -166,3 +166,282 @@ public class ProductsController
 | `/products/GetById/5.json` | JSON 格式化程序（如配置） |
 | `/products/GetById/5.xml`  | XML 格式化程序（如配置）  |
 
+
+
+## 自定义格式化程序
+
+默认情况下，ASP.NET Core MVC 使用 JSON 或 XML，为 Web API 中的数据交换提供内置支持。通过创建自定义格式化程序，可以添加对其他格式的支持。例如上文中提到的内容协商，如果希望在内容协商的过程中支持内置格式化程序（JSON 和 XML）所不支持的其他内容类型，可使用自定义格式化程序。
+
+### 创建和使用自定义格式化程序的步骤
+
+- 如果想对服务器端发送的数据进行序列化，则创建输出格式化程序类
+- 如果想对服务器端接收的数据进行反序列化，则创建输入格式化程序类
+- 将格式化程序的实例添加到 MvcOptions 中的 InputFormatters 和 OutputFormatters 集合
+
+### 创建自定义格式化程序类
+
+若要创建格式化程序，需要执行以下操作：
+
+- 创建派生自相应基类的程序类
+- 在构造函数中指定有效的媒体类型和编码
+- 重写 `CanReadType`/`CanWriteType(或CanWriteResult)` 方法
+- 重写 `ReadRequestBodyAsync`/`WriteResponseBodyAsync` 方法
+
+#### 第一步：创建派生自相应基类的程序类
+
+- 文本类型：从[TextInputFormatter](https://docs.microsoft.com/zh-cn/dotnet/api/microsoft.aspnetcore.mvc.formatters.textinputformatter) 或 [TextOutputFormatter](https://docs.microsoft.com/zh-cn/dotnet/api/microsoft.aspnetcore.mvc.formatters.textoutputformatter) 基类派生。例如：
+
+  ```c#
+  public class VcardOutputFormatter : TextOutputFormatter
+  或
+  public class VcardInputFormatter : TextInputFormatter
+  ```
+
+- 二进制类型：从 [InputFormatter](https://docs.microsoft.com/zh-cn/dotnet/api/microsoft.aspnetcore.mvc.formatters.inputformatter) 或 [OutputFormatter](https://docs.microsoft.com/zh-cn/dotnet/api/microsoft.aspnetcore.mvc.formatters.outputformatter) 基类派生。
+
+#### 第二步：在构造函数中，指定有效的媒体类型和编码
+
+在构造函数中，通过添加到 SupportedMediaTypes 和 SupportedEncodings 集合来指定有效的媒体类型和编码。
+
+VcardOutputFormatter.cs：
+
+```c#
+public class VcardOutputFormatter : TextOutputFormatter
+{
+    public VcardOutputFormatter()
+    {
+        SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("text/vcard"));
+
+        SupportedEncodings.Add(Encoding.UTF8);
+        SupportedEncodings.Add(Encoding.Unicode);
+    }
+}
+```
+
+VcardInputFormatter.cs：
+
+```c#
+public class VcardInputFormatter : TextInputFormatter
+{
+    public VcardInputFormatter()
+    {
+        SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("text/vcard"));
+
+        SupportedEncodings.Add(Encoding.UTF8);
+        SupportedEncodings.Add(Encoding.Unicode);
+    }
+}
+```
+
+**注意：**不能在格式化程序类中执行构造函数依赖关系注入。 例如，不能通过向构造函数添加记录器参数来获取记录器。 若要访问服务，必须使用传递到方法的上下文对象。 下文中的代码示例（见第四步）展示了如何执行此操作。
+
+#### 第三步：重写 CanReadType/CanWriteType（或CanWriteResult）方法
+
+通过重写 CanReadType 或 CanWriteType 方法，指定可反序列化为的类型，或从其序列化的类型。
+
+下面示例指定只能从Contact类型创建vCard文本，反之亦然：
+
+VcardOutputFormatter.cs：
+
+```c#
+public class VcardOutputFormatter : TextOutputFormatter
+{
+    public VcardOutputFormatter()
+    {
+       ...//见上文代码
+    }
+
+    protected override bool CanWriteType(Type type)
+    {
+        if (typeof(Contact).IsAssignableFrom(type) 
+            || typeof(IEnumerable<Contact>).IsAssignableFrom(type))
+        {
+            return base.CanWriteType(type);
+        }
+        return false;
+    }
+}
+```
+
+VcardInputFormatter.cs：
+
+```c#
+public class VcardInputFormatter : TextInputFormatter
+{
+    public VcardInputFormatter()
+    {
+        ...//见上文
+    }
+
+    protected override bool CanReadType(Type type)
+    {
+        if (type == typeof(Contact))
+        {
+            return base.CanReadType(type);
+        }
+        return false;
+    }
+}
+```
+
+##### CanWriteResult 方法
+
+在某些情况下，必须重写 `CanWriteResult`，而不是 `CanWriteType`。 如果同时满足以下条件，则使用 `CanWriteResult`：
+
+- 操作方法返回模型类。
+- 具有可能在运行时返回的派生类。
+- 需要知道操作在运行时返回了哪个派生类。
+
+例如，假设操作方法签名返回 `Person` 类型，但它可能返回从 `Person` 派生的 `Student` 或 `Instructor` 子类型。 如果希望格式化程序仅处理 `Student` 对象，请检查提供给 `CanWriteResult` 方法的上下文对象中的[OutputFormatterCanWriteContext](https://docs.microsoft.com/zh-cn/dotnet/api/microsoft.aspnetcore.mvc.formatters.outputformattercanwritecontext#Microsoft_AspNetCore_Mvc_Formatters_OutputFormatterCanWriteContext_Object)类型。 请注意，当操作方法返回 `IActionResult` 时，不必使用 `CanWriteResult`；在这种情况下，`CanWriteType` 方法可接收运行时类型。
+
+#### 第四步：重写 `ReadRequestBodyAsync`/`WriteResponseBodyAsync` 方法
+
+实际的反序列化或序列化工作在 ReadRequestBodyAsync 或 WriteResponseBodyAsync 中执行。
+
+下述代码展示了如何从依赖关系注入容器中获取服务（不能从构造函数参数中获取它们）。
+
+VcardOutputFormatter.cs：
+
+```c#
+public class VcardOutputFormatter : TextOutputFormatter
+{
+    public VcardOutputFormatter()
+    {
+    	...//见上文
+    }
+
+    protected override bool CanWriteType(Type type)
+    {
+    	...//见上文
+    }
+
+    public override async Task WriteResponseBodyAsync(OutputFormatterWriteContext context, Encoding selectedEncoding)
+    {
+        IServiceProvider serviceProvider = context.HttpContext.RequestServices;
+        var logger = serviceProvider.GetService(typeof(ILogger<VcardOutputFormatter>)) as ILogger;
+
+        var response = context.HttpContext.Response;
+
+        var buffer = new StringBuilder();
+        if (context.Object is IEnumerable<Contact>)
+        {
+            foreach (Contact contact in context.Object as IEnumerable<Contact>)
+            {
+                FormatVcard(buffer, contact, logger);
+            }
+        }
+        else
+        {
+            var contact = context.Object as Contact;
+            FormatVcard(buffer, contact, logger);
+        }
+        await response.WriteAsync(buffer.ToString());
+    }
+
+    private static void FormatVcard(StringBuilder buffer, Contact contact, ILogger logger)
+    {
+        buffer.AppendLine("BEGIN:VCARD");
+        buffer.AppendLine("VERSION:2.1");
+        buffer.AppendFormat($"N:{contact.LastName};{contact.FirstName}\r\n");
+        buffer.AppendFormat($"FN:{contact.FirstName} {contact.LastName}\r\n");
+        buffer.AppendFormat($"UID:{contact.ID}\r\n");
+        buffer.AppendLine("END:VCARD");
+        logger.LogInformation($"Writing {contact.FirstName} {contact.LastName}");
+    }
+}
+```
+
+VcardInputFormatter.cs：
+
+```c#
+public class VcardInputFormatter : TextInputFormatter
+{
+    public VcardInputFormatter()
+    {
+    	...//见上文
+    }
+
+    protected override bool CanReadType(Type type)
+    {
+    	...//见上文
+    }
+
+    public override async Task<InputFormatterResult> ReadRequestBodyAsync(InputFormatterContext context, Encoding effectiveEncoding)
+    {
+        if (context == null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        if (effectiveEncoding == null)
+        {
+            throw new ArgumentNullException(nameof(effectiveEncoding));
+        }
+
+        var request = context.HttpContext.Request;
+
+        using (var reader = new StreamReader(request.Body, effectiveEncoding))
+        {
+            try
+            {
+                await ReadLineAsync("BEGIN:VCARD", reader, context);
+                await ReadLineAsync("VERSION:2.1", reader, context);
+
+                var nameLine = await ReadLineAsync("N:", reader, context);
+                var split = nameLine.Split(";".ToCharArray());
+                var contact = new Contact() { LastName = split[0].Substring(2), FirstName = split[1] };
+
+                await ReadLineAsync("FN:", reader, context);
+
+                var idLine = await ReadLineAsync("UID:", reader, context);
+                contact.ID = idLine.Substring(4);
+
+                await ReadLineAsync("END:VCARD", reader, context);
+
+                return await InputFormatterResult.SuccessAsync(contact);
+            }
+            catch
+            {
+                return await InputFormatterResult.FailureAsync();
+            }
+        }
+    }
+
+    private async Task<string> ReadLineAsync(string expectedText, StreamReader reader, InputFormatterContext context)
+    {
+        var line = await reader.ReadLineAsync();
+        if (!line.StartsWith(expectedText))
+        {
+            var errorMessage = $"Looked for '{expectedText}' and got '{line}'";
+            context.ModelState.TryAddModelError(context.ModelName, errorMessage);
+            throw new Exception(errorMessage);
+        }
+        return line;
+    }
+}
+```
+
+### 将 MVC 配置为使用自定义格式化程序
+
+若要使用自定义格式化程序，需要将格式化程序类的实例添加到 InputFormatters 或 OutputFormatters 集合。
+
+```c#
+services.AddMvc(options =>
+{
+    options.InputFormatters.Insert(0, new VcardInputFormatter());
+    options.OutputFormatters.Insert(0, new VcardOutputFormatter());
+})
+.SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+```
+
+**按格式化程序的插入顺序对其进行计算。 第一个优先。**
+
+该程序运行说明：
+
+>若要查看 vCard 输出，请运行该应用程序，并向 http://localhost:63313/api/contacts/（从 Visual Studio 运行时）或 http://localhost:5000/api/contacts/（从命令行运行时）发送具有 Accept 标头“text/vcard”的 Get 请求。
+>若要将 vCard 添加到内存中联系人集合，请向相同的 URL 发送具有 Content-Type 标头“text/vcard”且正文中包含 vCard 文本的 Post 请求，格式化方式与上面的示例类似。
+
+
+
+
+
